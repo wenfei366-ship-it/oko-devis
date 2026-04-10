@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* OKO Devis color system — warm cream paper theme */
+  --bg: #FAFAF8;
+  --bg-cream: #F8F1E0;
+  --bg-cream-soft: #FDFAF0;
+  --surface: #FFFFFF;
+  --surface-alt: #F5F4F0;
+  --ink: #2A2620;
+  --ink-soft: #5C5142;
+  --ink-muted: #968974;
+  --gold: #A8702E;
+  --gold-soft: #CFA56E;
+  --divider: #D9CFB8;
+  --divider-soft: #E8DFC6;
+  --border: #E5E1D6;
+  --danger: #C54B3C;
+  --success: #4B8A5A;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-gold: var(--gold);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-poppins: var(--font-poppins);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Subtle selection color */
+::selection {
+  background: var(--gold);
+  color: #fff;
+}
+
+/* Custom number input — no spinner */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
