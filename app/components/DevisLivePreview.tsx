@@ -237,16 +237,6 @@ export function DevisPreviewContent({
             </p>
           </div>
 
-          {/* Section title */}
-          <div className="flex items-end" style={{ gap: 10, padding: '18px 14px 8px 14px' }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              I.
-            </span>
-            <span style={{ fontSize: 17, fontStyle: 'italic', fontWeight: 700, color: '#2A2620', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.labels.forfaitAnnuel}
-            </span>
-          </div>
-
           {/* Table rows */}
           {vm.items.map((item, idx) => (
             <div key={idx} data-section={`item-${idx}`}>
@@ -393,17 +383,6 @@ export function DevisPreviewContent({
           </div>
         </div>
 
-        {/* TVA + TTC below (France only) */}
-        {vm.isFrance && (
-          <div className="mt-2 text-right space-y-0.5">
-            <p style={{ fontSize: 11, color: '#5C5142' }}>
-              {vm.labels.tva} : {vm.totalsFormatted.tva}
-            </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#2A2620' }}>
-              {vm.labels.totalTtc} : {vm.totalsFormatted.total}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* ═══ Soft divider ═══ */}
