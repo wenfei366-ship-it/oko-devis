@@ -172,6 +172,36 @@ describe('buildViewModel custom line units', () => {
   })
 })
 
+describe('buildViewModel item groups', () => {
+  it('separates recurring, one-off fee, and hardware lines', () => {
+    const devis = mkDevis([
+      mkLine({ id: 'recurring', serviceId: 'reservation', pdfSection: 'forfait', recurringEligible: true }),
+      mkLine({
+        id: 'fee',
+        serviceId: 'website-setup',
+        billingCadence: 'oneOff',
+        pdfSection: 'fees',
+        recurringEligible: false,
+        qty: 1,
+        unit: 'unique',
+      }),
+      mkLine({
+        id: 'hardware',
+        serviceId: 'printer-wifi',
+        billingCadence: 'oneOff',
+        pdfSection: 'hardware',
+        recurringEligible: false,
+        qty: 1,
+        unit: 'unique',
+      }),
+    ])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.groupedItems.map((group) => group.key)).toEqual(['recurring', 'oneOffFees', 'hardware'])
+    expect(vm.groupedItems.map((group) => group.items.length)).toEqual([1, 1, 1])
+  })
+})
+
 describe('buildViewModel localized document title', () => {
   it('keeps DEVIS for French documents', () => {
     const devis = mkDevis([mkLine()])

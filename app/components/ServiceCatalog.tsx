@@ -74,7 +74,7 @@ export default function ServiceCatalog() {
       unit,
       unitPrice: price,
       billingCadence: customCadence,
-      pdfSection: 'complement',
+      pdfSection: customCadence === 'monthly' ? 'forfait' : 'complement',
       recurringEligible: customCadence === 'monthly',
     }
     dispatch({ type: 'ADD_CUSTOM_LINE', item })
@@ -216,7 +216,7 @@ export default function ServiceCatalog() {
           <div className="flex gap-2">
             <input
               type="number"
-              placeholder="€"
+              placeholder="€（0 = 免费赠送）"
               value={customPrice}
               onChange={(e) => setCustomPrice(e.target.value)}
               className="flex-1 text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none"

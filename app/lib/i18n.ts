@@ -31,6 +31,7 @@ export const LABELS = {
   totalNoTax: { fr: 'TOTAL', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
   tva: { fr: 'TVA 20 %', it: '—', es: '—', de: '—', zh: '—' } as I18nString,
   totalTtc: { fr: 'TOTAL TTC', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
+  oneOffTotal: { fr: 'Frais ponctuels à régler une fois', it: 'Costi una tantum da pagare', es: 'Costes puntuales a pagar una vez', de: 'Einmalige Zusatzkosten', zh: '一次性费用合计' } as I18nString,
 
   // Tariff comparison card
   tarifNormal: { fr: 'Tarif normal', it: 'Prezzo normale', es: 'Precio normal', de: 'Normalpreis', zh: '原价' } as I18nString,

@@ -183,6 +183,26 @@ export const s = StyleSheet.create({
     letterSpacing: 1.5,
     textAlign: 'right',
   },
+  tableSectionHeader: {
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.gold,
+    backgroundColor: COLORS.cream,
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    marginTop: 4,
+  },
+  tableSectionTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: COLORS.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  tableSectionSubtitle: {
+    fontSize: 7,
+    color: COLORS.inkSoft,
+    marginTop: 1,
+  },
 
   // Table row
   tableRow: {
@@ -241,6 +261,30 @@ export const s = StyleSheet.create({
     gap: 12,
     marginTop: 6,
     marginBottom: 8,
+  },
+  oneOffSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.cream,
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.goldAccent,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  oneOffSummaryLabel: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: COLORS.inkSoft,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  oneOffSummaryValue: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: COLORS.ink,
   },
   dualCard: {
     flex: 1,

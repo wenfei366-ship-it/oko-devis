@@ -77,7 +77,7 @@ export function DevisPDF({ vm }: DevisPDFProps) {
         <View style={s.divider} />
 
         {/* Items table */}
-        {vm.items.length > 0 && (
+        {vm.groupedItems.length > 0 && (
           <>
             {/* Table header */}
             <View style={s.tableHeader}>
@@ -87,18 +87,26 @@ export function DevisPDF({ vm }: DevisPDFProps) {
               <Text style={s.thTotal}>{vm.labels.lineTotal}</Text>
             </View>
 
-            {/* Table rows */}
-            {vm.items.map((item, idx) => (
-              <View key={idx} wrap={false} style={s.tableRow}>
-                <View style={s.tdDesignation}>
-                  <Text style={s.tdName}>{item.name}</Text>
-                  {item.description ? (
-                    <Text style={s.tdDesc}>{item.description}</Text>
-                  ) : null}
+            {/* Table rows grouped by billing meaning */}
+            {vm.groupedItems.map((group) => (
+              <View key={group.key}>
+                <View style={s.tableSectionHeader} wrap={false}>
+                  <Text style={s.tableSectionTitle}>{group.title}</Text>
+                  <Text style={s.tableSectionSubtitle}>{group.subtitle}</Text>
                 </View>
-                <Text style={s.tdQty}>{item.qtyLabel}</Text>
-                <Text style={s.tdUnitPrice}>{item.unitPriceLabel}</Text>
-                <Text style={s.tdTotal}>{item.lineAmountLabel}</Text>
+                {group.items.map((item, idx) => (
+                  <View key={`${group.key}-${idx}`} wrap={false} style={s.tableRow}>
+                    <View style={s.tdDesignation}>
+                      <Text style={s.tdName}>{item.name}</Text>
+                      {item.description ? (
+                        <Text style={s.tdDesc}>{item.description}</Text>
+                      ) : null}
+                    </View>
+                    <Text style={s.tdQty}>{item.qtyLabel}</Text>
+                    <Text style={s.tdUnitPrice}>{item.unitPriceLabel}</Text>
+                    <Text style={s.tdTotal}>{item.lineAmountLabel}</Text>
+                  </View>
+                ))}
               </View>
             ))}
           </>
@@ -156,6 +164,12 @@ export function DevisPDF({ vm }: DevisPDFProps) {
                 ) : null}
               </View>
             </View>
+            {vm.totals.oneOffTotal > 0 ? (
+              <View style={s.oneOffSummary}>
+                <Text style={s.oneOffSummaryLabel}>{vm.labels.oneOffTotal}</Text>
+                <Text style={s.oneOffSummaryValue}>{formatEuro(vm.totals.oneOffTotal)}</Text>
+              </View>
+            ) : null}
           </View>
         )}
 

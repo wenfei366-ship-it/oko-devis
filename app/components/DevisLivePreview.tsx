@@ -254,7 +254,7 @@ export function DevisPreviewContent({
       <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
 
       {/* ═══ Items table ═══ */}
-      {vm.items.length > 0 && (
+      {vm.groupedItems.length > 0 && (
         <div style={{ padding: '20px 64px 0' }}>
           {/* Table header — dashed border + beige bg */}
           <div
@@ -281,92 +281,114 @@ export function DevisPreviewContent({
             <span aria-hidden />
           </div>
 
-          {/* Table rows */}
-          {vm.items.map((item, idx) => (
-            <div key={idx} data-section={`item-${idx}`}>
+          {/* Table rows grouped by billing meaning */}
+          {vm.groupedItems.map((group) => (
+            <div key={group.key}>
               <div
-                className="grid grid-cols-[1fr_120px_100px_100px_24px]"
-                style={{ padding: '12px 14px' }}
+                style={{
+                  padding: '10px 14px 6px',
+                  marginTop: 6,
+                  backgroundColor: group.key === 'recurring' ? '#F8EFDC' : '#EFE3C6',
+                  borderLeft: '3px solid #B8922F',
+                }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#2A2620' }}>{item.name}</p>
-                  {item.description && (
-                    <div style={{ fontSize: 10, color: '#5C5142', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-                      {item.description}
-                    </div>
-                  )}
-                </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
-                  {onQtyChange && item.kind === 'line' ? (
-                    <EditableField
-                      value={item.qtyLabel}
-                      fieldName="quantité"
-                      onSave={(raw) => {
-                        const num = parseFloat(raw)
-                        if (!isNaN(num) && num > 0) onQtyChange(idx, num)
-                      }}
-                    />
-                  ) : (
-                    item.qtyLabel
-                  )}
-                </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
-                  {onPriceChange && item.kind === 'line' ? (
-                    <EditableField
-                      value={item.unitPriceLabel}
-                      fieldName="prix unitaire"
-                      onSave={(raw) => {
-                        const cleaned = raw.replace(/[€\s]/g, '').replace(',', '.')
-                        const num = parseFloat(cleaned)
-                        if (!isNaN(num) && num >= 0) onPriceChange(idx, num)
-                      }}
-                    />
-                  ) : (
-                    item.unitPriceLabel
-                  )}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right' }}>
-                  {onTotalChange ? (
-                    <EditableField
-                      value={item.lineAmountLabel}
-                      fieldName="total"
-                      onSave={(raw) => {
-                        const cleaned = raw.replace(/[€\s\u00a0\u202f]/g, '').replace(',', '.')
-                        const num = parseFloat(cleaned)
-                        if (!isNaN(num) && num >= 0) onTotalChange(idx, num)
-                      }}
-                    />
-                  ) : (
-                    item.lineAmountLabel
-                  )}
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  {onRemoveItem && (
-                    <button
-                      type="button"
-                      onClick={() => onRemoveItem(idx)}
-                      aria-label={`Supprimer ${item.name}`}
-                      title="Supprimer"
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 4,
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        color: '#9B2A2A',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        lineHeight: '18px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
+                <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: '#A8702E', textTransform: 'uppercase' }}>
+                  {group.title}
+                </p>
+                <p style={{ fontSize: 9, color: '#6B5A3D', marginTop: 1 }}>
+                  {group.subtitle}
+                </p>
               </div>
-              {/* Row divider */}
-              <div style={{ height: 0.5, backgroundColor: '#E8DFC6' }} />
+
+              {group.items.map((item) => {
+                const idx = vm.items.indexOf(item)
+                return (
+                  <div key={idx} data-section={`item-${idx}`}>
+                    <div
+                      className="grid grid-cols-[1fr_120px_100px_100px_24px]"
+                      style={{ padding: '12px 14px' }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#2A2620' }}>{item.name}</p>
+                        {item.description && (
+                          <div style={{ fontSize: 10, color: '#5C5142', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+                            {item.description}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                        {onQtyChange && item.kind === 'line' ? (
+                          <EditableField
+                            value={item.qtyLabel}
+                            fieldName="quantité"
+                            onSave={(raw) => {
+                              const num = parseFloat(raw)
+                              if (!isNaN(num) && num > 0) onQtyChange(idx, num)
+                            }}
+                          />
+                        ) : (
+                          item.qtyLabel
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                        {onPriceChange && item.kind === 'line' ? (
+                          <EditableField
+                            value={item.unitPriceLabel}
+                            fieldName="prix unitaire"
+                            onSave={(raw) => {
+                              const cleaned = raw.replace(/[€\s]/g, '').replace(',', '.')
+                              const num = parseFloat(cleaned)
+                              if (!isNaN(num) && num >= 0) onPriceChange(idx, num)
+                            }}
+                          />
+                        ) : (
+                          item.unitPriceLabel
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right' }}>
+                        {onTotalChange ? (
+                          <EditableField
+                            value={item.lineAmountLabel}
+                            fieldName="total"
+                            onSave={(raw) => {
+                              const cleaned = raw.replace(/[€\s\u00a0\u202f]/g, '').replace(',', '.')
+                              const num = parseFloat(cleaned)
+                              if (!isNaN(num) && num >= 0) onTotalChange(idx, num)
+                            }}
+                          />
+                        ) : (
+                          item.lineAmountLabel
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        {onRemoveItem && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveItem(idx)}
+                            aria-label={`Supprimer ${item.name}`}
+                            title="Supprimer"
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 4,
+                              border: 'none',
+                              backgroundColor: 'transparent',
+                              color: '#9B2A2A',
+                              fontSize: 14,
+                              fontWeight: 700,
+                              lineHeight: '18px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ height: 0.5, backgroundColor: '#E8DFC6' }} />
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
@@ -439,6 +461,27 @@ export function DevisPreviewContent({
               )}
             </div>
           </div>
+          {vm.totals.oneOffTotal > 0 && (
+            <div
+              style={{
+                marginTop: 8,
+                backgroundColor: '#EFE3C6',
+                borderLeft: '3px solid #B8922F',
+                borderRadius: 4,
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.1, color: '#6B5A3D', textTransform: 'uppercase' }}>
+                {vm.labels.oneOffTotal}
+              </span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: '#2A2620' }}>
+                {formatEuro(vm.totals.oneOffTotal)}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

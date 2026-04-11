@@ -10,6 +10,7 @@ import { computeTotals, lineAmount, formatEuro, formatEuroCompact } from './calc
 
 export interface ViewModelItem {
   kind: 'line' | 'package'
+  section: ViewModelItemSection
   name: string
   description: string
   qtyLabel: string
@@ -17,6 +18,15 @@ export interface ViewModelItem {
   lineAmount: number
   lineAmountLabel: string
   childNames?: string[]
+}
+
+export type ViewModelItemSection = 'recurring' | 'oneOffFees' | 'hardware'
+
+export interface ViewModelItemGroup {
+  key: ViewModelItemSection
+  title: string
+  subtitle: string
+  items: ViewModelItem[]
 }
 
 export interface DualCard {
@@ -46,6 +56,7 @@ export interface DevisViewModel {
     totalHT: string
     tva: string
     totalTtc: string
+    oneOffTotal: string
     mensuel: string
     annuel: string
     tarifNormal: string
@@ -84,6 +95,7 @@ export interface DevisViewModel {
     phone: string
   }
   items: ViewModelItem[]
+  groupedItems: ViewModelItemGroup[]
   inclusGratuit: string[]
   bankDetails: { iban: string; bic: string; bank: string }
   conditionsGenerales: string[]
@@ -101,6 +113,78 @@ export interface DevisViewModel {
 }
 
 // ---------- Helpers ----------
+
+const SECTION_LABELS: Record<ViewModelItemSection, { title: Record<Lang, string>; subtitle: Record<Lang, string> }> = {
+  recurring: {
+    title: {
+      fr: 'Abonnement services',
+      it: 'Abbonamento servizi',
+      es: 'Suscripción de servicios',
+      de: 'Service-Abonnement',
+      zh: '订阅服务',
+    },
+    subtitle: {
+      fr: 'Choix mensuel ou annuel',
+      it: 'Scelta mensile o annuale',
+      es: 'Elección mensual o anual',
+      de: 'Monatlich oder jährlich',
+      zh: '可选月费或年费',
+    },
+  },
+  oneOffFees: {
+    title: {
+      fr: 'Frais ponctuels / sur mesure',
+      it: 'Costi una tantum / su misura',
+      es: 'Costes puntuales / a medida',
+      de: 'Einmalige / individuelle Kosten',
+      zh: '一次性 / 定制费用',
+    },
+    subtitle: {
+      fr: 'Payable une seule fois, hors abonnement',
+      it: 'Da pagare una sola volta, fuori abbonamento',
+      es: 'Pago único, fuera de la suscripción',
+      de: 'Einmalig zahlbar, außerhalb des Abonnements',
+      zh: '单独一次性支付，不计入月费',
+    },
+  },
+  hardware: {
+    title: {
+      fr: 'Équipement',
+      it: 'Attrezzatura',
+      es: 'Equipamiento',
+      de: 'Ausstattung',
+      zh: '设备费用',
+    },
+    subtitle: {
+      fr: 'Matériel facturé séparément',
+      it: 'Materiale fatturato separatamente',
+      es: 'Material facturado por separado',
+      de: 'Geräte werden separat berechnet',
+      zh: '设备单独额外一次性支付',
+    },
+  },
+}
+
+function itemSection(item: DevisItem): ViewModelItemSection {
+  if (item.kind === 'package') return 'recurring'
+  if (item.recurringEligible) return 'recurring'
+  return item.pdfSection === 'hardware' ? 'hardware' : 'oneOffFees'
+}
+
+function buildItemGroups(items: ViewModelItem[], lang: Lang): ViewModelItemGroup[] {
+  const order: ViewModelItemSection[] = ['recurring', 'oneOffFees', 'hardware']
+  return order.flatMap((key) => {
+    const groupItems = items.filter((item) => item.section === key)
+    if (groupItems.length === 0) return []
+    const labels = SECTION_LABELS[key]
+    return [{
+      key,
+      title: labels.title[lang],
+      subtitle: labels.subtitle[lang],
+      items: groupItems,
+    }]
+  })
+}
 
 function formatQty(item: DevisItem, lang: Lang): string {
   if (item.kind === 'package') {
@@ -211,6 +295,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       })
       return {
         kind: 'package' as const,
+        section: itemSection(item),
         name: tr(pack.nameSnapshot, lang),
         description: serviceDetails.join('\n'),
         qtyLabel: `12 ${tr(LABELS.unitAn, lang)}`,
@@ -221,6 +306,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
     }
     return {
       kind: 'line' as const,
+      section: itemSection(item),
       name: tr(item.nameSnapshot, lang),
       description: tr(item.descSnapshot, lang),
       qtyLabel: formatQty(item, lang),
@@ -266,6 +352,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       totalHT: totals.isFrance ? tr(LABELS.totalHT, lang) : tr(LABELS.totalNoTax, lang),
       tva: tr(LABELS.tva, lang),
       totalTtc: tr(LABELS.totalTtc, lang),
+      oneOffTotal: tr(LABELS.oneOffTotal, lang),
       mensuel: tr(LABELS.mensuel, lang),
       annuel: tr(LABELS.annuel, lang),
       tarifNormal: tr(LABELS.tarifNormal, lang),
@@ -304,6 +391,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       phone: devis.customer.phone || '—',
     },
     items,
+    groupedItems: buildItemGroups(items, lang),
     inclusGratuit,
     bankDetails: {
       iban: OKO_SENDER.iban,
