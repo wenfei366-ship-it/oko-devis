@@ -167,3 +167,14 @@ export function formatEuro(amount: number): string {
     maximumFractionDigits: 2,
   }).format(amount)
 }
+
+/** Format EUR without decimals when whole number: "30 €" vs "30,50 €" */
+export function formatEuroCompact(amount: number): string {
+  const isWhole = amount === Math.floor(amount)
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: isWhole ? 0 : 2,
+    maximumFractionDigits: isWhole ? 0 : 2,
+  }).format(amount)
+}

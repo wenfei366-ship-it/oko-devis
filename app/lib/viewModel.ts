@@ -4,7 +4,7 @@
 import type { Devis, DevisItem, DevisTotals, LineItem, PackageLine, Lang } from './types'
 import { tr, LABELS, FREE_SERVICES } from './i18n'
 import { OKO_SENDER, CGV, CGV_ORDER } from './legal'
-import { computeTotals, lineAmount, formatEuro } from './calculations'
+import { computeTotals, lineAmount, formatEuro, formatEuroCompact } from './calculations'
 
 // ---------- ViewModel shape ----------
 
@@ -123,19 +123,19 @@ function formatUnitPrice(item: DevisItem, lang: Lang): string {
   if (item.kind === 'package') {
     const pack = item as PackageLine
     return pack.preferredMode === 'monthly'
-      ? `${formatEuro(pack.monthlyPrice)} ${tr(LABELS.perMonth, lang)}`
-      : `${formatEuro(pack.annualPrice)} ${tr(LABELS.perYear, lang)}`
+      ? `${formatEuroCompact(pack.monthlyPrice)} ${tr(LABELS.perMonth, lang)}`
+      : `${formatEuroCompact(pack.annualPrice)} ${tr(LABELS.perYear, lang)}`
   }
   const line = item as LineItem
   switch (line.billingCadence) {
     case 'monthly':
-      return `${formatEuro(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
+      return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
     case 'perUnit':
-      return `${formatEuro(line.unitPrice)} / ${line.unit}`
+      return `${formatEuroCompact(line.unitPrice)} / ${line.unit}`
     case 'oneOff':
-      return formatEuro(line.unitPrice)
+      return formatEuroCompact(line.unitPrice)
     default:
-      return formatEuro(line.unitPrice)
+      return formatEuroCompact(line.unitPrice)
   }
 }
 
