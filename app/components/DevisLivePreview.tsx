@@ -13,16 +13,55 @@ export default function DevisLivePreview() {
   const handleQtyChange = useCallback((itemIndex: number, newQty: number) => {
     const item = devis.items[itemIndex]
     if (!item || item.kind !== 'line') return
-    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { qty: newQty } })
+    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { qty: newQty, lineTotalOverride: undefined } })
   }, [devis.items, dispatch])
 
   const handlePriceChange = useCallback((itemIndex: number, newPrice: number) => {
     const item = devis.items[itemIndex]
     if (!item || item.kind !== 'line') return
-    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { unitPrice: newPrice } })
+    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { unitPrice: newPrice, lineTotalOverride: undefined } })
   }, [devis.items, dispatch])
 
-  return <DevisPreviewContent vm={vm} onQtyChange={handleQtyChange} onPriceChange={handlePriceChange} />
+  const handleTotalChange = useCallback((itemIndex: number, newTotal: number) => {
+    const item = devis.items[itemIndex]
+    if (!item) return
+    if (item.kind === 'package') {
+      dispatch({
+        type: 'UPDATE_ITEM',
+        id: item.id,
+        changes: {
+          monthlyPrice: newTotal / 12,
+          annualPrice: newTotal,
+        },
+      })
+      return
+    }
+    const qty = item.qty > 0 ? item.qty : 1
+    dispatch({
+      type: 'UPDATE_ITEM',
+      id: item.id,
+      changes: {
+        unitPrice: newTotal / qty,
+        lineTotalOverride: newTotal,
+      },
+    })
+  }, [devis.items, dispatch])
+
+  const handleRemoveItem = useCallback((itemIndex: number) => {
+    const item = devis.items[itemIndex]
+    if (!item) return
+    dispatch({ type: 'REMOVE_ITEM', id: item.id })
+  }, [devis.items, dispatch])
+
+  return (
+    <DevisPreviewContent
+      vm={vm}
+      onQtyChange={handleQtyChange}
+      onPriceChange={handlePriceChange}
+      onTotalChange={handleTotalChange}
+      onRemoveItem={handleRemoveItem}
+    />
+  )
 }
 
 interface EditableFieldProps {
@@ -92,10 +131,14 @@ export function DevisPreviewContent({
   vm,
   onQtyChange,
   onPriceChange,
+  onTotalChange,
+  onRemoveItem,
 }: {
   vm: DevisViewModel
   onQtyChange?: (itemIndex: number, qty: number) => void
   onPriceChange?: (itemIndex: number, price: number) => void
+  onTotalChange?: (itemIndex: number, total: number) => void
+  onRemoveItem?: (itemIndex: number) => void
 }) {
   return (
     <div
@@ -215,7 +258,7 @@ export function DevisPreviewContent({
         <div style={{ padding: '20px 64px 0' }}>
           {/* Table header — dashed border + beige bg */}
           <div
-            className="grid grid-cols-[1fr_120px_100px_100px]"
+            className="grid grid-cols-[1fr_120px_100px_100px_24px]"
             style={{
               backgroundColor: '#F2EAD3',
               border: '1px dashed rgba(217,207,184,0.7)',
@@ -235,13 +278,14 @@ export function DevisPreviewContent({
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
               {vm.labels.lineTotal}
             </p>
+            <span aria-hidden />
           </div>
 
           {/* Table rows */}
           {vm.items.map((item, idx) => (
             <div key={idx} data-section={`item-${idx}`}>
               <div
-                className="grid grid-cols-[1fr_120px_100px_100px]"
+                className="grid grid-cols-[1fr_120px_100px_100px_24px]"
                 style={{ padding: '12px 14px' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -281,9 +325,45 @@ export function DevisPreviewContent({
                     item.unitPriceLabel
                   )}
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right' }}>
-                  {item.lineAmountLabel}
-                </p>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right' }}>
+                  {onTotalChange ? (
+                    <EditableField
+                      value={item.lineAmountLabel}
+                      fieldName="total"
+                      onSave={(raw) => {
+                        const cleaned = raw.replace(/[€\s\u00a0\u202f]/g, '').replace(',', '.')
+                        const num = parseFloat(cleaned)
+                        if (!isNaN(num) && num >= 0) onTotalChange(idx, num)
+                      }}
+                    />
+                  ) : (
+                    item.lineAmountLabel
+                  )}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  {onRemoveItem && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveItem(idx)}
+                      aria-label={`Supprimer ${item.name}`}
+                      title="Supprimer"
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 4,
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        color: '#9B2A2A',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        lineHeight: '18px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
               {/* Row divider */}
               <div style={{ height: 0.5, backgroundColor: '#E8DFC6' }} />

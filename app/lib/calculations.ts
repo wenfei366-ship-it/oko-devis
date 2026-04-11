@@ -23,6 +23,9 @@ export function lineAmount(item: DevisItem): number {
       ? round2(item.monthlyPrice * 12)
       : round2(item.annualPrice)
   }
+  if (typeof item.lineTotalOverride === 'number') {
+    return round2(item.lineTotalOverride)
+  }
   return round2(item.qty * item.unitPrice)
 }
 

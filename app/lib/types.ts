@@ -51,6 +51,8 @@ export interface LineItem {
   qty: number
   unit: ServiceUnit
   unitPrice: number
+  /** Optional manual total override when the salesperson edits the line TOTAL directly. */
+  lineTotalOverride?: number
   billingCadence: BillingCadence
   pdfSection: PdfSection
   recurringEligible: boolean

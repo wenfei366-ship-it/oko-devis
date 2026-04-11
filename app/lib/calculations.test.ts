@@ -104,6 +104,10 @@ describe('lineAmount', () => {
     expect(lineAmount(mkLine({ unitPrice: 0 }))).toBe(0)
   })
 
+  it('LineItem: manual total override wins over qty × unitPrice', () => {
+    expect(lineAmount(mkLine({ qty: 12, unitPrice: 66.666, lineTotalOverride: 800 }))).toBe(800)
+  })
+
   it('PackageLine preferredMode=annual → annualPrice', () => {
     expect(lineAmount(mkPackage({ preferredMode: 'annual', annualPrice: 1000 }))).toBe(1000)
   })
