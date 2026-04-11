@@ -1,8 +1,20 @@
-// Data model for OKO Devis Generator
-// See plan: /Users/zhangxiaonan/.claude/plans/scalable-tinkering-tome.md
+// OKO Devis Generator — data model v3
+// Plan: ~/.claude/plans/oko-devis-v3.md
+
+// ---------- Language & country ----------
+
+export type Lang = 'fr' | 'it' | 'es' | 'de' | 'zh'
+export const ALL_LANGS: readonly Lang[] = ['fr', 'it', 'es', 'de', 'zh'] as const
+
+export type Country = 'FR' | 'IT' | 'ES' | 'DE' | 'BE' | 'CH' | 'LU' | 'OTHER'
+
+// I18n dictionary — every human-readable string has 5 translations
+export type I18nString = Record<Lang, string>
+
+// ---------- Service catalog ----------
 
 export type BillingCadence = 'monthly' | 'annual' | 'oneOff' | 'perUnit'
-export type PdfSection = 'forfait' | 'complement' | 'hardware'
+export type PdfSection = 'forfait' | 'complement' | 'hardware' | 'fees'
 export type ServiceCategory = 'core' | 'marketing' | 'content' | 'fees' | 'hardware'
 export type ServiceUnit = 'mois' | 'an' | 'photo' | 'unique' | 'unit'
 
@@ -11,28 +23,72 @@ export interface Service {
   category: ServiceCategory
   billingCadence: BillingCadence
   pdfSection: PdfSection
-  nameFr: string
-  nameCn: string
-  description: string
-  defaultPrice: number // HT en euros
+  /** i18n name — `name[lang]` returns the display name */
+  name: I18nString
+  /** i18n short description (one line) */
+  description: I18nString
+  /** EUR HT — always stored as the native cadence (monthly price for `monthly`,
+   * annual price for `annual`, per-unit for `perUnit`, total for `oneOff`) */
+  defaultPrice: number
   unit: ServiceUnit
   defaultQty: number
   recurringEligible: boolean
+  /** true if user-created via "自定义新服务" and stored in localStorage */
+  custom?: boolean
 }
 
+// ---------- Line items (discriminated union) ----------
+
 export interface LineItem {
+  kind: 'line'
   id: string
   serviceId: string
-  designation: string
-  description: string
+  /** Snapshot of name/desc at add-time — retroactive service edits don't corrupt
+   * historical devis. Populate from the active-language service dictionary. */
+  nameSnapshot: I18nString
+  descSnapshot: I18nString
   qty: number
   unit: ServiceUnit
-  qtyLabel: string // display: "12 mois" / "À la carte" / "1 unique"
-  unitPrice: number // HT
+  unitPrice: number
   billingCadence: BillingCadence
   pdfSection: PdfSection
   recurringEligible: boolean
 }
+
+/**
+ * Conversion rule: Service → LineItem (at add-time)
+ * - website (monthly 30): qty=12, unit='mois', unitPrice=30 → 360 €/an
+ * - reservation (monthly 50): qty=12, unit='mois', unitPrice=50 → 600 €/an
+ * - ai-photo (perUnit 5): qty=N, unit='photo', unitPrice=5 → N × 5
+ * - printer-wifi (oneOff 120): qty=1, unit='unique', unitPrice=120 → 120
+ * - website-setup (oneOff 100): qty=1, unit='unique', unitPrice=100 → 100
+ *
+ * `lineAmount(item) = item.qty * item.unitPrice` — uniform for all kinds.
+ */
+
+export interface PackageLine {
+  kind: 'package'
+  id: string
+  nameSnapshot: I18nString
+  childServiceIds: string[]
+  childNamesSnapshot: I18nString[]
+  childDescsSnapshot: I18nString[]
+  /** editable by sales, EUR HT / month */
+  monthlyPrice: number
+  /** editable by sales, EUR HT / year — not necessarily 12× monthly */
+  annualPrice: number
+  /** readonly — sum of original recurring service monthly prices */
+  baselineMonthly: number
+  /** readonly — sum × 12 */
+  baselineAnnual: number
+  /** both: drives calculation AND display highlight (★) */
+  preferredMode: 'monthly' | 'annual'
+  recurringEligible: true
+}
+
+export type DevisItem = LineItem | PackageLine
+
+// ---------- Discounts ----------
 
 export type DiscountScope = 'all' | 'recurring' | 'selectedIds'
 
@@ -40,66 +96,93 @@ export type Discount =
   | { kind: 'none' }
   | {
       kind: 'percent'
-      value: number // 0-100
-      label: string
+      /** 0..100 */
+      value: number
+      label: I18nString
       scope: DiscountScope
+      /** LineItem.id or PackageLine.id (NOT serviceId) */
       targetIds?: string[]
     }
   | {
       kind: 'fixed'
-      value: number // euros
-      label: string
+      /** EUR */
+      value: number
+      label: I18nString
       scope: DiscountScope
       targetIds?: string[]
     }
-  | {
-      kind: 'free-months'
-      freeCount: number // e.g. 2
-      basis: number // e.g. 12
-      label: string
-      scope: 'recurring'
-    }
+
+/**
+ * Discount scope semantics:
+ * - 'all'         → base = subtotalHT (all lines + oneOff hardware)
+ * - 'recurring'   → base = sum of recurring items (LineItem.recurringEligible ||
+ *                   item.kind === 'package'); oneOff hardware excluded
+ * - 'selectedIds' → base = sum of items whose `id` is in targetIds
+ */
+
+// ---------- Customer ----------
 
 export interface Customer {
   name: string
-  legalForm?: string
-  siren?: string
   address: string
-  city: string
   postalCode: string
-  country: string
+  city: string
+  country: Country
   contactName: string
   email: string
   phone: string
-  tva?: string
+  // NO SIREN, NO TVA — explicit user requirement (B2B devis for restaurants)
 }
 
+// ---------- Devis ----------
+
 export interface DevisMeta {
+  /** DRAFT-YYYY-nnn-XXXX */
   number: string
-  date: string // ISO
+  /** ISO date string */
+  date: string
   validityDays: number
-  objet: string
-  startDate: string // ISO or empty ""
+  /** Auto-generated per language */
+  objet: I18nString
+  /** ISO date or '' for "À convenir" */
+  startDate: string
 }
 
 export interface Devis {
   id: string
   meta: DevisMeta
   customer: Customer
-  items: LineItem[]
+  items: DevisItem[]
   discount: Discount
   notes: string
-  taxRate: number // 0.20 default
+  /** Output language (FR by default) */
+  lang: Lang
   createdAt: string
   updatedAt: string
+  /** Stamped automatically when magazine modal opens via "创建 devis →". Once
+   * set, storage enforces fork-on-conflict — see storage.saveToHistory */
+  savedAt?: string
 }
 
-// Derived totals (computed on-the-fly, never stored on the model)
+// ---------- Derived totals (never stored) ----------
+
 export interface DevisTotals {
-  subtotalHT: number
-  recurringSubtotal: number
+  /** Sum of all line amounts before discount */
+  subtotal: number
   discountAmount: number
+  /** subtotal - discountAmount */
   totalHT: number
+  /** totalHT × 0.20 iff country=FR, else 0 */
   tva: number
-  totalTTC: number
+  /** totalHT + tva (=== totalHT for non-FR) */
+  total: number
+  /** Gate for UI: show HT/TVA/TTC breakdown only when true */
+  isFrance: boolean
+
+  // Per-cadence breakdown for dual MENSUEL/ANNUEL card display
+  recurringMonthlyBaseline: number
+  recurringMonthlyFinal: number
+  recurringAnnualBaseline: number
+  recurringAnnualFinal: number
+  oneOffTotal: number
 }
