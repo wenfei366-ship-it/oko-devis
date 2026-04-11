@@ -70,7 +70,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
       annualPrice: effectiveAnnual,
       baselineMonthly,
       baselineAnnual,
-      preferredMode: 'annual',
+      preferredMode: 'monthly',
       recurringEligible: true,
     }
     dispatch({ type: 'ADD_PACKAGE', pack })

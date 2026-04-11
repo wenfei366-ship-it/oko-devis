@@ -351,25 +351,22 @@ export function DevisPreviewContent({
         </div>
       )}
 
-      {/* ═══ Totals section — dark bar ═══ */}
+      {/* ═══ Totals section — dark bar (full width per design) ═══ */}
       <div style={{ padding: '14px 64px 8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <div
-            className="flex items-center justify-between"
-            style={{
-              width: 280,
-              borderRadius: 6,
-              backgroundColor: '#2A2620',
-              padding: '10px 14px',
-            }}
-          >
-            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.labels.totalHT}
-            </span>
-            <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
-            </span>
-          </div>
+        <div
+          className="flex items-center justify-between"
+          style={{
+            borderRadius: 6,
+            backgroundColor: '#2A2620',
+            padding: '10px 14px',
+          }}
+        >
+          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            {vm.labels.totalHT}
+          </span>
+          <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
+          </span>
         </div>
 
       </div>
