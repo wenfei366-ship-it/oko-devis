@@ -40,7 +40,6 @@ function EditableField({ value, onSave, fieldName, className }: EditableFieldPro
   const startEdit = useCallback(() => {
     setDraft(value)
     setEditing(true)
-    // focus on next tick after render
     setTimeout(() => inputRef.current?.select(), 0)
   }, [value])
 
@@ -65,7 +64,7 @@ function EditableField({ value, onSave, fieldName, className }: EditableFieldPro
         onBlur={commit}
         onKeyDown={handleKeyDown}
         aria-label={`Modifier ${fieldName}`}
-        className={`border border-[#B8922F] rounded px-1 outline-none bg-[#FEFBF2] ${className ?? ''}`}
+        className={`border border-[#A8702E] rounded px-1 outline-none bg-[#F8F1E0] ${className ?? ''}`}
         style={{ minWidth: 40, width: `${Math.max(draft.length, 3) + 2}ch` }}
         autoFocus
       />
@@ -80,10 +79,10 @@ function EditableField({ value, onSave, fieldName, className }: EditableFieldPro
       onKeyDown={(e) => e.key === 'Enter' && startEdit()}
       aria-label={`Modifier ${fieldName}`}
       title={`Modifier ${fieldName}`}
-      className={`group/field inline-flex items-center gap-0.5 cursor-pointer border-b border-dashed border-transparent hover:border-[#B8922F] transition-colors ${className ?? ''}`}
+      className={`group/field inline-flex items-center gap-0.5 cursor-pointer border-b border-dashed border-transparent hover:border-[#A8702E] transition-colors ${className ?? ''}`}
     >
       {value}
-      <span className="opacity-0 group-hover/field:opacity-60 text-[#B8922F] text-[10px] ml-0.5 select-none" aria-hidden>✎</span>
+      <span className="opacity-0 group-hover/field:opacity-60 text-[#A8702E] text-[10px] ml-0.5 select-none" aria-hidden>✎</span>
     </span>
   )
 }
@@ -100,366 +99,436 @@ export function DevisPreviewContent({
 }) {
   return (
     <div
-      className="bg-[#FEFBF2] shadow-lg rounded-sm mx-auto"
+      className="shadow-lg rounded-sm mx-auto"
       style={{
         width: 800,
         fontFamily: 'var(--font-inter), Inter, Arial, sans-serif',
-        color: '#1C1611',
+        color: '#2A2620',
         fontSize: 12,
         lineHeight: 1.5,
+        backgroundColor: '#F8F1E0',
       }}
     >
-      {/* Header — DEVIS big left, OKO logo right */}
-      <div className="flex items-start justify-between px-16 pt-10 pb-3">
-        <h2
-          className="font-bold italic"
-          style={{
-            fontSize: 72,
-            color: '#1C1611',
-            fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
-            letterSpacing: -2,
-            lineHeight: 1,
-          }}
-        >
-          DEVIS
-        </h2>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/oko-logo.png" alt="OKO" style={{ height: 56, width: 'auto', marginTop: 8 }} />
-      </div>
-      {/* N° + date left, joinoko.com right */}
-      <div className="px-16 pb-2 flex items-center">
-        <span className="text-[11px] font-semibold tracking-[1.2px]" style={{ color: '#9B8550' }}>
-          N°  {vm.meta.number}  ·  {vm.meta.date}
-        </span>
-        <span className="ml-auto text-[10px] font-medium tracking-[1px]" style={{ color: '#9B8550' }}>
-          joinoko.com
-        </span>
+      {/* ═══ Header — DEVIS big left, OKO logo right ═══ */}
+      <div className="flex items-start justify-between" style={{ padding: '56px 64px 12px 64px', paddingRight: 92 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 38 }}>
+          <h2
+            className="font-bold"
+            style={{
+              fontSize: 72,
+              color: '#2A2620',
+              fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+              letterSpacing: -2,
+              lineHeight: 0.9,
+            }}
+          >
+            DEVIS
+          </h2>
+          {/* N° + date row */}
+          <div className="flex items-center" style={{ gap: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2, color: '#A8702E' }}>
+              N°  {vm.meta.number}
+            </span>
+            <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: '#A8702E', flexShrink: 0 }} />
+            <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: 1.5, color: '#5C5142' }}>
+              {vm.meta.date.toUpperCase()}
+            </span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/oko-logo.png" alt="OKO" style={{ height: 95, width: 95, objectFit: 'contain' }} />
+          <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 2.5, color: '#A8702E' }}>
+            joinoko.com
+          </span>
+        </div>
       </div>
 
-      {/* Gold dashed divider */}
-      <div className="mx-16 mt-2" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.5 }} />
+      {/* ═══ Hard divider ═══ */}
+      <div style={{ margin: '0 64px', height: 1.5, backgroundColor: '#2A2620' }} />
 
-      {/* Emetteur / Destinataire — boxed like Pencil Slftq */}
-      <div className="mx-16 mt-4 grid grid-cols-2" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
-        <div className="p-4" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
-          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
+      {/* ═══ Emetteur / Destinataire — dashed border box ═══ */}
+      <div
+        className="grid grid-cols-2"
+        style={{
+          margin: '20px 64px 0',
+          gap: 48,
+          border: '1px dashed rgba(217,207,184,0.7)',
+          borderRadius: 2,
+          padding: '12px 14px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E' }}>
             {vm.labels.emetteur}
           </p>
-          <p className="text-[14px] font-bold" style={{ color: '#1C1611' }}>{vm.emetteur.name}</p>
-          <p className="text-[10px] mt-0.5" style={{ color: '#1C1611' }}>{vm.emetteur.address}</p>
-          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.emetteur.rcs}</p>
-          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.emetteur.email}</p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#2A2620' }}>{vm.emetteur.name}</p>
+          <p style={{ fontSize: 11, color: '#5C5142', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+            {vm.emetteur.address}{'\n'}{vm.emetteur.rcs}{'\n'}{vm.emetteur.email}
+          </p>
         </div>
-        <div className="p-4">
-          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E' }}>
             {vm.labels.destinataire}
           </p>
-          <p className="text-[16px] font-bold" style={{ color: '#1C1611' }}>{vm.destinataire.name || '—'}</p>
-          <p className="text-[10px] mt-0.5" style={{ color: '#1C1611' }}>{vm.destinataire.address || '—'}</p>
-          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.destinataire.postalCity || '—'}</p>
-          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.phone}</p>
-          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.email}</p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#2A2620' }}>{vm.destinataire.name || '—'}</p>
+          <p style={{ fontSize: 11, color: '#5C5142', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+            {vm.destinataire.address || '—'}{'\n'}{vm.destinataire.phone}{'\n'}{vm.destinataire.email}
+          </p>
         </div>
       </div>
 
-      {/* Objet + Date + Validité + Début — boxed row */}
-      <div className="mx-16 mt-3 grid grid-cols-4" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
-        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
-          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.objet}</p>
-          <p className="text-[11px] italic" style={{ fontFamily: 'var(--font-playfair)', color: '#1C1611' }}>{vm.meta.objet}</p>
+      {/* ═══ Objet + Date + Validité + Début — dashed border box ═══ */}
+      <div
+        className="grid grid-cols-4"
+        style={{
+          margin: '20px 64px 0',
+          gap: 48,
+          border: '1px dashed rgba(217,207,184,0.7)',
+          borderRadius: 2,
+          padding: '8px 14px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>{vm.labels.objet}</p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.objet}</p>
         </div>
-        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
-          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>DATE D&apos;ÉMISSION</p>
-          <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.meta.date}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>DATE D&apos;ÉMISSION</p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.date}</p>
         </div>
-        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
-          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.validity}</p>
-          <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.meta.validity}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>{vm.labels.validity}</p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.validity}</p>
         </div>
-        <div className="p-3">
-          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.debutPrestation}</p>
-          <p className="text-[11px] italic" style={{ color: '#1C1611' }}>{vm.meta.debutPrestation}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>{vm.labels.debutPrestation}</p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.debutPrestation}</p>
         </div>
       </div>
 
-      {/* Gold dashed divider */}
-      <div className="mx-16 mt-3" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.4 }} />
+      {/* ═══ Soft divider ═══ */}
+      <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
 
-      {/* Divider */}
-      <div className="mx-16 border-t border-[#D9CFB8]" />
-
-      {/* Items table */}
+      {/* ═══ Items table ═══ */}
       {vm.items.length > 0 && (
-        <div className="px-16 py-4">
-          {/* Table header */}
-          <div className="grid grid-cols-[1fr_100px_100px_100px] gap-2 pb-2 border-b border-[#D9CFB8]">
-            <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold">
+        <div style={{ padding: '20px 64px 0' }}>
+          {/* Table header — dashed border + beige bg */}
+          <div
+            className="grid grid-cols-[1fr_120px_100px_100px]"
+            style={{
+              backgroundColor: '#F2EAD3',
+              border: '1px dashed rgba(217,207,184,0.7)',
+              borderRadius: 2,
+              padding: '12px 0',
+            }}
+          >
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', paddingLeft: 14 }}>
               {vm.labels.designation}
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold text-center">
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
               {vm.labels.qtyDuration}
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold text-right">
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
               {vm.labels.unitPrice}
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold text-right">
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right', paddingRight: 14 }}>
               {vm.labels.lineTotal}
             </p>
           </div>
 
+          {/* Section title */}
+          <div className="flex items-end" style={{ gap: 10, padding: '18px 14px 8px 14px' }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              I.
+            </span>
+            <span style={{ fontSize: 17, fontStyle: 'italic', fontWeight: 700, color: '#2A2620', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {vm.labels.forfaitAnnuel}
+            </span>
+          </div>
+
           {/* Table rows */}
           {vm.items.map((item, idx) => (
-            <div
-              key={idx}
-              data-section={`item-${idx}`}
-              className="grid grid-cols-[1fr_100px_100px_100px] gap-2 py-2 border-b border-[#E8DFC6]"
-            >
-              <div>
-                <p className="text-sm font-medium">{item.name}</p>
-                {item.description && (
-                  <p className="text-xs text-[#968974] mt-0.5">{item.description}</p>
-                )}
-                {item.childNames && item.childNames.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {item.childNames.map((cn, ci) => (
-                      <span
-                        key={ci}
-                        className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-[#F6EFDC] text-[#5C5142]"
-                      >
-                        {cn}
-                      </span>
-                    ))}
-                  </div>
-                )}
+            <div key={idx} data-section={`item-${idx}`}>
+              <div
+                className="grid grid-cols-[1fr_120px_100px_100px] items-center"
+                style={{ gap: 10, padding: '12px 14px' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#2A2620' }}>{item.name}</p>
+                  {item.description && (
+                    <p style={{ fontSize: 10, color: '#5C5142' }}>{item.description}</p>
+                  )}
+                  {item.childNames && item.childNames.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.childNames.map((cn, ci) => (
+                        <span
+                          key={ci}
+                          className="inline-block text-[10px] px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: '#F6EFDC', color: '#5C5142' }}
+                        >
+                          {cn}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                  {onQtyChange && item.kind === 'line' ? (
+                    <EditableField
+                      value={item.qtyLabel}
+                      fieldName="quantité"
+                      onSave={(raw) => {
+                        const num = parseFloat(raw)
+                        if (!isNaN(num) && num > 0) onQtyChange(idx, num)
+                      }}
+                    />
+                  ) : (
+                    item.qtyLabel
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                  {onPriceChange && item.kind === 'line' ? (
+                    <EditableField
+                      value={item.unitPriceLabel}
+                      fieldName="prix unitaire"
+                      onSave={(raw) => {
+                        const cleaned = raw.replace(/[€\s]/g, '').replace(',', '.')
+                        const num = parseFloat(cleaned)
+                        if (!isNaN(num) && num >= 0) onPriceChange(idx, num)
+                      }}
+                    />
+                  ) : (
+                    item.unitPriceLabel
+                  )}
+                </div>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right', paddingRight: 14 }}>
+                  {item.lineAmountLabel}
+                </p>
               </div>
-              <div className="text-xs text-center self-center">
-                {onQtyChange && item.kind === 'line' ? (
-                  <EditableField
-                    value={item.qtyLabel}
-                    fieldName="quantité"
-                    onSave={(raw) => {
-                      const num = parseFloat(raw)
-                      if (!isNaN(num) && num > 0) onQtyChange(idx, num)
-                    }}
-                  />
-                ) : (
-                  item.qtyLabel
-                )}
-              </div>
-              <div className="text-xs text-right self-center">
-                {onPriceChange && item.kind === 'line' ? (
-                  <EditableField
-                    value={item.unitPriceLabel}
-                    fieldName="prix unitaire"
-                    onSave={(raw) => {
-                      // Accept formats like "€30", "30", "30,00", "30.00"
-                      const cleaned = raw.replace(/[€\s]/g, '').replace(',', '.')
-                      const num = parseFloat(cleaned)
-                      if (!isNaN(num) && num >= 0) onPriceChange(idx, num)
-                    }}
-                  />
-                ) : (
-                  item.unitPriceLabel
-                )}
-              </div>
-              <p className="text-sm font-semibold text-right self-center">
-                {item.lineAmountLabel}
-              </p>
+              {/* Row divider */}
+              <div style={{ height: 0.5, backgroundColor: '#E8DFC6' }} />
             </div>
           ))}
         </div>
       )}
 
-      {/* Dual cards (MENSUEL / ANNUEL) */}
+      {/* ═══ Dual cards (MENSUEL / ANNUEL) ═══ */}
       {vm.dualCards && (
-        <div className="px-16 py-3">
-          <div className="grid grid-cols-2 gap-4">
+        <div style={{ padding: '8px 64px' }}>
+          <div className="grid grid-cols-2" style={{ gap: 12 }}>
             {/* Monthly card */}
-            <div className="rounded-lg border border-[#D9CFB8] p-4 bg-[#FDFAF0]">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#968974] mb-2">
+            <div style={{ position: 'relative', backgroundColor: '#F6EFDC', borderRadius: 6, height: 70, padding: '6px 16px' }}>
+              <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: '#6B5A3D' }}>
                 {vm.labels.mensuel}
               </p>
-              <p className="text-xs text-[#968974] line-through">
-                {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.monthly.baseline)}
+              <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
+                <span style={{ textDecoration: 'line-through' }}>
+                  {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.monthly.baseline)}/mois
+                </span>
               </p>
-              <p className="text-xl font-bold text-[#1C1611] mt-1">
+              <p style={{
+                position: 'absolute', right: 16, top: 16,
+                fontSize: 24, fontStyle: 'italic', fontWeight: 700, color: '#2A2620',
+                fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+              }}>
                 {formatEuro(vm.dualCards.monthly.final)}
-                <span className="text-xs font-normal text-[#968974] ml-1">{vm.labels.perMonth}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#9B8550', fontFamily: 'var(--font-inter), Inter, sans-serif', fontStyle: 'normal', marginLeft: 4 }}>
+                  {vm.labels.perMonth}
+                </span>
               </p>
-              <p className="text-xs text-[#4B8A5A] mt-1">
-                {vm.labels.economie} : {formatEuro(vm.dualCards.monthly.economy)} ({vm.dualCards.monthly.economyPct}%)
+              <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#9B2A2A', marginTop: 3 }}>
+                {vm.labels.economie}  {formatEuro(vm.dualCards.monthly.economy)}/mois  ·  − {vm.dualCards.monthly.economyPct} %
               </p>
             </div>
 
             {/* Annual card */}
-            <div className="rounded-lg border-2 border-[#B8922F] p-4 bg-[#FBF7EC]">
-              <div className="flex items-center gap-1 mb-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#B8922F]">
-                  {vm.labels.annuel} &#9733;
-                </p>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#B8922F] text-white">
-                  {vm.labels.recommande}
+            <div style={{ position: 'relative', backgroundColor: '#1C1611', borderRadius: 6, height: 70, padding: '6px 16px', overflow: 'hidden' }}>
+              {/* Gold top bar */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: '#B8922F' }} />
+              <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: '#F5D48A' }}>
+                {vm.labels.annuel}  &#9733;  {vm.labels.recommande}
+              </p>
+              <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
+                <span style={{ textDecoration: 'line-through' }}>
+                  {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.annual.baseline)}/an
                 </span>
-              </div>
-              <p className="text-xs text-[#968974] line-through">
-                {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.annual.baseline)}
               </p>
-              <p className="text-xl font-bold text-[#1C1611] mt-1">
+              <p style={{
+                position: 'absolute', right: 16, top: 14,
+                fontSize: 26, fontStyle: 'italic', fontWeight: 700, color: '#F8EFDC',
+                fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+              }}>
                 {formatEuro(vm.dualCards.annual.final)}
-                <span className="text-xs font-normal text-[#968974] ml-1">{vm.labels.perYear}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#B8922F', fontFamily: 'var(--font-inter), Inter, sans-serif', fontStyle: 'normal', marginLeft: 4 }}>
+                  {vm.labels.perYear}
+                </span>
               </p>
-              <p className="text-xs text-[#4B8A5A] mt-1">
-                {vm.labels.economie} : {formatEuro(vm.dualCards.annual.economy)} ({vm.dualCards.annual.economyPct}%)
+              <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#F5D48A', marginTop: 3 }}>
+                {vm.labels.economie}  {formatEuro(vm.dualCards.annual.economy)}/an  ·  − {vm.dualCards.annual.economyPct} %
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Totals section — dark bar matching Slftq TOTAL HT */}
-      <div className="px-16 py-4">
-        {/* TOTAL HT dark bar */}
-        <div
-          className="flex items-center justify-between rounded-[4px] px-5"
-          style={{
-            height: 56,
-            backgroundColor: '#1C1611',
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-[8px] h-[8px] rounded-full" style={{ backgroundColor: '#B8922F' }} />
-            <span className="text-[13px] font-bold tracking-[1.8px]" style={{ color: '#F8EFDC' }}>
-              {vm.isFrance ? vm.labels.totalHT : vm.labels.totalHT}
-            </span>
-          </div>
-          <span
-            className="font-bold italic"
+      {/* ═══ Totals section — dark bar ═══ */}
+      <div style={{ padding: '14px 64px 8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            className="flex items-center justify-between"
             style={{
-              fontSize: 22,
-              color: '#F8EFDC',
-              fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+              width: 280,
+              borderRadius: 6,
+              backgroundColor: '#2A2620',
+              padding: '10px 14px',
             }}
           >
-            {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
-          </span>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {vm.labels.totalHT}
+            </span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
+            </span>
+          </div>
         </div>
 
         {/* TVA + TTC below (France only) */}
         {vm.isFrance && (
           <div className="mt-2 text-right space-y-0.5">
-            <p className="text-[11px]" style={{ color: '#6B5A3D' }}>
+            <p style={{ fontSize: 11, color: '#5C5142' }}>
               {vm.labels.tva} : {vm.totalsFormatted.tva}
             </p>
-            <p className="text-[13px] font-bold" style={{ color: '#1C1611' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#2A2620' }}>
               {vm.labels.totalTtc} : {vm.totalsFormatted.total}
             </p>
           </div>
         )}
-        {!vm.isFrance && (
-          <div className="mt-1 text-right" />
-        )}
       </div>
 
-      {/* Inclus gratuitement — two columns with ✓, dashed border box */}
+      {/* ═══ Soft divider ═══ */}
+      <div style={{ margin: '0 64px', height: 0.5, backgroundColor: '#D9CFB8' }} />
+
+      {/* ═══ Inclus gratuitement — dashed border box, two columns ═══ */}
       {vm.inclusGratuit.length > 0 && (
-        <div className="mx-16 mt-3" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
-          <div className="p-4">
-            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
-              {vm.labels.inclusGratuitement}
-            </p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-              {vm.inclusGratuit.map((name, i) => (
-                <p key={i} className="text-[10px]" style={{ color: '#1C1611' }}>
-                  <span style={{ color: '#4B8A5A' }}>✓</span>  {name}
-                </p>
-              ))}
-            </div>
+        <div
+          style={{
+            margin: '20px 64px 0',
+            border: '1px dashed rgba(217,207,184,0.7)',
+            borderRadius: 2,
+            padding: '12px 14px',
+          }}
+        >
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E', marginBottom: 8 }}>
+            {vm.labels.inclusGratuitement}
+          </p>
+          <div className="grid grid-cols-2" style={{ gap: '4px 24px' }}>
+            {vm.inclusGratuit.map((name, i) => (
+              <p key={i} style={{ fontSize: 11, color: '#5C5142' }}>
+                ✓  {name}
+              </p>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Gold dashed divider */}
-      <div className="mx-16 mt-3" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.4 }} />
+      {/* ═══ Soft divider ═══ */}
+      <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
 
-      {/* Bank details — dashed border box, two columns */}
-      <div className="mx-16 mt-3" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
-        <div className="p-4">
-          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
-            {vm.labels.coordonneesBancaires}
-          </p>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>IBAN</p>
-              <p className="text-[13px] font-bold tracking-[0.8px]" style={{ color: '#1C1611' }}>
-                {vm.bankDetails.iban}
-              </p>
-              <p className="text-[9px] font-semibold tracking-[1px] mt-2 mb-0.5" style={{ color: '#9B8550' }}>BIC / SWIFT</p>
-              <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.bankDetails.bic}</p>
-            </div>
-            <div style={{ borderLeft: '1px dashed rgba(184,146,47,0.25)', paddingLeft: 16 }}>
-              <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>BÉNÉFICIAIRE</p>
-              <p className="text-[11px]" style={{ color: '#1C1611' }}>
-                OKO  ·  {vm.emetteur.address}
-              </p>
-              <p className="text-[9px] font-semibold tracking-[1px] mt-2 mb-0.5" style={{ color: '#9B8550' }}>BANQUE</p>
-              <p className="text-[11px]" style={{ color: '#6B5A3D' }}>
-                {vm.bankDetails.bank}
-              </p>
-            </div>
+      {/* ═══ Bank details — solid border box, two columns ═══ */}
+      <div
+        style={{
+          margin: '20px 64px 0',
+          borderRadius: 6,
+          backgroundColor: '#FBF7EA',
+          border: '1px solid #D9CFB8',
+          padding: '14px 16px',
+        }}
+      >
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E', marginBottom: 8 }}>
+          {vm.labels.coordonneesBancaires}
+        </p>
+        <div className="grid grid-cols-2" style={{ gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <p style={{ fontSize: 8, fontWeight: 700, letterSpacing: 1.2, color: '#968974' }}>IBAN</p>
+            <p style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.5, color: '#2A2620' }}>
+              {vm.bankDetails.iban}
+            </p>
+            <p style={{ fontSize: 8, fontWeight: 700, letterSpacing: 1.2, color: '#968974', marginTop: 4 }}>BIC / SWIFT</p>
+            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.5, color: '#2A2620' }}>{vm.bankDetails.bic}</p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <p style={{ fontSize: 8, fontWeight: 700, letterSpacing: 1.2, color: '#968974' }}>BÉNÉFICIAIRE</p>
+            <p style={{ fontSize: 11, fontWeight: 500, color: '#2A2620' }}>
+              OKO  ·  {vm.emetteur.address}
+            </p>
+            <p style={{ fontSize: 8, fontWeight: 700, letterSpacing: 1.2, color: '#968974', marginTop: 4 }}>BANQUE</p>
+            <p style={{ fontSize: 11, fontWeight: 500, color: '#2A2620' }}>
+              {vm.bankDetails.bank}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Conditions generales */}
-      <div className="px-16 py-3 border-t border-[#E8DFC6]">
-        <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-2">
+      {/* ═══ Conditions generales — dashed border box ═══ */}
+      <div
+        style={{
+          margin: '20px 64px 0',
+          border: '1px dashed rgba(217,207,184,0.7)',
+          borderRadius: 2,
+          padding: '12px 14px',
+        }}
+      >
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E', marginBottom: 6 }}>
           {vm.labels.conditionsGenerales}
         </p>
-        <div className="space-y-1.5">
+        <div>
           {vm.conditionsGenerales.map((clause, i) => (
-            <p key={i} className="text-[10px] text-[#968974] leading-relaxed">
+            <p key={i} style={{ fontSize: 10, color: '#5C5142', lineHeight: 1.7 }}>
               {clause}
             </p>
           ))}
         </div>
       </div>
 
-      {/* Signature block — two columns matching Slftq */}
-      <div className="px-16 py-6 border-t" style={{ borderColor: '#D4C58E' }}>
-        <div className="grid grid-cols-2 gap-8">
-          {/* Left: BON POUR ACCORD + client signature area */}
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
-              {vm.labels.bonPourAccord}
-            </p>
-            <p className="text-[10px] italic mb-6" style={{ color: '#6B5A3D' }}>
-              {vm.labels.dateSignature}
-            </p>
-            <div className="h-[1px] w-full" style={{ backgroundColor: '#D4C58E', opacity: 0.6 }} />
-          </div>
-          {/* Right: L'ÉQUIPE OKO + signature image */}
-          <div className="text-right">
-            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
-              {vm.labels.equipeOko}
-            </p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/oko-signature.png"
-              alt="Signature OKO"
-              className="ml-auto"
-              style={{ height: 48, width: 'auto', opacity: 0.85 }}
-            />
-            <p className="text-[9px] mt-2" style={{ color: '#6B5A3D' }}>
-              © équipe OKO · support@joinoko.com
-            </p>
-          </div>
+      {/* ═══ Soft divider ═══ */}
+      <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
+
+      {/* ═══ Signature block — two columns ═══ */}
+      <div className="grid grid-cols-[1fr_260px]" style={{ padding: '24px 64px 48px', gap: 32 }}>
+        {/* Left: BON POUR ACCORD */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E' }}>
+            {vm.labels.bonPourAccord}
+          </p>
+          <div style={{ height: 80 }} />
+          <div style={{ height: 0.5, width: 240, backgroundColor: '#2A2620' }} />
+          <p style={{ fontSize: 9, fontWeight: 500, letterSpacing: 1, color: '#5C5142' }}>
+            {vm.labels.dateSignature}
+          </p>
+        </div>
+        {/* Right: L'ÉQUIPE OKO */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E' }}>
+            {vm.labels.equipeOko}
+          </p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/oko-signature.png"
+            alt="Signature OKO"
+            style={{ height: 80, width: 150, objectFit: 'contain' }}
+          />
+          <div style={{ height: 0.5, backgroundColor: '#2A2620' }} />
+          <p style={{ fontSize: 9, fontWeight: 500, letterSpacing: 0.5, color: '#5C5142' }}>
+            L&apos;équipe OKO  ·  support@joinoko.com
+          </p>
         </div>
       </div>
 
       {/* Legal footnote for non-FR */}
       {vm.legalFootnote && (
-        <div className="px-16 pb-6">
-          <p className="text-[9px] text-[#968974] italic">{vm.legalFootnote}</p>
+        <div style={{ padding: '0 64px 48px' }}>
+          <p style={{ fontSize: 9, color: '#968974', fontStyle: 'italic' }}>{vm.legalFootnote}</p>
         </div>
       )}
     </div>
