@@ -313,42 +313,48 @@ export function DevisPreviewContent({
         </div>
       )}
 
-      {/* Totals section */}
+      {/* Totals section — dark bar matching Slftq TOTAL HT */}
       <div className="px-16 py-4">
-        <div className="ml-auto" style={{ maxWidth: 300 }}>
-          <div className="flex justify-between text-sm py-1">
-            <span className="text-[#5C5142]">{vm.labels.subtotal}</span>
-            <span className="font-medium">{vm.totalsFormatted.subtotal}</span>
+        {/* TOTAL HT dark bar */}
+        <div
+          className="flex items-center justify-between rounded-[4px] px-5"
+          style={{
+            height: 56,
+            backgroundColor: '#1C1611',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-[8px] h-[8px] rounded-full" style={{ backgroundColor: '#B8922F' }} />
+            <span className="text-[13px] font-bold tracking-[1.8px]" style={{ color: '#F8EFDC' }}>
+              {vm.isFrance ? vm.labels.totalHT : vm.labels.totalHT}
+            </span>
           </div>
-          {vm.totals.discountAmount > 0 && (
-            <div className="flex justify-between text-sm py-1 text-[#4B8A5A]">
-              <span>{vm.labels.discount}</span>
-              <span>{vm.totalsFormatted.discount}</span>
-            </div>
-          )}
-          {vm.isFrance && (
-            <>
-              <div className="flex justify-between text-sm py-1 border-t border-[#D9CFB8]">
-                <span className="font-semibold">{vm.labels.totalHT}</span>
-                <span className="font-semibold">{vm.totalsFormatted.totalHT}</span>
-              </div>
-              <div className="flex justify-between text-sm py-1">
-                <span className="text-[#5C5142]">{vm.labels.tva}</span>
-                <span>{vm.totalsFormatted.tva}</span>
-              </div>
-              <div className="flex justify-between text-base py-1 border-t border-[#D9CFB8] font-bold">
-                <span>{vm.labels.totalTtc}</span>
-                <span>{vm.totalsFormatted.total}</span>
-              </div>
-            </>
-          )}
-          {!vm.isFrance && (
-            <div className="flex justify-between text-base py-1 border-t border-[#D9CFB8] font-bold">
-              <span>{vm.labels.totalHT}</span>
-              <span>{vm.totalsFormatted.total}</span>
-            </div>
-          )}
+          <span
+            className="font-bold italic"
+            style={{
+              fontSize: 22,
+              color: '#F8EFDC',
+              fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+            }}
+          >
+            {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
+          </span>
         </div>
+
+        {/* TVA + TTC below (France only) */}
+        {vm.isFrance && (
+          <div className="mt-2 text-right space-y-0.5">
+            <p className="text-[11px]" style={{ color: '#6B5A3D' }}>
+              {vm.labels.tva} : {vm.totalsFormatted.tva}
+            </p>
+            <p className="text-[13px] font-bold" style={{ color: '#1C1611' }}>
+              {vm.labels.totalTtc} : {vm.totalsFormatted.total}
+            </p>
+          </div>
+        )}
+        {!vm.isFrance && (
+          <div className="mt-1 text-right" />
+        )}
       </div>
 
       {/* Inclus gratuitement */}
