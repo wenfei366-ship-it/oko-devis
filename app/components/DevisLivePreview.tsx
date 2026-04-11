@@ -220,20 +220,20 @@ export function DevisPreviewContent({
               backgroundColor: '#F2EAD3',
               border: '1px dashed rgba(217,207,184,0.7)',
               borderRadius: 2,
-              padding: '12px 0',
+              padding: '12px 14px',
             }}
           >
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', paddingLeft: 14 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620' }}>
               {vm.labels.designation}
             </p>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
               {vm.labels.qtyDuration}
             </p>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
-              {vm.labels.unitPrice}
+              {vm.isFrance ? 'PU HT' : vm.labels.unitPrice}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right', paddingRight: 14 }}>
-              {vm.labels.lineTotal}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
+              {vm.isFrance ? 'TOTAL HT' : vm.labels.lineTotal}
             </p>
           </div>
 
@@ -242,7 +242,7 @@ export function DevisPreviewContent({
             <div key={idx} data-section={`item-${idx}`}>
               <div
                 className="grid grid-cols-[1fr_120px_100px_100px]"
-                style={{ gap: 10, padding: '12px 14px' }}
+                style={{ padding: '12px 14px' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#2A2620' }}>{item.name}</p>
@@ -252,7 +252,7 @@ export function DevisPreviewContent({
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right', paddingTop: 2 }}>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
                   {onQtyChange && item.kind === 'line' ? (
                     <EditableField
                       value={item.qtyLabel}
@@ -266,7 +266,7 @@ export function DevisPreviewContent({
                     item.qtyLabel
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right', paddingTop: 2 }}>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
                   {onPriceChange && item.kind === 'line' ? (
                     <EditableField
                       value={item.unitPriceLabel}
@@ -281,7 +281,7 @@ export function DevisPreviewContent({
                     item.unitPriceLabel
                   )}
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right', paddingRight: 14, paddingTop: 2 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right' }}>
                   {item.lineAmountLabel}
                 </p>
               </div>
@@ -359,10 +359,10 @@ export function DevisPreviewContent({
             style={{ borderRadius: 6, backgroundColor: '#2A2620', padding: '10px 14px' }}
           >
             <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              TOTAL HT
+              {vm.isFrance ? 'TOTAL HT' : 'TOTAL'}
             </span>
             <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.totalsFormatted.totalHT} HT
+              {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
             </span>
           </div>
         </div>
