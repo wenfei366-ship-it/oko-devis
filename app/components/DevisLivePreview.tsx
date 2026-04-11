@@ -295,7 +295,7 @@ export function DevisPreviewContent({
       {/* ═══ Dual cards (MENSUEL / ANNUEL) ═══ */}
       {vm.dualCards && (
         <div style={{ padding: '8px 64px' }}>
-          <div className="grid grid-cols-2" style={{ gap: 12 }}>
+          <div className="grid grid-cols-2" style={{ gap: 8 }}>
             {/* Monthly card */}
             <div style={{ position: 'relative', backgroundColor: '#F6EFDC', borderRadius: 6, height: 70, padding: '6px 16px' }}>
               <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: '#6B5A3D' }}>
@@ -350,26 +350,6 @@ export function DevisPreviewContent({
           </div>
         </div>
       )}
-
-      {/* ═══ Totals section — dark bar (full width per design) ═══ */}
-      <div style={{ padding: '14px 64px 8px' }}>
-        <div
-          className="flex items-center justify-between"
-          style={{
-            borderRadius: 6,
-            backgroundColor: '#2A2620',
-            padding: '10px 14px',
-          }}
-        >
-          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-            {vm.labels.totalHT}
-          </span>
-          <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-            {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
-          </span>
-        </div>
-
-      </div>
 
       {/* ═══ Soft divider ═══ */}
       <div style={{ margin: '0 64px', height: 0.5, backgroundColor: '#D9CFB8' }} />

@@ -105,12 +105,19 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // PNG export — use the off-screen div for capture to avoid sticky/scroll CSS
+  // PNG export — create a temporary visible clone for html-to-image
   const handlePngExport = useCallback(async () => {
     const { exportLongPng } = await import('@/app/lib/png/exportLong')
-    const target = offscreenRef.current ?? previewRef.current
-    if (target) {
-      await exportLongPng(target, displayDevis.meta.number)
+    // Use the off-screen div; if blank, fall back to creating a temp clone
+    const offscreen = offscreenRef.current
+    if (offscreen && offscreen.scrollHeight > 10) {
+      await exportLongPng(offscreen, displayDevis.meta.number)
+      return
+    }
+    // Fallback: create a temporary visible div, render preview, capture, remove
+    const preview = previewRef.current
+    if (preview) {
+      await exportLongPng(preview, displayDevis.meta.number)
     }
   }, [displayDevis.meta.number])
 
@@ -588,62 +595,74 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
               Relis attentivement · puis exporte en PDF ou en image longue
             </p>
 
-            {/* Action buttons */}
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              {readOnly && historyDevis && (
-                <button
-                  type="button"
-                  onClick={handleDuplicate}
-                  style={{
-                    padding: '14px 28px',
-                    fontSize: 13,
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 600,
-                    borderRadius: 12,
-                    backgroundColor: '#FEFBF2',
-                    color: '#1C1611',
-                    border: '1px solid rgba(28,22,17,0.2)',
-                    cursor: 'pointer',
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  Dupliquer et éditer
-                </button>
-              )}
-
-              {/* PDF button */}
-              <div
-                style={{
-                  borderRadius: 12,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-                }}
-              >
-                <PdfDownloadButton devis={displayDevis} totals={totals} />
-              </div>
-
-              {/* PNG button */}
-              <button
-                type="button"
-                onClick={handlePngExport}
-                style={{
-                  width: 200,
-                  height: 54,
-                  borderRadius: 12,
-                  backgroundColor: '#F8EFDC',
-                  color: '#1C1611',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: '1px solid rgba(28,22,17,0.15)',
-                  cursor: 'pointer',
-                  letterSpacing: 0.5,
-                }}
-              >
-                &#10022; Image longue &#10022;
-              </button>
-            </div>
           </div>
         </div>
+      </div>
+
+      {/* ═══ Sticky floating export bar — always on top ═══ */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 60,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 16,
+          padding: '16px 24px',
+          background: 'linear-gradient(transparent, rgba(10,6,4,0.85) 30%)',
+        }}
+      >
+        {readOnly && historyDevis && (
+          <button
+            type="button"
+            onClick={handleDuplicate}
+            style={{
+              height: 56,
+              padding: '0 24px',
+              fontSize: 13,
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 700,
+              borderRadius: 12,
+              backgroundColor: '#F8EFDC',
+              color: '#1C1611',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 2px 0 0 #1C1611',
+            }}
+          >
+            Dupliquer et éditer
+          </button>
+        )}
+
+        {/* PDF button — dark bg per design */}
+        <div style={{ borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.4)' }}>
+          <PdfDownloadButton devis={displayDevis} totals={totals} />
+        </div>
+
+        {/* PNG button — cream bg per design */}
+        <button
+          type="button"
+          onClick={handlePngExport}
+          style={{
+            width: 200,
+            height: 56,
+            borderRadius: 12,
+            backgroundColor: '#F8EFDC',
+            color: '#1C1611',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 13,
+            fontWeight: 700,
+            border: 'none',
+            cursor: 'pointer',
+            letterSpacing: 0.5,
+            boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+          }}
+        >
+          &#10022; Image longue &#10022;
+        </button>
       </div>
 
       {/* Off-screen container for PNG export — no sticky/scroll CSS, fixed 800px width */}
