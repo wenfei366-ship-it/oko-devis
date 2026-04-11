@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { DevisProvider, useDevis } from './DevisContext'
 import TopNav from './TopNav'
 import ServiceCatalog from './ServiceCatalog'
@@ -10,6 +10,47 @@ import DatePickerCard from './DatePickerCard'
 import LanguagePicker from './LanguagePicker'
 import MagazineModal from './MagazineModal'
 import { computeTotals } from '../lib/calculations'
+
+function ScaledPreview() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const [paperH, setPaperH] = useState(0)
+
+  const recalc = useCallback(() => {
+    if (!containerRef.current) return
+    const w = containerRef.current.clientWidth - 40
+    const s = Math.min(w / 800, 1)
+    setScale(s)
+    const paper = containerRef.current.querySelector('[data-paper]') as HTMLElement | null
+    if (paper) setPaperH(paper.scrollHeight)
+  }, [])
+
+  useEffect(() => {
+    recalc()
+    const ro = new ResizeObserver(recalc)
+    if (containerRef.current) ro.observe(containerRef.current)
+    return () => ro.disconnect()
+  }, [recalc])
+
+  return (
+    <div ref={containerRef} className="px-5 pb-6 overflow-x-hidden overflow-y-auto">
+      <div
+        data-paper
+        className="rounded-[3px]"
+        style={{
+          width: 800,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          boxShadow: '8px 8px 24px rgba(28,22,17,0.18)',
+          backgroundColor: '#FEFBF2',
+          marginBottom: paperH > 0 ? -(paperH * (1 - scale)) : 0,
+        }}
+      >
+        <DevisLivePreview />
+      </div>
+    </div>
+  )
+}
 
 function CreateDevisButton({ onClick }: { onClick: () => void }) {
   return (
@@ -79,18 +120,8 @@ function BuilderContent() {
             </div>
           </div>
 
-          {/* A4 paper with shadow */}
-          <div className="px-5 pb-6">
-            <div
-              className="rounded-[3px]"
-              style={{
-                boxShadow: '8px 8px 24px rgba(28,22,17,0.18)',
-                backgroundColor: '#FEFBF2',
-              }}
-            >
-              <DevisLivePreview />
-            </div>
-          </div>
+          {/* A4 paper — scaled to fit container, only vertical scroll */}
+          <ScaledPreview />
         </main>
 
         {/* Right column — forms (w=436) */}
