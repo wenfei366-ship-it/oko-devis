@@ -367,14 +367,34 @@ export function DevisPreviewContent({
         </div>
       )}
 
-      {/* Bank details */}
-      <div className="px-16 py-3 border-t border-[#E8DFC6]">
-        <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-1">
+      {/* Bank details — two columns matching Slftq */}
+      <div className="px-16 py-4 border-t border-[#E8DFC6]">
+        <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
           {vm.labels.coordonneesBancaires}
         </p>
-        <p className="text-xs text-[#5C5142]">IBAN : {vm.bankDetails.iban}</p>
-        <p className="text-xs text-[#5C5142]">BIC : {vm.bankDetails.bic}</p>
-        <p className="text-xs text-[#5C5142]">{vm.bankDetails.bank}</p>
+        <div className="grid grid-cols-2 gap-6">
+          <div
+            className="rounded-[4px] p-3"
+            style={{ backgroundColor: '#F6EFDC' }}
+          >
+            <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>IBAN</p>
+            <p className="text-[11px] font-bold tracking-[0.6px]" style={{ color: '#1C1611' }}>
+              {vm.bankDetails.iban}
+            </p>
+            <p className="text-[9px] mt-1" style={{ color: '#6B5A3D' }}>
+              BIC : {vm.bankDetails.bic}
+            </p>
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>OKO</p>
+            <p className="text-[10px]" style={{ color: '#1C1611' }}>
+              {vm.emetteur.address}
+            </p>
+            <p className="text-[10px] mt-1" style={{ color: '#6B5A3D' }}>
+              {vm.bankDetails.bank}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Conditions generales */}
@@ -391,22 +411,34 @@ export function DevisPreviewContent({
         </div>
       </div>
 
-      {/* Signature block */}
-      <div className="px-16 py-6 border-t border-[#D9CFB8]">
+      {/* Signature block — two columns matching Slftq */}
+      <div className="px-16 py-6 border-t" style={{ borderColor: '#D4C58E' }}>
         <div className="grid grid-cols-2 gap-8">
+          {/* Left: BON POUR ACCORD + client signature area */}
           <div>
-            <p className="text-xs font-semibold mb-1">{vm.labels.bonPourAccord}</p>
-            <p className="text-xs text-[#968974] mb-4">{vm.labels.equipeOko}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
+              {vm.labels.bonPourAccord}
+            </p>
+            <p className="text-[10px] italic mb-6" style={{ color: '#6B5A3D' }}>
+              {vm.labels.dateSignature}
+            </p>
+            <div className="h-[1px] w-full" style={{ backgroundColor: '#D4C58E', opacity: 0.6 }} />
+          </div>
+          {/* Right: L'ÉQUIPE OKO + signature image */}
+          <div className="text-right">
+            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
+              {vm.labels.equipeOko}
+            </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/oko-signature.png"
               alt="Signature OKO"
-              className="h-12 w-auto opacity-80"
+              className="ml-auto"
+              style={{ height: 48, width: 'auto', opacity: 0.85 }}
             />
-          </div>
-          <div>
-            <p className="text-xs font-semibold mb-1">{vm.labels.dateSignature}</p>
-            <div className="h-16 border-b border-dashed border-[#D9CFB8]" />
+            <p className="text-[9px] mt-2" style={{ color: '#6B5A3D' }}>
+              © équipe OKO · support@joinoko.com
+            </p>
           </div>
         </div>
       </div>

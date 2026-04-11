@@ -76,6 +76,19 @@ export const LABELS = {
   } as I18nString,
 } as const
 
+// ---------- Free services (included in all offers) ----------
+
+export const FREE_SERVICES: I18nString[] = [
+  { fr: 'Optimisation SEO du site web', it: 'Ottimizzazione SEO del sito web', es: 'Optimización SEO del sitio web', de: 'SEO-Optimierung der Webseite', zh: 'SEO 网站优化' },
+  { fr: 'Stockage illimité d\'images et médias', it: 'Archiviazione illimitata di immagini e media', es: 'Almacenamiento ilimitado de imágenes y medios', de: 'Unbegrenzter Bild- und Medienspeicher', zh: '无限图片和媒体存储' },
+  { fr: 'Services d\'envoi d\'e-mails groupés', it: 'Servizi di invio e-mail di massa', es: 'Servicios de envío de correos masivos', de: 'Massen-E-Mail-Versand', zh: '群发邮件服务' },
+  { fr: 'Réponses intelligentes Google Maps', it: 'Risposte intelligenti Google Maps', es: 'Respuestas inteligentes Google Maps', de: 'Intelligente Google-Maps-Antworten', zh: 'Google Maps 智能回复' },
+  { fr: 'Réduction commission Uber / SB à 15 %', it: 'Riduzione commissione Uber / SB al 15 %', es: 'Reducción comisión Uber / SB al 15 %', de: 'Uber / SB Provision auf 15 % gesenkt', zh: 'Uber / SB 佣金降至 15%' },
+  { fr: 'Intégration multi-plateformes (UE, LB, TT)', it: 'Integrazione multi-piattaforma (UE, LB, TT)', es: 'Integración multi-plataforma (UE, LB, TT)', de: 'Multi-Plattform-Integration (UE, LB, TT)', zh: '多平台集成 (UE, LB, TT)' },
+  { fr: 'Support client en ligne 7/7', it: 'Supporto clienti online 7/7', es: 'Soporte al cliente online 7/7', de: 'Online-Kundensupport 7/7', zh: '7/7 在线客服支持' },
+  { fr: 'Guide de collecte d\'emails clients', it: 'Guida alla raccolta e-mail clienti', es: 'Guía de recopilación de emails de clientes', de: 'Leitfaden zur Kunden-E-Mail-Sammlung', zh: '客户邮箱收集指南' },
+]
+
 // ---------- Service dictionary (10 services × 5 languages) ----------
 
 export type ServiceKey =

@@ -2,7 +2,7 @@
 // Single source of truth consumed by HTML preview, PDF, and PNG renderers.
 
 import type { Devis, DevisItem, DevisTotals, LineItem, PackageLine, Lang } from './types'
-import { tr, LABELS } from './i18n'
+import { tr, LABELS, FREE_SERVICES } from './i18n'
 import { OKO_SENDER, CGV, CGV_ORDER } from './legal'
 import { computeTotals, lineAmount, formatEuro } from './calculations'
 
@@ -170,16 +170,8 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
     }
   })
 
-  // "Inclus gratuitement" — free services bundled in packages
-  const inclusGratuit: string[] = []
-  for (const item of devis.items) {
-    if (item.kind === 'package') {
-      const pack = item as PackageLine
-      for (const childName of pack.childNamesSnapshot) {
-        inclusGratuit.push(tr(childName, lang))
-      }
-    }
-  }
+  // "Inclus gratuitement" — default free services always shown
+  const inclusGratuit: string[] = FREE_SERVICES.map((s) => tr(s, lang))
 
   // Dual cards — show when there's a discount and recurring items
   let dualCards: DualCard | null = null
