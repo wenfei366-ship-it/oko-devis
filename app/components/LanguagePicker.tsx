@@ -3,40 +3,49 @@
 import { useDevis } from './DevisContext'
 import type { Lang } from '@/app/lib/types'
 
-const LANG_OPTIONS: { lang: Lang; flag: string; label: string }[] = [
-  { lang: 'fr', flag: '\ud83c\uddeb\ud83c\uddf7', label: 'FR' },
-  { lang: 'it', flag: '\ud83c\uddee\ud83c\uddf9', label: 'IT' },
-  { lang: 'es', flag: '\ud83c\uddea\ud83c\uddf8', label: 'ES' },
-  { lang: 'de', flag: '\ud83c\udde9\ud83c\uddea', label: 'DE' },
-  { lang: 'zh', flag: '\ud83c\udde8\ud83c\uddf3', label: 'ZH' },
+const LANGS: { lang: Lang; flag: string; label: string }[] = [
+  { lang: 'fr', flag: '🇫🇷', label: 'FR' },
+  { lang: 'it', flag: '🇮🇹', label: 'IT' },
+  { lang: 'es', flag: '🇪🇸', label: 'ES' },
+  { lang: 'de', flag: '🇩🇪', label: 'DE' },
+  { lang: 'zh', flag: '🇨🇳', label: 'ZH' },
 ]
 
 export default function LanguagePicker() {
   const { devis, dispatch } = useDevis()
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wider">
-        输出语言
-      </p>
-      <div className="flex gap-2">
-        {LANG_OPTIONS.map((opt) => {
+    <div>
+      <div className="text-[14px] font-bold" style={{ color: '#1C1611' }}>devis 语言</div>
+      <div className="text-[9px] font-semibold tracking-[1.4px] mt-1 mb-3" style={{ color: '#9B8550' }}>
+        LANGUE DU DEVIS  ·  切换语言后预览自动翻译
+      </div>
+      <div className="mt-3 mb-3" style={{ height: 1, backgroundColor: '#D4C58E', opacity: 0.5 }} />
+
+      <div className="flex gap-[8px]">
+        {LANGS.map((opt) => {
           const isActive = devis.lang === opt.lang
           return (
             <button
               key={opt.lang}
               type="button"
               onClick={() => dispatch({ type: 'SET_LANG', lang: opt.lang })}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm transition-all ${
-                isActive
-                  ? 'bg-[var(--ink)] text-white font-medium'
-                  : 'bg-[var(--surface-alt)] text-[var(--ink-soft)] hover:bg-[var(--divider-soft)]'
-              }`}
+              className="flex flex-col items-center justify-center rounded-[10px] transition-all"
+              style={{
+                width: 74,
+                height: 52,
+                backgroundColor: isActive ? '#1C1611' : '#F6EFDC',
+              }}
               aria-label={`切换到 ${opt.label}`}
               aria-pressed={isActive}
             >
-              <span>{opt.flag}</span>
-              <span>{opt.label}</span>
+              <span className="text-[18px] leading-none">{opt.flag}</span>
+              <span
+                className="text-[10px] font-bold mt-1"
+                style={{ color: isActive ? '#F5D48A' : '#8B7A3E' }}
+              >
+                {opt.label}
+              </span>
             </button>
           )
         })}

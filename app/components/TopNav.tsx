@@ -11,33 +11,46 @@ export default function TopNav({ onCreateDevis }: TopNavProps) {
   const { dispatch } = useDevis()
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 border-b border-[var(--divider)] bg-[var(--surface)]">
-      <h1 className="font-serif text-lg font-bold text-[var(--ink)] tracking-tight">
-        OKO Devis 生成器
-      </h1>
+    <header
+      className="flex items-center justify-between h-[72px] px-10"
+      style={{ backgroundColor: '#F8EFDC', borderBottom: '1px solid rgba(212, 197, 142, 0.6)' }}
+    >
+      {/* Left: title */}
+      <div>
+        <div className="text-[16px] font-bold tracking-[0.4px]" style={{ color: '#1C1611', fontFamily: 'var(--font-inter)' }}>
+          OKO  Devis 生成器
+        </div>
+        <div className="text-[11px] font-medium" style={{ color: '#8B7A3E' }}>
+          销售团队内部工具  ·  Atelier OKO
+        </div>
+      </div>
 
-      <div className="flex items-center gap-3">
+      {/* Right: buttons */}
+      <div className="flex items-center gap-[10px]">
         <Link
           href="/history"
-          className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
+          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[12px] font-semibold transition-colors"
+          style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
         >
-          历史记录
+          ⟲  历史记录
         </Link>
 
         <button
           type="button"
           onClick={() => dispatch({ type: 'NEW_DEVIS' })}
-          className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
+          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[12px] font-semibold transition-colors"
+          style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
         >
-          + 新建
+          +  新建
         </button>
 
         <button
           type="button"
           onClick={onCreateDevis}
-          className="px-4 py-1.5 text-sm rounded-md bg-[var(--gold)] text-white font-medium hover:opacity-90 transition-opacity"
+          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[13px] font-bold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: '#1C1611', color: '#F8EFDC', minWidth: '140px' }}
         >
-          创建 devis &rarr;
+          创建 devis  →
         </button>
       </div>
     </header>
