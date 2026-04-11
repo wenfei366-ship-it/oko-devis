@@ -1,12 +1,29 @@
 import type { Devis } from './types'
 
-const HISTORY_KEY = 'oko-devis-local-history-v1'
+const HISTORY_KEY = 'oko-devis-history-v1'
+const LEGACY_HISTORY_KEY = 'oko-devis-local-history-v1'
 const COUNTER_KEY = 'oko-devis-counter-v1'
 const MAX_HISTORY = 100
+
+// One-time migration from legacy key (v1 plan → v3 plan)
+function migrateLegacyHistory() {
+  if (typeof window === 'undefined') return
+  try {
+    const legacy = localStorage.getItem(LEGACY_HISTORY_KEY)
+    const current = localStorage.getItem(HISTORY_KEY)
+    if (legacy && !current) {
+      localStorage.setItem(HISTORY_KEY, legacy)
+      localStorage.removeItem(LEGACY_HISTORY_KEY)
+    }
+  } catch {
+    // ignore
+  }
+}
 
 // Safe localStorage access (works in browser only)
 function safeGet<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback
+  migrateLegacyHistory()
   try {
     const raw = localStorage.getItem(key)
     if (!raw) return fallback
