@@ -14,6 +14,7 @@ export default function ServiceCatalog() {
   const [customName, setCustomName] = useState('')
   const [customDescription, setCustomDescription] = useState('')
   const [customPrice, setCustomPrice] = useState('')
+  const [customUnit, setCustomUnit] = useState('')
   const [customCadence, setCustomCadence] = useState<'monthly' | 'oneOff'>('monthly')
 
   const addedServiceIds = new Set(
@@ -56,6 +57,7 @@ export default function ServiceCatalog() {
     if (!customName.trim() || !customPrice.trim()) return
     const price = parseFloat(customPrice)
     if (isNaN(price) || price < 0) return
+    const unit = customCadence === 'monthly' ? 'mois' : customUnit.trim()
     const item: LineItem = {
       kind: 'line',
       id: uuid(),
@@ -69,7 +71,7 @@ export default function ServiceCatalog() {
         zh: customDescription,
       },
       qty: customCadence === 'monthly' ? 12 : 1,
-      unit: customCadence === 'monthly' ? 'mois' : 'unique',
+      unit,
       unitPrice: price,
       billingCadence: customCadence,
       pdfSection: 'complement',
@@ -79,8 +81,9 @@ export default function ServiceCatalog() {
     setCustomName('')
     setCustomDescription('')
     setCustomPrice('')
+    setCustomUnit('')
     setShowCustom(false)
-  }, [customName, customDescription, customPrice, customCadence, dispatch])
+  }, [customName, customDescription, customPrice, customUnit, customCadence, dispatch])
 
   return (
     <div className="p-5">
@@ -229,6 +232,16 @@ export default function ServiceCatalog() {
               <option value="oneOff">一次性</option>
             </select>
           </div>
+          {customCadence === 'oneOff' && (
+            <input
+              type="text"
+              placeholder="单位（可空，如 台 / 张 / 次）"
+              value={customUnit}
+              onChange={(e) => setCustomUnit(e.target.value)}
+              className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none"
+              style={{ backgroundColor: '#F6EFDC' }}
+            />
+          )}
           <div className="flex gap-2 pt-1">
             <button
               type="button"

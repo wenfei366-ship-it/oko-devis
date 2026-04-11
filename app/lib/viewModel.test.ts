@@ -140,6 +140,38 @@ describe('buildViewModel tax labels', () => {
   })
 })
 
+describe('buildViewModel custom line units', () => {
+  it('shows a custom one-off unit when provided', () => {
+    const devis = mkDevis([
+      mkLine({
+        billingCadence: 'oneOff',
+        recurringEligible: false,
+        qty: 1,
+        unit: '台',
+        unitPrice: 120,
+      }),
+    ])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.items[0].qtyLabel).toBe('1 台')
+  })
+
+  it('shows only the quantity when a custom one-off unit is blank', () => {
+    const devis = mkDevis([
+      mkLine({
+        billingCadence: 'oneOff',
+        recurringEligible: false,
+        qty: 1,
+        unit: '',
+        unitPrice: 120,
+      }),
+    ])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.items[0].qtyLabel).toBe('1')
+  })
+})
+
 describe('buildViewModel localized document title', () => {
   it('keeps DEVIS for French documents', () => {
     const devis = mkDevis([mkLine()])

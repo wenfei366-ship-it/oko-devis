@@ -16,7 +16,8 @@ export type I18nString = Record<Lang, string>
 export type BillingCadence = 'monthly' | 'annual' | 'oneOff' | 'perUnit'
 export type PdfSection = 'forfait' | 'complement' | 'hardware' | 'fees'
 export type ServiceCategory = 'core' | 'marketing' | 'content' | 'fees' | 'hardware'
-export type ServiceUnit = 'mois' | 'an' | 'photo' | 'unique' | 'unit'
+export type BuiltInServiceUnit = 'mois' | 'an' | 'photo' | 'unique' | 'unit'
+export type ServiceUnit = BuiltInServiceUnit | (string & {})
 
 export interface Service {
   id: string

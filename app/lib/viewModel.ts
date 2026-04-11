@@ -113,6 +113,8 @@ function formatQty(item: DevisItem, lang: Lang): string {
     case 'perUnit':
       return `${line.qty} ${line.unit === 'photo' ? tr(LABELS.unitPhoto, lang) : line.unit}`
     case 'oneOff':
+      if (!line.unit) return `${line.qty}`
+      if (line.unit !== 'unique') return `${line.qty} ${line.unit}`
       return `1 ${tr(LABELS.unitUnique, lang)}`
     default:
       return `${line.qty}`
