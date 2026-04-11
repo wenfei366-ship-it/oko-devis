@@ -109,7 +109,7 @@ export function DevisPreviewContent({
         backgroundColor: '#F8F1E0',
       }}
     >
-      {/* ═══ Header — DEVIS big left, OKO logo right ═══ */}
+      {/* ═══ Header — document title left, OKO logo right ═══ */}
       <div className="flex items-start justify-between" style={{ padding: '56px 64px 12px 64px', paddingRight: 92 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 38 }}>
           <h2
@@ -122,7 +122,7 @@ export function DevisPreviewContent({
               lineHeight: 0.9,
             }}
           >
-            DEVIS
+            {vm.labels.devisTitle}
           </h2>
           {/* N° + date row */}
           <div className="flex items-center" style={{ gap: 12 }}>

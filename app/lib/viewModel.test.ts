@@ -139,3 +139,20 @@ describe('buildViewModel tax labels', () => {
     expect(vm.totals.tva).toBe(0)
   })
 })
+
+describe('buildViewModel localized document title', () => {
+  it('keeps DEVIS for French documents', () => {
+    const devis = mkDevis([mkLine()])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.labels.devisTitle).toBe('DEVIS')
+  })
+
+  it('translates the document title for non-French document languages', () => {
+    const devis = mkDevis([mkLine()])
+    devis.lang = 'it'
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.labels.devisTitle).toBe('PREVENTIVO')
+  })
+})

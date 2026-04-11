@@ -11,7 +11,7 @@ export function DevisPDF({ vm }: DevisPDFProps) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* Header: DEVIS left, OKO logo + url right */}
+        {/* Header: document title left, OKO logo + url right */}
         <View wrap={false}>
           <View style={s.headerRow}>
             <Text style={s.devisTitle}>{vm.labels.devisTitle}</Text>

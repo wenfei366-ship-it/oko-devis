@@ -13,6 +13,8 @@ export function tr(s: I18nString, lang: Lang): string {
 // ---------- UI/document labels ----------
 
 export const LABELS = {
+  devisTitle: { fr: 'DEVIS', it: 'PREVENTIVO', es: 'PRESUPUESTO', de: 'ANGEBOT', zh: '报价单' } as I18nString,
+
   // Column headers
   designation: { fr: 'DÉSIGNATION', it: 'DESCRIZIONE', es: 'DESCRIPCIÓN', de: 'BEZEICHNUNG', zh: '服务项目' } as I18nString,
   qtyDuration: { fr: 'QTÉ / DURÉE', it: 'QTÀ / DURATA', es: 'CANT / DURACIÓN', de: 'MENGE / DAUER', zh: '数量 / 期限' } as I18nString,

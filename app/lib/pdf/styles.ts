@@ -30,7 +30,7 @@ export const s = StyleSheet.create({
     lineHeight: 1.4,
   },
 
-  // Header: DEVIS left, logo+url right
+  // Header: document title left, logo+url right
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
