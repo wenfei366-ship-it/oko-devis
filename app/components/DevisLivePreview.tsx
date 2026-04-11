@@ -109,24 +109,35 @@ export function DevisPreviewContent({
         lineHeight: 1.5,
       }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between px-10 pt-8 pb-4">
-        <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/oko-logo.png" alt="OKO" className="h-10 w-auto" />
-        </div>
-        <div className="text-right">
-          <h2
-            className="font-serif text-3xl font-bold italic tracking-tight"
-            style={{ color: '#B8922F', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
-          >
-            {vm.labels.devisTitle}
-          </h2>
-        </div>
+      {/* Header — matches Slftq: DEVIS big left, OKO logo right */}
+      <div className="flex items-start justify-between px-16 pt-12 pb-2">
+        <h2
+          className="font-bold italic"
+          style={{
+            fontSize: 52,
+            color: '#1C1611',
+            fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+            letterSpacing: -1,
+            lineHeight: 1,
+          }}
+        >
+          DEVIS
+        </h2>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/oko-logo.png" alt="OKO" style={{ height: 40, width: 'auto' }} />
+      </div>
+      {/* N° + date + joinoko.com */}
+      <div className="px-16 pb-1 flex items-center gap-2">
+        <span className="text-[11px] font-semibold tracking-[1px]" style={{ color: '#9B8550' }}>
+          N° {vm.meta.number}  ·  {vm.meta.date}
+        </span>
+        <span className="ml-auto text-[10px] font-medium tracking-[0.6px]" style={{ color: '#9B8550' }}>
+          joinoko.com
+        </span>
       </div>
 
       {/* Meta row */}
-      <div className="px-10 pb-4 flex gap-8 text-xs text-[#5C5142]">
+      <div className="px-16 pb-4 flex gap-8 text-xs text-[#5C5142]">
         <div>
           <span className="font-semibold">{vm.labels.number}</span>{' '}
           <span>{vm.meta.number}</span>
@@ -142,13 +153,13 @@ export function DevisPreviewContent({
       </div>
 
       {/* Objet */}
-      <div className="px-10 pb-4 text-xs">
+      <div className="px-16 pb-4 text-xs">
         <span className="font-semibold text-[#5C5142]">{vm.labels.objet}</span>{' '}
         <span>{vm.meta.objet}</span>
       </div>
 
       {/* Emetteur / Destinataire */}
-      <div className="px-10 pb-6 grid grid-cols-2 gap-8">
+      <div className="px-16 pb-6 grid grid-cols-2 gap-8">
         <div>
           <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-1">
             {vm.labels.emetteur}
@@ -173,11 +184,11 @@ export function DevisPreviewContent({
       </div>
 
       {/* Divider */}
-      <div className="mx-10 border-t border-[#D9CFB8]" />
+      <div className="mx-16 border-t border-[#D9CFB8]" />
 
       {/* Items table */}
       {vm.items.length > 0 && (
-        <div className="px-10 py-4">
+        <div className="px-16 py-4">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_100px_100px_100px] gap-2 pb-2 border-b border-[#D9CFB8]">
             <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold">
@@ -259,7 +270,7 @@ export function DevisPreviewContent({
 
       {/* Dual cards (MENSUEL / ANNUEL) */}
       {vm.dualCards && (
-        <div className="px-10 py-3">
+        <div className="px-16 py-3">
           <div className="grid grid-cols-2 gap-4">
             {/* Monthly card */}
             <div className="rounded-lg border border-[#D9CFB8] p-4 bg-[#FDFAF0]">
@@ -304,7 +315,7 @@ export function DevisPreviewContent({
       )}
 
       {/* Totals section */}
-      <div className="px-10 py-4">
+      <div className="px-16 py-4">
         <div className="ml-auto" style={{ maxWidth: 300 }}>
           <div className="flex justify-between text-sm py-1">
             <span className="text-[#5C5142]">{vm.labels.subtotal}</span>
@@ -343,7 +354,7 @@ export function DevisPreviewContent({
 
       {/* Inclus gratuitement */}
       {vm.inclusGratuit.length > 0 && (
-        <div className="px-10 py-3">
+        <div className="px-16 py-3">
           <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-2">
             {vm.labels.inclusGratuitement}
           </p>
@@ -358,7 +369,7 @@ export function DevisPreviewContent({
       )}
 
       {/* Bank details */}
-      <div className="px-10 py-3 border-t border-[#E8DFC6]">
+      <div className="px-16 py-3 border-t border-[#E8DFC6]">
         <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-1">
           {vm.labels.coordonneesBancaires}
         </p>
@@ -368,7 +379,7 @@ export function DevisPreviewContent({
       </div>
 
       {/* Conditions generales */}
-      <div className="px-10 py-3 border-t border-[#E8DFC6]">
+      <div className="px-16 py-3 border-t border-[#E8DFC6]">
         <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-2">
           {vm.labels.conditionsGenerales}
         </p>
@@ -382,7 +393,7 @@ export function DevisPreviewContent({
       </div>
 
       {/* Signature block */}
-      <div className="px-10 py-6 border-t border-[#D9CFB8]">
+      <div className="px-16 py-6 border-t border-[#D9CFB8]">
         <div className="grid grid-cols-2 gap-8">
           <div>
             <p className="text-xs font-semibold mb-1">{vm.labels.bonPourAccord}</p>
@@ -403,7 +414,7 @@ export function DevisPreviewContent({
 
       {/* Legal footnote for non-FR */}
       {vm.legalFootnote && (
-        <div className="px-10 pb-6">
+        <div className="px-16 pb-6">
           <p className="text-[9px] text-[#968974] italic">{vm.legalFootnote}</p>
         </div>
       )}
