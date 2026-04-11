@@ -82,5 +82,12 @@ export function loadFromHistory(id: string): Devis | null {
 }
 
 export function clearHistory(): void {
-  if (typeof window !== 'undefined') localStorage.removeItem(HISTORY_KEY)
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(HISTORY_KEY)
+    } catch {
+      // fallback: write empty array
+      writeAll([])
+    }
+  }
 }
