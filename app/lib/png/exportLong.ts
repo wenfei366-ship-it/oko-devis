@@ -5,47 +5,54 @@
 import { toPng } from 'html-to-image'
 
 const MAX_SINGLE_HEIGHT = 12000
+const EXPORT_BACKGROUND = '#F8F1E0'
+const EXPORT_WIDTH = 800
+const PIXEL_RATIO = 2
 
 export async function exportLongPng(
   element: HTMLElement,
   devisNumber: string
 ): Promise<void> {
-  // Wait for fonts
-  if (typeof document !== 'undefined' && document.fonts) {
-    await document.fonts.ready
-  }
+  // Wait for fonts, images, and a render frame
+  await waitForExportReady(element)
 
-  const effectiveHeight = element.scrollHeight * 2 // pixelRatio 2
+  const width = Math.ceil(element.getBoundingClientRect().width || element.scrollWidth || EXPORT_WIDTH)
+  const height = Math.ceil(element.scrollHeight || element.getBoundingClientRect().height || element.clientHeight || 1)
+  const effectiveHeight = height * PIXEL_RATIO
   const baseName = `Devis-${devisNumber}`
 
   if (effectiveHeight <= MAX_SINGLE_HEIGHT) {
     // Single PNG
     const dataUrl = await toPng(element, {
-      pixelRatio: 2,
+      width,
+      height,
+      pixelRatio: PIXEL_RATIO,
       cacheBust: true,
-      backgroundColor: '#FEFBF2',
+      backgroundColor: EXPORT_BACKGROUND,
     })
     downloadDataUrl(dataUrl, `${baseName}.png`)
   } else {
     // Split into 2 parts — find the nearest section boundary to the midpoint
-    const rawMid = Math.floor(element.scrollHeight / 2)
+    const rawMid = Math.floor(height / 2)
     const splitPoint = findSectionSplitPoint(element, rawMid)
 
     // Part 1
     const dataUrl1 = await toPng(element, {
-      pixelRatio: 2,
-      cacheBust: true,
-      backgroundColor: '#FEFBF2',
+      width,
       height: splitPoint,
+      pixelRatio: PIXEL_RATIO,
+      cacheBust: true,
+      backgroundColor: EXPORT_BACKGROUND,
     })
     downloadDataUrl(dataUrl1, `${baseName}-part1.png`)
 
     // Part 2 — capture from splitPoint
     const dataUrl2 = await toPng(element, {
-      pixelRatio: 2,
+      width,
+      height: height - splitPoint,
+      pixelRatio: PIXEL_RATIO,
       cacheBust: true,
-      backgroundColor: '#FEFBF2',
-      height: element.scrollHeight - splitPoint,
+      backgroundColor: EXPORT_BACKGROUND,
       style: {
         marginTop: `-${splitPoint}px`,
       },
@@ -57,6 +64,30 @@ export async function exportLongPng(
       showToast('Devis tres long — exporte en 2 images (part 1 + 2)')
     }
   }
+}
+
+/** Wait for render frame, fonts, and all images inside element */
+async function waitForExportReady(element: HTMLElement): Promise<void> {
+  // Wait one animation frame for layout to settle
+  if (typeof requestAnimationFrame === 'function') {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  }
+
+  // Wait for fonts
+  if (typeof document !== 'undefined' && document.fonts) {
+    await document.fonts.ready
+  }
+
+  // Wait for all images to load
+  await Promise.all(
+    Array.from(element.querySelectorAll('img')).map((image) => {
+      if (image.complete) return Promise.resolve()
+      return new Promise<void>((resolve) => {
+        image.addEventListener('load', () => resolve(), { once: true })
+        image.addEventListener('error', () => resolve(), { once: true })
+      })
+    })
+  )
 }
 
 /**

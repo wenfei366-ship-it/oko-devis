@@ -1,16 +1,20 @@
 import { StyleSheet } from '@react-pdf/renderer'
 
 const COLORS = {
-  ink: '#1C1611',
+  ink: '#2A2620',
   inkSoft: '#5C5142',
   inkMuted: '#968974',
-  gold: '#B8922F',
-  paper: '#FEFBF2',
+  gold: '#A8702E',
+  goldAccent: '#B8922F',
+  paper: '#F8F1E0',
   cream: '#F6EFDC',
-  creamLight: '#FBF7EC',
+  creamLight: '#FBF7EA',
   divider: '#D9CFB8',
   dividerSoft: '#E8DFC6',
+  tableHeaderBg: '#F2EAD3',
   green: '#4B8A5A',
+  totalBarBg: '#2A2620',
+  totalBarText: '#F8F1E0',
   white: '#FFFFFF',
 }
 
@@ -26,42 +30,71 @@ export const s = StyleSheet.create({
     lineHeight: 1.4,
   },
 
-  // Header
+  // Header: DEVIS left, logo+url right
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  logo: {
-    width: 80,
-    height: 'auto',
+    marginBottom: 12,
   },
   devisTitle: {
     fontFamily: 'Playfair Display',
     fontSize: 28,
     fontWeight: 700,
-    fontStyle: 'italic',
-    color: COLORS.gold,
+    color: COLORS.ink,
+  },
+  logoBlock: {
+    alignItems: 'flex-end',
+  },
+  logo: {
+    width: 72,
+    height: 'auto',
+    marginBottom: 2,
+  },
+  logoUrl: {
+    fontSize: 7,
+    color: COLORS.inkMuted,
   },
 
-  // Meta
-  metaRow: {
+  // N° row: "N° XXXX • DATE" left
+  numRow: {
     flexDirection: 'row',
-    gap: 24,
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  numLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  numGold: {
+    fontSize: 9,
+    color: COLORS.gold,
+    fontWeight: 600,
+  },
+  numDate: {
     fontSize: 9,
     color: COLORS.inkSoft,
   },
-  metaLabel: {
-    fontWeight: 600,
+
+  // Hard divider (solid ink)
+  hardDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.ink,
+    marginBottom: 10,
   },
 
-  // Parties
+  // Soft divider
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
+    marginVertical: 8,
+  },
+
+  // Parties: ÉMETTEUR / DESTINATAIRE
   partiesRow: {
     flexDirection: 'row',
     gap: 30,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   partyCol: {
     flex: 1,
@@ -69,14 +102,14 @@ export const s = StyleSheet.create({
   partyLabel: {
     fontSize: 8,
     fontWeight: 600,
-    color: COLORS.inkMuted,
+    color: COLORS.gold,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 4,
   },
   partyName: {
     fontSize: 11,
-    fontWeight: 600,
+    fontWeight: 700,
     marginBottom: 2,
   },
   partyLine: {
@@ -85,34 +118,49 @@ export const s = StyleSheet.create({
     marginBottom: 1,
   },
 
-  // Divider
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
-    marginVertical: 8,
+  // OBJET / DATE / VALIDITÉ / DÉBUT — 4-column row
+  metaGridRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 10,
+  },
+  metaGridCol: {
+    flex: 1,
+  },
+  metaGridLabel: {
+    fontSize: 7,
+    fontWeight: 600,
+    color: COLORS.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 2,
+  },
+  metaGridValue: {
+    fontSize: 9,
+    color: COLORS.ink,
   },
 
   // Table header
   tableHeader: {
     flexDirection: 'row',
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
-    marginBottom: 4,
+    backgroundColor: COLORS.tableHeaderBg,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    marginBottom: 2,
   },
   thDesignation: {
     flex: 1,
     fontSize: 8,
-    fontWeight: 600,
-    color: COLORS.inkMuted,
+    fontWeight: 700,
+    color: COLORS.ink,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
   thQty: {
     width: 70,
     fontSize: 8,
-    fontWeight: 600,
-    color: COLORS.inkMuted,
+    fontWeight: 700,
+    color: COLORS.ink,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     textAlign: 'center',
@@ -120,8 +168,8 @@ export const s = StyleSheet.create({
   thUnitPrice: {
     width: 80,
     fontSize: 8,
-    fontWeight: 600,
-    color: COLORS.inkMuted,
+    fontWeight: 700,
+    color: COLORS.ink,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     textAlign: 'right',
@@ -129,8 +177,8 @@ export const s = StyleSheet.create({
   thTotal: {
     width: 80,
     fontSize: 8,
-    fontWeight: 600,
-    color: COLORS.inkMuted,
+    fontWeight: 700,
+    color: COLORS.ink,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     textAlign: 'right',
@@ -140,40 +188,43 @@ export const s = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 6,
+    paddingHorizontal: 6,
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.dividerSoft,
+    alignItems: 'center',
   },
   tdDesignation: {
     flex: 1,
     paddingRight: 8,
   },
   tdName: {
-    fontSize: 10,
-    fontWeight: 500,
+    fontSize: 9,
+    fontWeight: 700,
+    color: COLORS.ink,
   },
   tdDesc: {
     fontSize: 8,
-    color: COLORS.inkMuted,
+    color: COLORS.inkSoft,
     marginTop: 2,
   },
   tdQty: {
     width: 70,
-    fontSize: 9,
+    fontSize: 8,
+    color: COLORS.inkSoft,
     textAlign: 'center',
-    alignSelf: 'center',
   },
   tdUnitPrice: {
     width: 80,
-    fontSize: 9,
+    fontSize: 8,
+    color: COLORS.inkSoft,
     textAlign: 'right',
-    alignSelf: 'center',
   },
   tdTotal: {
     width: 80,
-    fontSize: 10,
-    fontWeight: 600,
+    fontSize: 9,
+    fontWeight: 700,
+    color: COLORS.ink,
     textAlign: 'right',
-    alignSelf: 'center',
   },
 
   // Dual cards
@@ -195,7 +246,7 @@ export const s = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: COLORS.goldAccent,
     backgroundColor: COLORS.creamLight,
   },
   dualCardLabel: {
@@ -234,11 +285,34 @@ export const s = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Totals section
+  // TOTAL HT bar
+  totalBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.totalBarBg,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 8,
+  },
+  totalBarLabel: {
+    fontFamily: 'Playfair Display',
+    fontSize: 13,
+    fontWeight: 700,
+    color: COLORS.totalBarText,
+  },
+  totalBarValue: {
+    fontFamily: 'Playfair Display',
+    fontSize: 13,
+    fontWeight: 700,
+    color: COLORS.totalBarText,
+  },
+
+  // Subtotal / discount rows (above total bar)
   totalsContainer: {
     marginLeft: 'auto',
     width: 240,
-    marginTop: 8,
+    marginTop: 4,
   },
   totalRow: {
     flexDirection: 'row',
@@ -253,53 +327,65 @@ export const s = StyleSheet.create({
     fontSize: 10,
     fontWeight: 500,
   },
-  totalRowBold: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  totalLabelBold: {
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  totalValueBold: {
-    fontSize: 11,
-    fontWeight: 700,
-  },
   greenText: {
     color: COLORS.green,
   },
 
-  // Section labels
+  // Section label (gold)
   sectionLabel: {
     fontSize: 8,
     fontWeight: 600,
-    color: COLORS.inkMuted,
+    color: COLORS.gold,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
 
-  // Inclus gratuit
+  // Inclus gratuit — 2-column grid
+  inclusGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   inclusItem: {
+    width: '50%',
     flexDirection: 'row',
     gap: 4,
     marginBottom: 2,
   },
   inclusCheck: {
-    fontSize: 9,
+    fontSize: 8,
     color: COLORS.green,
   },
   inclusText: {
-    fontSize: 9,
+    fontSize: 8,
     color: COLORS.inkSoft,
   },
 
-  // Bank details
+  // Bank details card
+  bankCard: {
+    backgroundColor: COLORS.creamLight,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    padding: 10,
+    marginTop: 8,
+  },
+  bankRow: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  bankCol: {
+    flex: 1,
+  },
+  bankLabel: {
+    fontSize: 7,
+    fontWeight: 600,
+    color: COLORS.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 2,
+  },
   bankText: {
-    fontSize: 9,
+    fontSize: 8,
     color: COLORS.inkSoft,
     marginBottom: 1,
   },
@@ -307,7 +393,7 @@ export const s = StyleSheet.create({
   // CGV
   cgvText: {
     fontSize: 7.5,
-    color: COLORS.inkMuted,
+    color: COLORS.inkSoft,
     lineHeight: 1.6,
     marginBottom: 3,
   },
@@ -351,21 +437,21 @@ export const s = StyleSheet.create({
     marginTop: 12,
   },
 
-  // Spacing
-  mb4: { marginBottom: 4 },
-  mb8: { marginBottom: 8 },
-  mb12: { marginBottom: 12 },
-  mt8: { marginTop: 8 },
-  mt12: { marginTop: 12 },
-
   // Badge
   badge: {
     fontSize: 7,
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.goldAccent,
     color: COLORS.white,
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 2,
     marginLeft: 4,
   },
+
+  // Spacing
+  mb4: { marginBottom: 4 },
+  mb8: { marginBottom: 8 },
+  mb12: { marginBottom: 12 },
+  mt8: { marginTop: 8 },
+  mt12: { marginTop: 12 },
 })

@@ -655,8 +655,8 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
           top: 0,
           left: '-9999px',
           width: 800,
+          backgroundColor: '#F8F1E0',
           pointerEvents: 'none',
-          opacity: 0,
           zIndex: -1,
         }}
       >
