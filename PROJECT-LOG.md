@@ -11,9 +11,18 @@
 - [fix] M8: Codex 最终审查修复 — i18n 单位本地化, inline edit, PNG 离屏渲染, PDF 签名分页, cloneForEdit API
 - [deploy] https://oko-devis.vercel.app — Vercel team wenfei366-9745s-projects
 
+## 2026-04-11 (续)
+- [fix] M8.2: UI 像素级重写 — TopNav/BuilderShell/ServiceCatalog/CustomerForm/DatePickerCard/LanguagePicker 全部按 Pencil 设计稿重做 CSS
+- [fix] M8.3: DevisLivePreview header 修正 — DEVIS 大字左、OKO logo 右、N° 金色
+- [deploy] https://oko-devis.vercel.app — 版本 e3da65e
+
 ## 下次接着做
-- M9: 本地冒烟测试 — Playwright 截图 5 语言 × 5 场景 = 25 张, PDF/PNG 样本导出, 分页压力测试
-- M10: 线上冒烟测试
+- DevisLivePreview 继续细化：ÉMETTEUR/DESTINATAIRE 双栏排版、表格行样式、金色分隔线、IBAN 块、CGV 缩略、签名区、服务描述斜体
+- 中列预览添加服务后的表格行显示效果验证
+- 月付/年付双卡样式（Pencil YxXBG 里的 MENSUEL/ANNUEL 黑/白卡）
+- MagazineModal 杂志预览视觉还原（ymZax）
+- PackageGenerator 视觉还原（c5XaK）
+- M9 冒烟测试
 - 用户 Stephan 验收 + 反馈迭代
 - CGV 法语文本需要 Stephan 最终确认
 - 建 GitHub remote + CI/CD

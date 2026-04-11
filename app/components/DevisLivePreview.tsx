@@ -136,50 +136,49 @@ export function DevisPreviewContent({
         </span>
       </div>
 
-      {/* Meta row */}
-      <div className="px-16 pb-4 flex gap-8 text-xs text-[#5C5142]">
-        <div>
-          <span className="font-semibold">{vm.labels.number}</span>{' '}
-          <span>{vm.meta.number}</span>
-        </div>
-        <div>
-          <span className="font-semibold">{vm.labels.date}</span>{' '}
-          <span>{vm.meta.date}</span>
-        </div>
-        <div>
-          <span className="font-semibold">{vm.labels.validity}</span>{' '}
-          <span>{vm.meta.validity}</span>
-        </div>
-      </div>
+      {/* Gold rule */}
+      <div className="mx-16 mt-3" style={{ height: 1.5, backgroundColor: '#B8922F', opacity: 0.55 }} />
 
-      {/* Objet */}
-      <div className="px-16 pb-4 text-xs">
-        <span className="font-semibold text-[#5C5142]">{vm.labels.objet}</span>{' '}
-        <span>{vm.meta.objet}</span>
-      </div>
-
-      {/* Emetteur / Destinataire */}
-      <div className="px-16 pb-6 grid grid-cols-2 gap-8">
+      {/* Emetteur / Destinataire — two columns */}
+      <div className="px-16 py-4 grid grid-cols-2 gap-8">
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-1">
+          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-1" style={{ color: '#9B8550' }}>
             {vm.labels.emetteur}
           </p>
-          <p className="font-semibold text-sm">{vm.emetteur.name}</p>
-          <p className="text-xs text-[#5C5142]">{vm.emetteur.address}</p>
-          <p className="text-xs text-[#5C5142]">{vm.emetteur.rcs}</p>
-          <p className="text-xs text-[#5C5142]">{vm.emetteur.capital}</p>
-          <p className="text-xs text-[#5C5142]">{vm.emetteur.email}</p>
+          <p className="text-[12px] font-bold" style={{ color: '#1C1611' }}>{vm.emetteur.name}</p>
+          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.emetteur.address}</p>
+          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.emetteur.rcs}</p>
+          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.emetteur.email}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-1">
+          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-1" style={{ color: '#9B8550' }}>
             {vm.labels.destinataire}
           </p>
-          <p className="font-semibold text-sm">{vm.destinataire.name}</p>
-          <p className="text-xs text-[#5C5142]">{vm.destinataire.address}</p>
-          <p className="text-xs text-[#5C5142]">{vm.destinataire.postalCity}</p>
-          <p className="text-xs text-[#5C5142]">{vm.destinataire.contactName}</p>
-          <p className="text-xs text-[#5C5142]">{vm.destinataire.email}</p>
-          <p className="text-xs text-[#5C5142]">{vm.destinataire.phone}</p>
+          <p className="text-[12px] font-bold" style={{ color: '#1C1611' }}>{vm.destinataire.name || '—'}</p>
+          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.destinataire.address || '—'}</p>
+          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.destinataire.postalCity || '—'}</p>
+          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.contactName}</p>
+          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.phone}</p>
+        </div>
+      </div>
+
+      {/* Objet + Date + Validité + Début row */}
+      <div className="px-16 pb-2 grid grid-cols-4 gap-4 text-[10px]">
+        <div>
+          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.objet}</p>
+          <p className="text-[11px] italic mt-0.5" style={{ fontFamily: 'var(--font-playfair)', color: '#1C1611' }}>{vm.meta.objet}</p>
+        </div>
+        <div>
+          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.date}</p>
+          <p className="mt-0.5" style={{ color: '#1C1611' }}>{vm.meta.date}</p>
+        </div>
+        <div>
+          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.validity}</p>
+          <p className="mt-0.5" style={{ color: '#1C1611' }}>{vm.meta.validity}</p>
+        </div>
+        <div>
+          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.debutPrestation}</p>
+          <p className="mt-0.5 italic" style={{ color: '#1C1611' }}>{vm.meta.debutPrestation}</p>
         </div>
       </div>
 
