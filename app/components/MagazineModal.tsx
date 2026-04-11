@@ -258,7 +258,8 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
           left: '-9999px',
           width: 800,
           pointerEvents: 'none',
-          visibility: 'hidden',
+          opacity: 0,
+          zIndex: -1,
         }}
       >
         <DevisPreviewContent vm={vm} />
