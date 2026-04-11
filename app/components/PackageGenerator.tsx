@@ -78,170 +78,743 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
   }, [selectedServices, effectiveMonthly, effectiveAnnual, baselineMonthly, baselineAnnual, dispatch, onClose])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(10, 6, 4, 0.75)' }}
+    >
       <div
-        className="bg-[#FEFBF2] rounded-xl shadow-2xl w-full max-w-[700px] max-h-[90vh] overflow-y-auto"
+        className="relative overflow-hidden"
+        style={{
+          width: 1120,
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+          backgroundColor: '#F8EFDC',
+          borderRadius: 14,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--divider)]">
-          <h3 className="text-lg font-semibold text-[var(--ink)]">
-            套餐生成器
-          </h3>
+        {/* Grain overlay */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundColor: '#E8DCBE', opacity: 0.18, mixBlendMode: 'multiply' }}
+        />
+
+        {/* Scrollable content */}
+        <div className="relative z-10 overflow-y-auto" style={{ maxHeight: '90vh' }}>
+          {/* Close button */}
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--ink-muted)] hover:text-[var(--ink)] text-xl"
+            className="absolute top-4 right-4 z-20 flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{
+              width: 44,
+              height: 44,
+              backgroundColor: '#1C1611',
+              borderRadius: '50%',
+            }}
             aria-label="关闭"
           >
-            &times;
+            <span style={{ color: '#F4EBD4', fontSize: 20, lineHeight: 1 }}>&times;</span>
           </button>
-        </div>
 
-        {/* Service selection */}
-        <div className="px-6 py-4 space-y-2">
-          <p className="text-xs font-medium text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-            选择服务（可多选）
-          </p>
-          {eligibleServices.map((svc) => (
-            <label
-              key={svc.id}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                selected.has(svc.id)
-                  ? 'bg-[var(--bg-cream)] border-l-[3px] border-l-[var(--gold)]'
-                  : 'hover:bg-[var(--surface-alt)]'
-              }`}
+          {/* Header */}
+          <div className="text-center" style={{ paddingTop: 40, paddingBottom: 24, paddingLeft: 60, paddingRight: 60 }}>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: 2.4,
+                color: '#9B8550',
+                marginBottom: 10,
+              }}
             >
-              <input
-                type="checkbox"
-                checked={selected.has(svc.id)}
-                onChange={() => toggle(svc.id)}
-                className="accent-[var(--gold)]"
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium">{svc.name.fr}</p>
-                <p className="text-xs text-[var(--ink-muted)]">{svc.description.zh}</p>
-              </div>
-              <p className="text-sm font-semibold text-[var(--ink)]">
-                {svc.defaultPrice} &euro; / mois
-              </p>
-            </label>
-          ))}
-        </div>
-
-        {/* Pack summary */}
-        {selectedServices.length > 0 && (
-          <div className="px-6 py-4 border-t border-[var(--divider)]">
-            <p className="text-sm font-medium text-[var(--ink)] mb-3">
-              {packNameWithCount(selectedServices.length, lang)}
+              ATELIER OKO &middot; PACK PERSONNALIS&Eacute;
             </p>
+            <h2
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                fontSize: 42,
+                fontWeight: 700,
+                fontStyle: 'italic',
+                color: '#1C1611',
+                marginBottom: 8,
+                lineHeight: 1.1,
+              }}
+            >
+              套餐生成器
+            </h2>
+            <p
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                fontSize: 14,
+                fontStyle: 'italic',
+                color: '#6B5A3D',
+                maxWidth: 600,
+                margin: '0 auto',
+                lineHeight: 1.5,
+              }}
+            >
+              Compose un pack sur mesure — Choisis les services, fixe ton prix total, et ajoute-le au devis en une ligne.
+            </p>
+            {/* Gold rule */}
+            <div
+              style={{
+                height: 1,
+                backgroundColor: '#B8922F',
+                opacity: 0.4,
+                marginTop: 24,
+              }}
+            />
+          </div>
 
-            {/* Dual cards */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Monthly */}
-              <div className="rounded-lg border border-[var(--divider)] p-4 bg-[#FDFAF0]">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ink-muted)] mb-2">
-                  月付
-                </p>
-                <p className="text-xs text-[var(--ink-muted)] line-through">
-                  原价 : {formatEuro(baselineMonthly)} / mois
-                </p>
-                <div className="mt-1">
-                  {!editingMonthly ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingMonthly(true)
-                        setMonthlyOverride(String(effectiveMonthly))
+          {/* Two-column layout */}
+          <div
+            className="flex"
+            style={{ paddingLeft: 40, paddingRight: 40, gap: 0, minHeight: 380 }}
+          >
+            {/* LEFT COLUMN */}
+            <div style={{ flex: '0 0 480px', paddingRight: 30 }}>
+              <p
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 1.8,
+                  color: '#1C1611',
+                  marginBottom: 4,
+                }}
+              >
+                ① S&Eacute;LECTIONNE LES SERVICES
+              </p>
+              <p
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10,
+                  fontStyle: 'italic',
+                  color: '#9B8550',
+                  marginBottom: 14,
+                }}
+              >
+                Coche les services &agrave; inclure dans le pack
+              </p>
+
+              <div className="space-y-2">
+                {eligibleServices.map((svc) => {
+                  const isSelected = selected.has(svc.id)
+                  return (
+                    <label
+                      key={svc.id}
+                      className="flex items-center gap-3 cursor-pointer transition-colors"
+                      style={{
+                        width: 460,
+                        maxWidth: '100%',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        backgroundColor: isSelected ? '#FEFBF2' : '#F6EFDC',
                       }}
-                      className="text-xl font-bold text-[var(--ink)] hover:text-[var(--gold)] transition-colors cursor-text"
-                      title="点击编辑价格"
                     >
-                      {formatEuro(effectiveMonthly)}
-                      <span className="text-xs font-normal text-[var(--ink-muted)] ml-1">/ mois</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-1">
+                      {/* Checkbox */}
+                      <div
+                        className="flex items-center justify-center shrink-0"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 4,
+                          backgroundColor: isSelected ? '#1C1611' : '#FEFBF2',
+                          border: isSelected ? 'none' : '1.5px solid #C4B899',
+                        }}
+                      >
+                        {isSelected && (
+                          <span style={{ color: '#F5D48A', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>✓</span>
+                        )}
+                      </div>
                       <input
-                        type="number"
-                        value={monthlyOverride}
-                        onChange={(e) => setMonthlyOverride(e.target.value)}
-                        onBlur={() => setEditingMonthly(false)}
-                        onKeyDown={(e) => e.key === 'Enter' && setEditingMonthly(false)}
-                        className="w-24 text-xl font-bold px-1 py-0 border-b-2 border-[var(--gold)] bg-transparent focus:outline-none"
-                        autoFocus
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggle(svc.id)}
+                        className="sr-only"
                       />
-                      <span className="text-xs text-[var(--ink-muted)]">&euro; / mois</span>
-                    </div>
-                  )}
-                </div>
-                {monthlyEconomy > 0 && (
-                  <p className="text-xs text-[var(--success)] mt-1">
-                    节省 : {formatEuro(monthlyEconomy)} / mois
-                  </p>
-                )}
+                      <div className="flex-1 min-w-0">
+                        <p
+                          style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 12,
+                            fontWeight: isSelected ? 700 : 500,
+                            color: isSelected ? '#1C1611' : '#6B5A3D',
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {svc.name.fr} &middot; {svc.name.zh}
+                        </p>
+                        <p
+                          style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 10,
+                            color: isSelected ? '#6B5A3D' : '#9B8550',
+                            lineHeight: 1.3,
+                            marginTop: 2,
+                          }}
+                        >
+                          {svc.description.zh}
+                        </p>
+                      </div>
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 11,
+                          fontWeight: isSelected ? 700 : 500,
+                          color: isSelected ? '#B8922F' : '#9B8550',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {svc.defaultPrice} € / mois
+                      </p>
+                    </label>
+                  )
+                })}
               </div>
 
-              {/* Annual */}
-              <div className="rounded-lg border-2 border-[var(--gold)] p-4 bg-[#FBF7EC]">
-                <div className="flex items-center gap-1 mb-2">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--gold)]">
-                    年付 &#9733;
-                  </p>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--gold)] text-white">
-                    推荐
-                  </span>
-                </div>
-                <p className="text-xs text-[var(--ink-muted)] line-through">
-                  原价 : {formatEuro(baselineAnnual)} / an
+              {eligibleServices.length > 5 && (
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    fontStyle: 'italic',
+                    color: '#9B8550',
+                    marginTop: 10,
+                    textAlign: 'center',
+                  }}
+                >
+                  + d&rsquo;autres services disponibles
                 </p>
-                <div className="mt-1">
-                  {!editingAnnual ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingAnnual(true)
-                        setAnnualOverride(String(effectiveAnnual))
-                      }}
-                      className="text-xl font-bold text-[var(--ink)] hover:text-[var(--gold)] transition-colors cursor-text"
-                      title="点击编辑价格"
-                    >
-                      {formatEuro(effectiveAnnual)}
-                      <span className="text-xs font-normal text-[var(--ink-muted)] ml-1">/ an</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        value={annualOverride}
-                        onChange={(e) => setAnnualOverride(e.target.value)}
-                        onBlur={() => setEditingAnnual(false)}
-                        onKeyDown={(e) => e.key === 'Enter' && setEditingAnnual(false)}
-                        className="w-24 text-xl font-bold px-1 py-0 border-b-2 border-[var(--gold)] bg-transparent focus:outline-none"
-                        autoFocus
-                      />
-                      <span className="text-xs text-[var(--ink-muted)]">&euro; / an</span>
-                    </div>
-                  )}
-                </div>
-                {annualEconomy > 0 && (
-                  <p className="text-xs text-[var(--success)] mt-1">
-                    节省 : {formatEuro(annualEconomy)} / an
-                  </p>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Add button */}
-            <button
-              type="button"
-              onClick={addPackage}
-              className="mt-4 w-full py-2 rounded-md bg-[var(--gold)] text-white font-medium text-sm hover:opacity-90 transition-opacity"
-            >
-              添加到 devis
-            </button>
+            {/* Vertical gold divider */}
+            <div
+              style={{
+                width: 1,
+                backgroundColor: '#B8922F',
+                opacity: 0.3,
+                alignSelf: 'stretch',
+                flexShrink: 0,
+              }}
+            />
+
+            {/* RIGHT COLUMN */}
+            <div style={{ flex: 1, paddingLeft: 30, minWidth: 0 }}>
+              <p
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 1.8,
+                  color: '#1C1611',
+                  marginBottom: 14,
+                }}
+              >
+                ② CONFIGURE LE PACK
+              </p>
+
+              {/* Pack card */}
+              <div
+                style={{
+                  backgroundColor: '#FEFBF2',
+                  borderRadius: 12,
+                  borderLeft: '4px solid #B8922F',
+                  padding: '20px 22px',
+                }}
+              >
+                {/* Auto name label */}
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: 1.4,
+                    color: '#9B8550',
+                    marginBottom: 4,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  NOM AUTO
+                </p>
+                {/* Pack name */}
+                <p
+                  style={{
+                    fontFamily: '"Playfair Display", serif',
+                    fontSize: 26,
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    color: '#1C1611',
+                    lineHeight: 1.2,
+                    marginBottom: 12,
+                  }}
+                >
+                  {selectedServices.length > 0
+                    ? `Pack sur mesure · ${selectedServices.length} services`
+                    : 'Pack sur mesure · 0 service'}
+                </p>
+
+                {/* Gold divider */}
+                <div style={{ height: 1, backgroundColor: '#B8922F', opacity: 0.3, marginBottom: 14 }} />
+
+                {/* SERVICES INCLUS */}
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: 1.4,
+                    color: '#9B8550',
+                    marginBottom: 8,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  SERVICES INCLUS
+                </p>
+
+                {selectedServices.length === 0 ? (
+                  <p
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 11,
+                      fontStyle: 'italic',
+                      color: '#9B8550',
+                      marginBottom: 14,
+                    }}
+                  >
+                    Aucun service s&eacute;lectionn&eacute;
+                  </p>
+                ) : (
+                  <div className="space-y-1.5" style={{ marginBottom: 14 }}>
+                    {selectedServices.map((svc) => (
+                      <div key={svc.id}>
+                        <p
+                          style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: '#1C1611',
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          ✦ {svc.name.fr} — {svc.name.zh}
+                        </p>
+                        <p
+                          style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 10,
+                            fontStyle: 'italic',
+                            color: '#6B5A3D',
+                            lineHeight: 1.3,
+                            paddingLeft: 14,
+                          }}
+                        >
+                          {svc.description.fr}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Gold divider */}
+                <div style={{ height: 1, backgroundColor: '#B8922F', opacity: 0.3, marginBottom: 14 }} />
+
+                {/* TARIFICATION */}
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: 1.4,
+                    color: '#9B8550',
+                    marginBottom: 10,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  TARIFICATION
+                </p>
+
+                <div className="flex gap-3">
+                  {/* MENSUEL card */}
+                  <div
+                    className="flex-1 cursor-pointer"
+                    style={{
+                      backgroundColor: '#F6EFDC',
+                      borderRadius: 10,
+                      padding: '12px 14px',
+                      minHeight: 92,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: '#6B5A3D',
+                        marginBottom: 6,
+                      }}
+                    >
+                      MENSUEL &middot; 月付
+                    </p>
+                    {baselineMonthly > 0 && effectiveMonthly < baselineMonthly && (
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 11,
+                          color: '#9B8550',
+                          textDecoration: 'line-through',
+                          marginBottom: 2,
+                        }}
+                      >
+                        {formatEuro(baselineMonthly)}
+                      </p>
+                    )}
+                    <div className="flex items-baseline gap-1">
+                      {!editingMonthly ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMonthly(true)
+                            setMonthlyOverride(String(effectiveMonthly))
+                          }}
+                          className="cursor-text hover:opacity-80 transition-opacity"
+                          title="点击编辑价格"
+                          style={{
+                            fontFamily: '"Playfair Display", serif',
+                            fontSize: 30,
+                            fontWeight: 700,
+                            fontStyle: 'italic',
+                            color: '#1C1611',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {formatEuro(effectiveMonthly)}
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={monthlyOverride}
+                            onChange={(e) => setMonthlyOverride(e.target.value)}
+                            onBlur={() => setEditingMonthly(false)}
+                            onKeyDown={(e) => e.key === 'Enter' && setEditingMonthly(false)}
+                            className="focus:outline-none"
+                            style={{
+                              width: 80,
+                              fontFamily: '"Playfair Display", serif',
+                              fontSize: 30,
+                              fontWeight: 700,
+                              fontStyle: 'italic',
+                              color: '#1C1611',
+                              background: 'transparent',
+                              borderBottom: '2px solid #B8922F',
+                            }}
+                            autoFocus
+                          />
+                        </div>
+                      )}
+                      <span
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: '#9B8550',
+                        }}
+                      >
+                        / mois
+                      </span>
+                    </div>
+                    {monthlyEconomy > 0 && (
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontStyle: 'italic',
+                          color: '#9B2A2A',
+                          marginTop: 4,
+                        }}
+                      >
+                        Économie : {formatEuro(monthlyEconomy)} / mois
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ANNUEL card */}
+                  <div
+                    className="flex-1 relative cursor-pointer overflow-hidden"
+                    style={{
+                      backgroundColor: '#1C1611',
+                      borderRadius: 10,
+                      padding: '12px 14px',
+                      minHeight: 92,
+                    }}
+                  >
+                    {/* Gold top bar */}
+                    <div
+                      className="absolute top-0 left-0 right-0"
+                      style={{ height: 4, backgroundColor: '#B8922F' }}
+                    />
+                    <p
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: '#F5D48A',
+                        marginBottom: 6,
+                      }}
+                    >
+                      ANNUEL &middot; 年付 ★
+                    </p>
+                    {baselineAnnual > 0 && effectiveAnnual < baselineAnnual && (
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 11,
+                          color: '#9B8550',
+                          textDecoration: 'line-through',
+                          marginBottom: 2,
+                        }}
+                      >
+                        {formatEuro(baselineAnnual)}
+                      </p>
+                    )}
+                    <div className="flex items-baseline gap-1">
+                      {!editingAnnual ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingAnnual(true)
+                            setAnnualOverride(String(effectiveAnnual))
+                          }}
+                          className="cursor-text hover:opacity-80 transition-opacity"
+                          title="点击编辑价格"
+                          style={{
+                            fontFamily: '"Playfair Display", serif',
+                            fontSize: 30,
+                            fontWeight: 700,
+                            fontStyle: 'italic',
+                            color: '#F8EFDC',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {formatEuro(effectiveAnnual)}
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={annualOverride}
+                            onChange={(e) => setAnnualOverride(e.target.value)}
+                            onBlur={() => setEditingAnnual(false)}
+                            onKeyDown={(e) => e.key === 'Enter' && setEditingAnnual(false)}
+                            className="focus:outline-none"
+                            style={{
+                              width: 80,
+                              fontFamily: '"Playfair Display", serif',
+                              fontSize: 30,
+                              fontWeight: 700,
+                              fontStyle: 'italic',
+                              color: '#F8EFDC',
+                              background: 'transparent',
+                              borderBottom: '2px solid #B8922F',
+                            }}
+                            autoFocus
+                          />
+                        </div>
+                      )}
+                      <span
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 14,
+                          color: '#B8922F',
+                        }}
+                      >
+                        / an
+                      </span>
+                    </div>
+                    {annualEconomy > 0 && (
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontStyle: 'italic',
+                          color: '#F5D48A',
+                          marginTop: 4,
+                        }}
+                      >
+                        Économie : {formatEuro(annualEconomy)} / an
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* BOTTOM PREVIEW ③ */}
+          <div style={{ paddingLeft: 40, paddingRight: 40, marginTop: 24 }}>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 1.8,
+                color: '#1C1611',
+                marginBottom: 10,
+              }}
+            >
+              ③ APERÇU DANS LE DEVIS
+            </p>
+
+            {/* Preview card */}
+            <div
+              className="flex items-center"
+              style={{
+                backgroundColor: '#EFE3C6',
+                borderRadius: 8,
+                padding: '14px 18px',
+                minHeight: 70,
+                gap: 16,
+              }}
+            >
+              <div className="flex-1 min-w-0">
+                <p
+                  style={{
+                    fontFamily: '"Playfair Display", serif',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    color: '#1C1611',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {selectedServices.length > 0
+                    ? `Pack sur mesure · ${selectedServices.length} services`
+                    : 'Pack sur mesure'}
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    color: '#6B5A3D',
+                    marginTop: 2,
+                  }}
+                >
+                  {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} inclus &middot; Facturation annuelle
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    fontStyle: 'italic',
+                    color: '#9B8550',
+                    marginTop: 2,
+                  }}
+                >
+                  {selectedServices.map((s) => s.name.fr).join(', ') || '—'}
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    color: '#6B5A3D',
+                    marginBottom: 2,
+                  }}
+                >
+                  x 12 mois
+                </p>
+                <p
+                  style={{
+                    fontFamily: '"Playfair Display", serif',
+                    fontSize: 20,
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    color: '#1C1611',
+                    lineHeight: 1,
+                  }}
+                >
+                  {formatEuro(effectiveAnnual)}
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    color: '#9B8550',
+                    marginTop: 2,
+                  }}
+                >
+                  HT / an
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ paddingLeft: 40, paddingRight: 40, paddingTop: 20, paddingBottom: 30 }}>
+            {/* Gold rule */}
+            <div style={{ height: 1, backgroundColor: '#B8922F', opacity: 0.4, marginBottom: 20 }} />
+
+            <div className="flex items-center justify-end gap-4">
+              {/* Cancel button */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="relative transition-opacity hover:opacity-90"
+                style={{
+                  width: 160,
+                  height: 56,
+                  backgroundColor: '#F8EFDC',
+                  borderRadius: 12,
+                  border: 'none',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#1C1611',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 0 0 #1C1611',
+                }}
+              >
+                取消
+              </button>
+
+              {/* Add button */}
+              <button
+                type="button"
+                onClick={addPackage}
+                disabled={selectedServices.length === 0}
+                className="relative transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  width: 196,
+                  height: 56,
+                  backgroundColor: '#1C1611',
+                  borderRadius: 12,
+                  border: 'none',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#F8EFDC',
+                  cursor: selectedServices.length === 0 ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(28, 22, 17, 0.3)',
+                }}
+              >
+                添加到 devis →
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
