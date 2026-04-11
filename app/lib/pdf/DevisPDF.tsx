@@ -106,42 +106,55 @@ export function DevisPDF({ vm }: DevisPDFProps) {
 
         {/* Dual cards */}
         {vm.dualCards && (
-          <View wrap={false} style={s.dualCardRow}>
-            {/* Monthly */}
-            <View style={s.dualCard}>
-              <Text style={s.dualCardLabel}>{vm.labels.mensuel}</Text>
-              <Text style={s.dualCardStrikethrough}>
-                {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.monthly.baseline)}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
-                <Text style={s.dualCardPrice}>
-                  {formatEuro(vm.dualCards.monthly.final)}
-                </Text>
-                <Text style={s.dualCardUnit}>{vm.labels.perMonth}</Text>
+          <View wrap={false}>
+            <Text style={s.dualCardChoiceLabel}>
+              FORMULES AU CHOIX  ·  {vm.labels.mensuel} / {vm.labels.annuel}
+            </Text>
+            <View style={s.dualCardRow}>
+              {/* Monthly */}
+              <View style={s.dualCard}>
+                <Text style={s.dualCardLabel}>{vm.labels.mensuel}</Text>
+                {vm.dualCards.monthly.economy > 0 ? (
+                  <Text style={s.dualCardStrikethrough}>
+                    {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.monthly.baseline)}
+                  </Text>
+                ) : null}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
+                  <Text style={s.dualCardPrice}>
+                    {formatEuro(vm.dualCards.monthly.final)}
+                  </Text>
+                  <Text style={s.dualCardUnit}>{vm.labels.perMonth}</Text>
+                </View>
+                {vm.dualCards.monthly.economy > 0 ? (
+                  <Text style={s.dualCardSavings}>
+                    {vm.labels.economie} : {formatEuro(vm.dualCards.monthly.economy)} ({vm.dualCards.monthly.economyPct}%)
+                  </Text>
+                ) : null}
               </View>
-              <Text style={s.dualCardSavings}>
-                {vm.labels.economie} : {formatEuro(vm.dualCards.monthly.economy)} ({vm.dualCards.monthly.economyPct}%)
-              </Text>
-            </View>
 
-            {/* Annual */}
-            <View style={s.dualCardGold}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                <Text style={s.dualCardLabelGold}>{vm.labels.annuel} &#9733;</Text>
-                <Text style={s.badge}>{vm.labels.recommande}</Text>
+              {/* Annual */}
+              <View style={s.dualCardGold}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                  <Text style={s.dualCardLabelGold}>{vm.labels.annuel} &#9733;</Text>
+                  <Text style={s.badge}>{vm.labels.recommande}</Text>
+                </View>
+                {vm.dualCards.annual.economy > 0 ? (
+                  <Text style={s.dualCardStrikethrough}>
+                    {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.annual.baseline)}
+                  </Text>
+                ) : null}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
+                  <Text style={s.dualCardPrice}>
+                    {formatEuro(vm.dualCards.annual.final)}
+                  </Text>
+                  <Text style={s.dualCardUnit}>{vm.labels.perYear}</Text>
+                </View>
+                {vm.dualCards.annual.economy > 0 ? (
+                  <Text style={s.dualCardSavings}>
+                    {vm.labels.economie} : {formatEuro(vm.dualCards.annual.economy)} ({vm.dualCards.annual.economyPct}%)
+                  </Text>
+                ) : null}
               </View>
-              <Text style={s.dualCardStrikethrough}>
-                {vm.labels.tarifNormal} : {formatEuro(vm.dualCards.annual.baseline)}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
-                <Text style={s.dualCardPrice}>
-                  {formatEuro(vm.dualCards.annual.final)}
-                </Text>
-                <Text style={s.dualCardUnit}>{vm.labels.perYear}</Text>
-              </View>
-              <Text style={s.dualCardSavings}>
-                {vm.labels.economie} : {formatEuro(vm.dualCards.annual.economy)} ({vm.dualCards.annual.economyPct}%)
-              </Text>
             </View>
           </View>
         )}

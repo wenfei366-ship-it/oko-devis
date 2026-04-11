@@ -177,12 +177,10 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
   // "Inclus gratuitement" — default free services always shown
   const inclusGratuit: string[] = FREE_SERVICES.map((s) => tr(s, lang))
 
-  // Dual cards — show when there's a discount and recurring items
+  // Dual cards — show whenever recurring services can be quoted as a choice.
+  // Discounts only control whether the "normal price" and savings copy are meaningful.
   let dualCards: DualCard | null = null
-  if (
-    totals.recurringAnnualBaseline > 0 &&
-    totals.recurringAnnualBaseline !== totals.recurringAnnualFinal
-  ) {
+  if (totals.recurringAnnualBaseline > 0) {
     const annualEconomy = totals.recurringAnnualBaseline - totals.recurringAnnualFinal
     const monthlyEconomy = totals.recurringMonthlyBaseline - totals.recurringMonthlyFinal
     dualCards = {

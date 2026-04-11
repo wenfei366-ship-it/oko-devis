@@ -295,17 +295,22 @@ export function DevisPreviewContent({
       {/* ═══ Dual cards (MENSUEL / ANNUEL) ═══ */}
       {vm.dualCards && (
         <div style={{ padding: '8px 64px' }}>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.6, color: '#A8702E', marginBottom: 6 }}>
+            FORMULES AU CHOIX  ·  {vm.labels.mensuel} / {vm.labels.annuel}
+          </p>
           <div className="grid grid-cols-2" style={{ gap: 8 }}>
             {/* Monthly card */}
             <div style={{ position: 'relative', backgroundColor: '#F6EFDC', borderRadius: 6, height: 70, padding: '6px 16px' }}>
               <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: '#6B5A3D' }}>
                 {vm.labels.mensuel}
               </p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
-                <span style={{ textDecoration: 'line-through' }}>
-                  {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.monthly.baseline)}/mois
-                </span>
-              </p>
+              {vm.dualCards.monthly.economy > 0 && (
+                <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
+                  <span style={{ textDecoration: 'line-through' }}>
+                    {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.monthly.baseline)}/mois
+                  </span>
+                </p>
+              )}
               <p style={{
                 position: 'absolute', right: 16, top: 16,
                 fontSize: 24, fontStyle: 'italic', fontWeight: 700, color: '#2A2620',
@@ -316,9 +321,11 @@ export function DevisPreviewContent({
                   {vm.labels.perMonth}
                 </span>
               </p>
-              <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#9B2A2A', marginTop: 3 }}>
-                {vm.labels.economie}  {formatEuro(vm.dualCards.monthly.economy)}/mois  ·  − {vm.dualCards.monthly.economyPct} %
-              </p>
+              {vm.dualCards.monthly.economy > 0 && (
+                <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#9B2A2A', marginTop: 3 }}>
+                  {vm.labels.economie}  {formatEuro(vm.dualCards.monthly.economy)}/mois  ·  − {vm.dualCards.monthly.economyPct} %
+                </p>
+              )}
             </div>
 
             {/* Annual card */}
@@ -328,11 +335,13 @@ export function DevisPreviewContent({
               <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: '#F5D48A' }}>
                 {vm.labels.annuel}  &#9733;  {vm.labels.recommande}
               </p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
-                <span style={{ textDecoration: 'line-through' }}>
-                  {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.annual.baseline)}/an
-                </span>
-              </p>
+              {vm.dualCards.annual.economy > 0 && (
+                <p style={{ fontSize: 10, fontWeight: 500, color: '#9B8550', marginTop: 3 }}>
+                  <span style={{ textDecoration: 'line-through' }}>
+                    {vm.labels.tarifNormal}  {formatEuro(vm.dualCards.annual.baseline)}/an
+                  </span>
+                </p>
+              )}
               <p style={{
                 position: 'absolute', right: 16, top: 14,
                 fontSize: 26, fontStyle: 'italic', fontWeight: 700, color: '#F8EFDC',
@@ -343,9 +352,11 @@ export function DevisPreviewContent({
                   {vm.labels.perYear}
                 </span>
               </p>
-              <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#F5D48A', marginTop: 3 }}>
-                {vm.labels.economie}  {formatEuro(vm.dualCards.annual.economy)}/an  ·  − {vm.dualCards.annual.economyPct} %
-              </p>
+              {vm.dualCards.annual.economy > 0 && (
+                <p style={{ fontSize: 10, fontStyle: 'italic', fontWeight: 700, color: '#F5D48A', marginTop: 3 }}>
+                  {vm.labels.economie}  {formatEuro(vm.dualCards.annual.economy)}/an  ·  − {vm.dualCards.annual.economyPct} %
+                </p>
+              )}
             </div>
           </div>
         </div>

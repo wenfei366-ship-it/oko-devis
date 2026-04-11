@@ -228,10 +228,19 @@ export const s = StyleSheet.create({
   },
 
   // Dual cards
+  dualCardChoiceLabel: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: COLORS.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginTop: 8,
+  },
   dualCardRow: {
     flexDirection: 'row',
     gap: 12,
-    marginVertical: 8,
+    marginTop: 6,
+    marginBottom: 8,
   },
   dualCard: {
     flex: 1,
