@@ -16,13 +16,20 @@
 - [fix] M8.3: DevisLivePreview header 修正 — DEVIS 大字左、OKO logo 右、N° 金色
 - [deploy] https://oko-devis.vercel.app — 版本 e3da65e
 
+## 用户反馈 v4 (7 个问题)
+1. 中列预览固定 — 不能左右滑动，用 transform:scale 缩小到容器宽度，只上下滚
+2. 价格显示不对 — TOTAL HT 要深色大条 + Playfair白字，MENSUEL/ANNUEL 双卡要黑/白对照
+3. 杂志 Modal 不符 — 需要 washi tape、5 个信息标签、深色 backdrop、奶白面板
+4. PNG 下载空白 — off-screen render target 问题
+5. PDF 分页散 — 要紧凑，2-3 页放一起
+6. 免费项目省略 — 要完整列出 Slftq 里的全部赠品
+7. 银行信息格式 — 要两栏布局（IBAN+BIC 左，OKO 地址右）
++. OKO logo 位置大小协调性
+
 ## 下次接着做
-- DevisLivePreview 继续细化：ÉMETTEUR/DESTINATAIRE 双栏排版、表格行样式、金色分隔线、IBAN 块、CGV 缩略、签名区、服务描述斜体
-- 中列预览添加服务后的表格行显示效果验证
-- 月付/年付双卡样式（Pencil YxXBG 里的 MENSUEL/ANNUEL 黑/白卡）
-- MagazineModal 杂志预览视觉还原（ymZax）
-- PackageGenerator 视觉还原（c5XaK）
-- M9 冒烟测试
-- 用户 Stephan 验收 + 反馈迭代
+- 按优先级修 7 个问题（详见 memory/feedback_devis_ui_v4.md）
+- 优先：中列缩放(1) + PNG 空白(4) + 杂志 Modal(3) + 价格样式(2)
+- 然后：银行格式(7) + 免费项(6) + PDF 紧凑(5) + logo 微调(8)
+- 修完部署 + 再截图对比
 - CGV 法语文本需要 Stephan 最终确认
 - 建 GitHub remote + CI/CD
