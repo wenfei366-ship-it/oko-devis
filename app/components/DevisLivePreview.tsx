@@ -230,10 +230,10 @@ export function DevisPreviewContent({
               {vm.labels.qtyDuration}
             </p>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
-              {vm.isFrance ? 'PU HT' : vm.labels.unitPrice}
+              {vm.labels.unitPrice}
             </p>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.8, color: '#2A2620', textAlign: 'right' }}>
-              {vm.isFrance ? 'TOTAL HT' : vm.labels.lineTotal}
+              {vm.labels.lineTotal}
             </p>
           </div>
 
@@ -370,7 +370,7 @@ export function DevisPreviewContent({
             style={{ borderRadius: 6, backgroundColor: '#2A2620', padding: '10px 14px' }}
           >
             <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.isFrance ? 'TOTAL HT' : 'TOTAL'}
+              {vm.labels.totalHT}
             </span>
             <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
               {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}

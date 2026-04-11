@@ -56,6 +56,7 @@ function mkPackage(overrides: Partial<PackageLine> = {}): PackageLine {
 function mkDevis(
   items: DevisItem[],
   discount: Discount = { kind: 'none' },
+  country: Customer['country'] = 'FR',
 ): Devis {
   return {
     id: 'devis-1',
@@ -66,7 +67,7 @@ function mkDevis(
       objet: i18n('Devis pour services digitaux'),
       startDate: '',
     },
-    customer: mkCustomer(),
+    customer: mkCustomer(country),
     items,
     discount,
     notes: '',
@@ -113,5 +114,28 @@ describe('buildViewModel dual cards', () => {
     expect(vm.dualCards?.annual.baseline).toBe(3600)
     expect(vm.dualCards?.annual.final).toBe(1000)
     expect(vm.dualCards?.annual.economy).toBe(2600)
+  })
+})
+
+describe('buildViewModel tax labels', () => {
+  it('uses HT labels for French customers', () => {
+    const devis = mkDevis([mkLine()], { kind: 'none' }, 'FR')
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.labels.unitPrice).toBe('PU HT')
+    expect(vm.labels.lineTotal).toBe('TOTAL HT')
+    expect(vm.labels.subtotal).toBe('Sous-total HT')
+    expect(vm.labels.totalHT).toBe('TOTAL HT')
+  })
+
+  it('removes HT labels for non-French customers even when the document language is French', () => {
+    const devis = mkDevis([mkLine()], { kind: 'none' }, 'IT')
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.labels.unitPrice).toBe('PU')
+    expect(vm.labels.lineTotal).toBe('TOTAL')
+    expect(vm.labels.subtotal).toBe('Sous-total')
+    expect(vm.labels.totalHT).toBe('TOTAL')
+    expect(vm.totals.tva).toBe(0)
   })
 })

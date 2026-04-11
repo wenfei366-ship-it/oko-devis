@@ -17,12 +17,16 @@ export const LABELS = {
   designation: { fr: 'DÉSIGNATION', it: 'DESCRIZIONE', es: 'DESCRIPCIÓN', de: 'BEZEICHNUNG', zh: '服务项目' } as I18nString,
   qtyDuration: { fr: 'QTÉ / DURÉE', it: 'QTÀ / DURATA', es: 'CANT / DURACIÓN', de: 'MENGE / DAUER', zh: '数量 / 期限' } as I18nString,
   unitPrice: { fr: 'PU HT', it: 'PREZZO UNITARIO', es: 'PRECIO UNITARIO', de: 'EINZELPREIS', zh: '单价' } as I18nString,
+  unitPriceNoTax: { fr: 'PU', it: 'PREZZO UNITARIO', es: 'PRECIO UNITARIO', de: 'EINZELPREIS', zh: '单价' } as I18nString,
   lineTotal: { fr: 'TOTAL HT', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
+  lineTotalNoTax: { fr: 'TOTAL', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
 
   // Total labels (note: HT/TVA/TTC only used for France)
   subtotal: { fr: 'Sous-total HT', it: 'Subtotale', es: 'Subtotal', de: 'Zwischensumme', zh: '小计' } as I18nString,
+  subtotalNoTax: { fr: 'Sous-total', it: 'Subtotale', es: 'Subtotal', de: 'Zwischensumme', zh: '小计' } as I18nString,
   discount: { fr: 'Remise', it: 'Sconto', es: 'Descuento', de: 'Rabatt', zh: '折扣' } as I18nString,
   totalHT: { fr: 'TOTAL HT', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
+  totalNoTax: { fr: 'TOTAL', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
   tva: { fr: 'TVA 20 %', it: '—', es: '—', de: '—', zh: '—' } as I18nString,
   totalTtc: { fr: 'TOTAL TTC', it: 'TOTALE', es: 'TOTAL', de: 'GESAMT', zh: '总计' } as I18nString,
 
