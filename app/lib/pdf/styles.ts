@@ -17,13 +17,13 @@ const COLORS = {
 export const s = StyleSheet.create({
   page: {
     backgroundColor: COLORS.paper,
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 50,
+    paddingTop: 30,
+    paddingBottom: 30,
+    paddingHorizontal: 45,
     fontFamily: 'Inter',
-    fontSize: 10,
+    fontSize: 9,
     color: COLORS.ink,
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
 
   // Header
