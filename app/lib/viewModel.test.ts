@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Customer, Devis, DevisItem, Discount, I18nString, LineItem } from './types'
+import type { Customer, Devis, DevisItem, Discount, I18nString, LineItem, PackageLine } from './types'
 import { buildViewModel } from './viewModel'
 import { computeTotals } from './calculations'
 
@@ -30,6 +30,24 @@ function mkLine(overrides: Partial<LineItem> = {}): LineItem {
     unitPrice: 50,
     billingCadence: 'monthly',
     pdfSection: 'forfait',
+    recurringEligible: true,
+    ...overrides,
+  }
+}
+
+function mkPackage(overrides: Partial<PackageLine> = {}): PackageLine {
+  return {
+    kind: 'package',
+    id: 'package-1',
+    nameSnapshot: i18n('Pack sur mesure'),
+    childServiceIds: ['website', 'reservation'],
+    childNamesSnapshot: [i18n('Site web'), i18n('Reservation')],
+    childDescsSnapshot: [i18n('Site vitrine'), i18n('Reservation en ligne')],
+    monthlyPrice: 100,
+    annualPrice: 1000,
+    baselineMonthly: 300,
+    baselineAnnual: 3600,
+    preferredMode: 'monthly',
     recurringEligible: true,
     ...overrides,
   }
@@ -83,5 +101,17 @@ describe('buildViewModel dual cards', () => {
     const vm = buildViewModel(devis, computeTotals(devis))
 
     expect(vm.dualCards).toBeNull()
+  })
+
+  it('uses package monthly and annual prices separately even when preferred mode is monthly', () => {
+    const devis = mkDevis([mkPackage()])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.dualCards?.monthly.baseline).toBe(300)
+    expect(vm.dualCards?.monthly.final).toBe(100)
+    expect(vm.dualCards?.monthly.economy).toBe(200)
+    expect(vm.dualCards?.annual.baseline).toBe(3600)
+    expect(vm.dualCards?.annual.final).toBe(1000)
+    expect(vm.dualCards?.annual.economy).toBe(2600)
   })
 })

@@ -139,6 +139,60 @@ function formatUnitPrice(item: DevisItem, lang: Lang): string {
   }
 }
 
+function economyPct(baseline: number, economy: number): number {
+  return baseline > 0 ? Math.round((economy / baseline) * 100) : 0
+}
+
+function buildDualCards(items: DevisItem[]): DualCard | null {
+  const values = items.reduce(
+    (acc, item) => {
+      if (item.kind === 'package') {
+        const pack = item as PackageLine
+        acc.monthlyBaseline += pack.baselineMonthly
+        acc.monthlyFinal += pack.monthlyPrice
+        acc.annualBaseline += pack.baselineAnnual
+        acc.annualFinal += pack.annualPrice
+        return acc
+      }
+
+      const line = item as LineItem
+      if (!line.recurringEligible) return acc
+
+      const annualAmount = lineAmount(line)
+      const monthlyAmount = line.billingCadence === 'monthly'
+        ? line.unitPrice
+        : annualAmount / 12
+
+      acc.monthlyBaseline += monthlyAmount
+      acc.monthlyFinal += monthlyAmount
+      acc.annualBaseline += annualAmount
+      acc.annualFinal += annualAmount
+      return acc
+    },
+    { monthlyBaseline: 0, monthlyFinal: 0, annualBaseline: 0, annualFinal: 0 }
+  )
+
+  if (values.annualBaseline <= 0) return null
+
+  const monthlyEconomy = Math.max(0, values.monthlyBaseline - values.monthlyFinal)
+  const annualEconomy = Math.max(0, values.annualBaseline - values.annualFinal)
+
+  return {
+    monthly: {
+      baseline: values.monthlyBaseline,
+      final: values.monthlyFinal,
+      economy: monthlyEconomy,
+      economyPct: economyPct(values.monthlyBaseline, monthlyEconomy),
+    },
+    annual: {
+      baseline: values.annualBaseline,
+      final: values.annualFinal,
+      economy: annualEconomy,
+      economyPct: economyPct(values.annualBaseline, annualEconomy),
+    },
+  }
+}
+
 // ---------- Builder ----------
 
 export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): DevisViewModel {
@@ -179,29 +233,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
 
   // Dual cards — show whenever recurring services can be quoted as a choice.
   // Discounts only control whether the "normal price" and savings copy are meaningful.
-  let dualCards: DualCard | null = null
-  if (totals.recurringAnnualBaseline > 0) {
-    const annualEconomy = totals.recurringAnnualBaseline - totals.recurringAnnualFinal
-    const monthlyEconomy = totals.recurringMonthlyBaseline - totals.recurringMonthlyFinal
-    dualCards = {
-      monthly: {
-        baseline: totals.recurringMonthlyBaseline,
-        final: totals.recurringMonthlyFinal,
-        economy: monthlyEconomy,
-        economyPct: totals.recurringMonthlyBaseline > 0
-          ? Math.round((monthlyEconomy / totals.recurringMonthlyBaseline) * 100)
-          : 0,
-      },
-      annual: {
-        baseline: totals.recurringAnnualBaseline,
-        final: totals.recurringAnnualFinal,
-        economy: annualEconomy,
-        economyPct: totals.recurringAnnualBaseline > 0
-          ? Math.round((annualEconomy / totals.recurringAnnualBaseline) * 100)
-          : 0,
-      },
-    }
-  }
+  const dualCards = buildDualCards(devis.items)
 
   // Check if any service key matches known free services (website-setup when bundled)
   // For now, inclusGratuit from packages only
