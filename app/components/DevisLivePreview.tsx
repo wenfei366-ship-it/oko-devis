@@ -237,6 +237,16 @@ export function DevisPreviewContent({
             </p>
           </div>
 
+          {/* Section title — per design "I. Forfait annuel" */}
+          <div className="flex items-end" style={{ gap: 10, padding: '18px 14px 8px 14px' }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              I.
+            </span>
+            <span style={{ fontSize: 17, fontStyle: 'italic', fontWeight: 700, color: '#2A2620', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {vm.labels.forfaitAnnuel}
+            </span>
+          </div>
+
           {/* Table rows */}
           {vm.items.map((item, idx) => (
             <div key={idx} data-section={`item-${idx}`}>
@@ -351,22 +361,7 @@ export function DevisPreviewContent({
         </div>
       )}
 
-      {/* ═══ TOTAL HT bar ═══ */}
-      <div style={{ padding: '14px 64px 0' }}>
-        <div
-          className="flex items-center justify-between"
-          style={{ borderRadius: 6, backgroundColor: '#2A2620', padding: '10px 14px' }}
-        >
-          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-            {vm.labels.totalHT}
-          </span>
-          <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-            {vm.totalsFormatted.totalHT} HT
-          </span>
-        </div>
-      </div>
-
-      {/* ═══ Soft divider ═══ */}
+      {/* ═══ Soft divider — cards → INCLUS (no TOTAL HT bar per design) ═══ */}
       <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
 
       {/* ═══ Inclus gratuitement — dashed border box, two columns ═══ */}
