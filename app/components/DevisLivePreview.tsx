@@ -109,78 +109,81 @@ export function DevisPreviewContent({
         lineHeight: 1.5,
       }}
     >
-      {/* Header — DEVIS big left, OKO logo right, bottom-aligned */}
-      <div className="flex items-end justify-between px-16 pt-14 pb-2">
+      {/* Header — DEVIS big left, OKO logo right */}
+      <div className="flex items-start justify-between px-16 pt-10 pb-3">
         <h2
           className="font-bold italic"
           style={{
-            fontSize: 48,
+            fontSize: 72,
             color: '#1C1611',
             fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
-            letterSpacing: -1,
+            letterSpacing: -2,
             lineHeight: 1,
           }}
         >
           DEVIS
         </h2>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/oko-logo.png" alt="OKO" style={{ height: 36, width: 'auto', marginBottom: 4 }} />
+        <img src="/oko-logo.png" alt="OKO" style={{ height: 56, width: 'auto', marginTop: 8 }} />
       </div>
-      {/* N° + date + joinoko.com */}
-      <div className="px-16 pb-1 flex items-center gap-2">
-        <span className="text-[11px] font-semibold tracking-[1px]" style={{ color: '#9B8550' }}>
-          N° {vm.meta.number}  ·  {vm.meta.date}
+      {/* N° + date left, joinoko.com right */}
+      <div className="px-16 pb-2 flex items-center">
+        <span className="text-[11px] font-semibold tracking-[1.2px]" style={{ color: '#9B8550' }}>
+          N°  {vm.meta.number}  ·  {vm.meta.date}
         </span>
-        <span className="ml-auto text-[10px] font-medium tracking-[0.6px]" style={{ color: '#9B8550' }}>
+        <span className="ml-auto text-[10px] font-medium tracking-[1px]" style={{ color: '#9B8550' }}>
           joinoko.com
         </span>
       </div>
 
-      {/* Gold rule */}
-      <div className="mx-16 mt-3" style={{ height: 1.5, backgroundColor: '#B8922F', opacity: 0.55 }} />
+      {/* Gold dashed divider */}
+      <div className="mx-16 mt-2" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.5 }} />
 
-      {/* Emetteur / Destinataire — two columns */}
-      <div className="px-16 py-4 grid grid-cols-2 gap-8">
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-1" style={{ color: '#9B8550' }}>
+      {/* Emetteur / Destinataire — boxed like Pencil Slftq */}
+      <div className="mx-16 mt-4 grid grid-cols-2" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
+        <div className="p-4" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
+          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
             {vm.labels.emetteur}
           </p>
-          <p className="text-[12px] font-bold" style={{ color: '#1C1611' }}>{vm.emetteur.name}</p>
-          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.emetteur.address}</p>
+          <p className="text-[14px] font-bold" style={{ color: '#1C1611' }}>{vm.emetteur.name}</p>
+          <p className="text-[10px] mt-0.5" style={{ color: '#1C1611' }}>{vm.emetteur.address}</p>
           <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.emetteur.rcs}</p>
           <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.emetteur.email}</p>
         </div>
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-1" style={{ color: '#9B8550' }}>
+        <div className="p-4">
+          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-2" style={{ color: '#9B8550' }}>
             {vm.labels.destinataire}
           </p>
-          <p className="text-[12px] font-bold" style={{ color: '#1C1611' }}>{vm.destinataire.name || '—'}</p>
-          <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.destinataire.address || '—'}</p>
+          <p className="text-[16px] font-bold" style={{ color: '#1C1611' }}>{vm.destinataire.name || '—'}</p>
+          <p className="text-[10px] mt-0.5" style={{ color: '#1C1611' }}>{vm.destinataire.address || '—'}</p>
           <p className="text-[10px]" style={{ color: '#1C1611' }}>{vm.destinataire.postalCity || '—'}</p>
-          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.contactName}</p>
           <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.phone}</p>
+          <p className="text-[10px]" style={{ color: '#6B5A3D' }}>{vm.destinataire.email}</p>
         </div>
       </div>
 
-      {/* Objet + Date + Validité + Début row */}
-      <div className="px-16 pb-2 grid grid-cols-4 gap-4 text-[10px]">
-        <div>
-          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.objet}</p>
-          <p className="text-[11px] italic mt-0.5" style={{ fontFamily: 'var(--font-playfair)', color: '#1C1611' }}>{vm.meta.objet}</p>
+      {/* Objet + Date + Validité + Début — boxed row */}
+      <div className="mx-16 mt-3 grid grid-cols-4" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
+        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
+          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.objet}</p>
+          <p className="text-[11px] italic" style={{ fontFamily: 'var(--font-playfair)', color: '#1C1611' }}>{vm.meta.objet}</p>
         </div>
-        <div>
-          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.date}</p>
-          <p className="mt-0.5" style={{ color: '#1C1611' }}>{vm.meta.date}</p>
+        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
+          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>DATE D&apos;ÉMISSION</p>
+          <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.meta.date}</p>
         </div>
-        <div>
-          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.validity}</p>
-          <p className="mt-0.5" style={{ color: '#1C1611' }}>{vm.meta.validity}</p>
+        <div className="p-3" style={{ borderRight: '1px dashed rgba(184,146,47,0.25)' }}>
+          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.validity}</p>
+          <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.meta.validity}</p>
         </div>
-        <div>
-          <p className="font-semibold uppercase tracking-[1px]" style={{ color: '#9B8550' }}>{vm.labels.debutPrestation}</p>
-          <p className="mt-0.5 italic" style={{ color: '#1C1611' }}>{vm.meta.debutPrestation}</p>
+        <div className="p-3">
+          <p className="text-[9px] font-semibold uppercase tracking-[1px] mb-1" style={{ color: '#9B8550' }}>{vm.labels.debutPrestation}</p>
+          <p className="text-[11px] italic" style={{ color: '#1C1611' }}>{vm.meta.debutPrestation}</p>
         </div>
       </div>
+
+      {/* Gold dashed divider */}
+      <div className="mx-16 mt-3" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.4 }} />
 
       {/* Divider */}
       <div className="mx-16 border-t border-[#D9CFB8]" />
@@ -357,48 +360,52 @@ export function DevisPreviewContent({
         )}
       </div>
 
-      {/* Inclus gratuitement */}
+      {/* Inclus gratuitement — two columns with ✓, dashed border box */}
       {vm.inclusGratuit.length > 0 && (
-        <div className="px-16 py-3">
-          <p className="text-[10px] uppercase tracking-widest text-[#968974] font-semibold mb-2">
-            {vm.labels.inclusGratuitement}
-          </p>
-          <ul className="space-y-1">
-            {vm.inclusGratuit.map((name, i) => (
-              <li key={i} className="text-xs text-[#5C5142] flex items-center gap-1.5">
-                <span className="text-[#4B8A5A]">&#10003;</span> {name}
-              </li>
-            ))}
-          </ul>
+        <div className="mx-16 mt-3" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
+          <div className="p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
+              {vm.labels.inclusGratuitement}
+            </p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+              {vm.inclusGratuit.map((name, i) => (
+                <p key={i} className="text-[10px]" style={{ color: '#1C1611' }}>
+                  <span style={{ color: '#4B8A5A' }}>✓</span>  {name}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Bank details — two columns matching Slftq */}
-      <div className="px-16 py-4 border-t border-[#E8DFC6]">
-        <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
-          {vm.labels.coordonneesBancaires}
-        </p>
-        <div className="grid grid-cols-2 gap-6">
-          <div
-            className="rounded-[4px] p-3"
-            style={{ backgroundColor: '#F6EFDC' }}
-          >
-            <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>IBAN</p>
-            <p className="text-[11px] font-bold tracking-[0.6px]" style={{ color: '#1C1611' }}>
-              {vm.bankDetails.iban}
-            </p>
-            <p className="text-[9px] mt-1" style={{ color: '#6B5A3D' }}>
-              BIC : {vm.bankDetails.bic}
-            </p>
-          </div>
-          <div>
-            <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>OKO</p>
-            <p className="text-[10px]" style={{ color: '#1C1611' }}>
-              {vm.emetteur.address}
-            </p>
-            <p className="text-[10px] mt-1" style={{ color: '#6B5A3D' }}>
-              {vm.bankDetails.bank}
-            </p>
+      {/* Gold dashed divider */}
+      <div className="mx-16 mt-3" style={{ borderTop: '1.5px dashed #B8922F', opacity: 0.4 }} />
+
+      {/* Bank details — dashed border box, two columns */}
+      <div className="mx-16 mt-3" style={{ border: '1px dashed rgba(184,146,47,0.35)', borderRadius: 2 }}>
+        <div className="p-4">
+          <p className="text-[9px] font-semibold uppercase tracking-[1.4px] mb-3" style={{ color: '#9B8550' }}>
+            {vm.labels.coordonneesBancaires}
+          </p>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>IBAN</p>
+              <p className="text-[13px] font-bold tracking-[0.8px]" style={{ color: '#1C1611' }}>
+                {vm.bankDetails.iban}
+              </p>
+              <p className="text-[9px] font-semibold tracking-[1px] mt-2 mb-0.5" style={{ color: '#9B8550' }}>BIC / SWIFT</p>
+              <p className="text-[11px]" style={{ color: '#1C1611' }}>{vm.bankDetails.bic}</p>
+            </div>
+            <div style={{ borderLeft: '1px dashed rgba(184,146,47,0.25)', paddingLeft: 16 }}>
+              <p className="text-[9px] font-semibold tracking-[1px] mb-1" style={{ color: '#9B8550' }}>BÉNÉFICIAIRE</p>
+              <p className="text-[11px]" style={{ color: '#1C1611' }}>
+                OKO  ·  {vm.emetteur.address}
+              </p>
+              <p className="text-[9px] font-semibold tracking-[1px] mt-2 mb-0.5" style={{ color: '#9B8550' }}>BANQUE</p>
+              <p className="text-[11px]" style={{ color: '#6B5A3D' }}>
+                {vm.bankDetails.bank}
+              </p>
+            </div>
           </div>
         </div>
       </div>
