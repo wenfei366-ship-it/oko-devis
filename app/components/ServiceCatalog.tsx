@@ -12,6 +12,7 @@ export default function ServiceCatalog() {
   const [showPackGen, setShowPackGen] = useState(false)
   const [showCustom, setShowCustom] = useState(false)
   const [customName, setCustomName] = useState('')
+  const [customDescription, setCustomDescription] = useState('')
   const [customPrice, setCustomPrice] = useState('')
   const [customCadence, setCustomCadence] = useState<'monthly' | 'oneOff'>('monthly')
 
@@ -60,7 +61,13 @@ export default function ServiceCatalog() {
       id: uuid(),
       serviceId: `custom-${uuid()}`,
       nameSnapshot: { fr: customName, it: customName, es: customName, de: customName, zh: customName },
-      descSnapshot: { fr: '', it: '', es: '', de: '', zh: '' },
+      descSnapshot: {
+        fr: customDescription,
+        it: customDescription,
+        es: customDescription,
+        de: customDescription,
+        zh: customDescription,
+      },
       qty: customCadence === 'monthly' ? 12 : 1,
       unit: customCadence === 'monthly' ? 'mois' : 'unique',
       unitPrice: price,
@@ -70,9 +77,10 @@ export default function ServiceCatalog() {
     }
     dispatch({ type: 'ADD_CUSTOM_LINE', item })
     setCustomName('')
+    setCustomDescription('')
     setCustomPrice('')
     setShowCustom(false)
-  }, [customName, customPrice, customCadence, dispatch])
+  }, [customName, customDescription, customPrice, customCadence, dispatch])
 
   return (
     <div className="p-5">
@@ -189,11 +197,18 @@ export default function ServiceCatalog() {
         <div className="rounded-[10px] p-3 space-y-2" style={{ backgroundColor: '#F8EFDC' }}>
           <input
             type="text"
-            placeholder="服务名称"
+            placeholder="服务标题"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
             className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none"
             style={{ backgroundColor: '#F6EFDC' }}
+          />
+          <textarea
+            placeholder="服务描述"
+            value={customDescription}
+            onChange={(e) => setCustomDescription(e.target.value)}
+            className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none resize-none"
+            style={{ backgroundColor: '#F6EFDC', minHeight: 64 }}
           />
           <div className="flex gap-2">
             <input

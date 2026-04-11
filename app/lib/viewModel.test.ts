@@ -155,4 +155,13 @@ describe('buildViewModel localized document title', () => {
 
     expect(vm.labels.devisTitle).toBe('PREVENTIVO')
   })
+
+  it('uses a manual title override when provided', () => {
+    const devis = mkDevis([mkLine()])
+    devis.lang = 'it'
+    devis.meta.title = i18n('报价单')
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.labels.devisTitle).toBe('报价单')
+  })
 })

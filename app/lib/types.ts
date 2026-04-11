@@ -137,6 +137,8 @@ export interface Customer {
 // ---------- Devis ----------
 
 export interface DevisMeta {
+  /** Optional manual document title override; defaults to LABELS.devisTitle. */
+  title?: I18nString
   /** DRAFT-YYYY-nnn-XXXX */
   number: string
   /** ISO date string */

@@ -252,7 +252,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       debutPrestation: devis.meta.startDate || tr(LABELS.startToAgree, lang),
     },
     labels: {
-      devisTitle: tr(LABELS.devisTitle, lang),
+      devisTitle: tr(devis.meta.title ?? LABELS.devisTitle, lang),
       designation: tr(LABELS.designation, lang),
       qtyDuration: tr(LABELS.qtyDuration, lang),
       unitPrice: totals.isFrance ? tr(LABELS.unitPrice, lang) : tr(LABELS.unitPriceNoTax, lang),
