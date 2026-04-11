@@ -95,8 +95,10 @@ export function discountAmount(items: DevisItem[], discount: Discount): number {
   const base = discountBase(items, discount)
 
   switch (discount.kind) {
-    case 'percent':
-      return round2(base * (discount.value / 100))
+    case 'percent': {
+      const clampedPct = Math.min(Math.max(discount.value, 0), 100)
+      return Math.min(round2(base * (clampedPct / 100)), base)
+    }
     case 'fixed':
       return Math.min(round2(discount.value), base) // never discount more than base
   }
@@ -118,18 +120,27 @@ export function computeTotals(devis: Devis): DevisTotals {
   const recMonthlyBase = recurringMonthlyBaseline(items)
   const recAnnualBase = recurringAnnualBaseline(items)
 
-  // If discount applies to recurring, compute final recurring values
+  // If discount applies to recurring items, compute final recurring values
   let recMonthlyFinal = recMonthlyBase
   let recAnnualFinal = recAnnualBase
-  if (discount.kind !== 'none' && (discount.scope === 'all' || discount.scope === 'recurring')) {
-    const recBase = recurringSubtotal(items)
-    const recDisc = discountAmount(
-      recurringItems(items),
-      discount
-    )
-    const recFinal = round2(recBase - recDisc)
-    recAnnualFinal = recFinal
-    recMonthlyFinal = round2(recFinal / 12)
+  if (discount.kind !== 'none') {
+    const shouldAffectRecurring =
+      discount.scope === 'all' ||
+      discount.scope === 'recurring' ||
+      // selectedIds scope: check if any selected id belongs to a recurring item
+      (discount.scope === 'selectedIds' &&
+        (discount.targetIds ?? []).some((tid) =>
+          recurringItems(items).some((ri) => ri.id === tid)
+        ))
+
+    if (shouldAffectRecurring) {
+      const recItems = recurringItems(items)
+      const recBase = recurringSubtotal(items)
+      const recDisc = discountAmount(recItems, discount)
+      const recFinal = round2(recBase - recDisc)
+      recAnnualFinal = recFinal
+      recMonthlyFinal = round2(recFinal / 12)
+    }
   }
 
   return {
