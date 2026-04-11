@@ -601,6 +601,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
 
       {/* ═══ Sticky floating export bar — always on top ═══ */}
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'fixed',
           bottom: 0,

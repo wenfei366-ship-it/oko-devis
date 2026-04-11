@@ -241,7 +241,7 @@ export function DevisPreviewContent({
           {vm.items.map((item, idx) => (
             <div key={idx} data-section={`item-${idx}`}>
               <div
-                className="grid grid-cols-[1fr_120px_100px_100px] items-center"
+                className="grid grid-cols-[1fr_120px_100px_100px]"
                 style={{ gap: 10, padding: '12px 14px' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -252,7 +252,7 @@ export function DevisPreviewContent({
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right', paddingTop: 2 }}>
                   {onQtyChange && item.kind === 'line' ? (
                     <EditableField
                       value={item.qtyLabel}
@@ -266,7 +266,7 @@ export function DevisPreviewContent({
                     item.qtyLabel
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#5C5142', textAlign: 'right', paddingTop: 2 }}>
                   {onPriceChange && item.kind === 'line' ? (
                     <EditableField
                       value={item.unitPriceLabel}
@@ -281,7 +281,7 @@ export function DevisPreviewContent({
                     item.unitPriceLabel
                   )}
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right', paddingRight: 14 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#2A2620', textAlign: 'right', paddingRight: 14, paddingTop: 2 }}>
                   {item.lineAmountLabel}
                 </p>
               </div>
@@ -351,8 +351,23 @@ export function DevisPreviewContent({
         </div>
       )}
 
+      {/* ═══ TOTAL HT bar ═══ */}
+      <div style={{ padding: '14px 64px 0' }}>
+        <div
+          className="flex items-center justify-between"
+          style={{ borderRadius: 6, backgroundColor: '#2A2620', padding: '10px 14px' }}
+        >
+          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            {vm.labels.totalHT}
+          </span>
+          <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            {vm.totalsFormatted.totalHT} HT
+          </span>
+        </div>
+      </div>
+
       {/* ═══ Soft divider ═══ */}
-      <div style={{ margin: '0 64px', height: 0.5, backgroundColor: '#D9CFB8' }} />
+      <div style={{ margin: '20px 64px 0', height: 0.5, backgroundColor: '#D9CFB8' }} />
 
       {/* ═══ Inclus gratuitement — dashed border box, two columns ═══ */}
       {vm.inclusGratuit.length > 0 && (
