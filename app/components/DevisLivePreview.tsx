@@ -109,12 +109,12 @@ export function DevisPreviewContent({
         lineHeight: 1.5,
       }}
     >
-      {/* Header — matches Slftq: DEVIS big left, OKO logo right */}
-      <div className="flex items-start justify-between px-16 pt-12 pb-2">
+      {/* Header — DEVIS big left, OKO logo right, bottom-aligned */}
+      <div className="flex items-end justify-between px-16 pt-14 pb-2">
         <h2
           className="font-bold italic"
           style={{
-            fontSize: 52,
+            fontSize: 48,
             color: '#1C1611',
             fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
             letterSpacing: -1,
@@ -124,7 +124,7 @@ export function DevisPreviewContent({
           DEVIS
         </h2>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/oko-logo.png" alt="OKO" style={{ height: 40, width: 'auto' }} />
+        <img src="/oko-logo.png" alt="OKO" style={{ height: 36, width: 'auto', marginBottom: 4 }} />
       </div>
       {/* N° + date + joinoko.com */}
       <div className="px-16 pb-1 flex items-center gap-2">

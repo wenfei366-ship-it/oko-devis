@@ -16,6 +16,15 @@
 - [fix] M8.3: DevisLivePreview header 修正 — DEVIS 大字左、OKO logo 右、N° 金色
 - [deploy] https://oko-devis.vercel.app — 版本 e3da65e
 
+## 2026-04-11 (v5-v7)
+- [fix] 问题1: 中列预览缩放 transform:scale 适配容器宽度，无横向滚动
+- [fix] 问题2: TOTAL HT 深色条 (#1C1611 bg + Playfair italic 白字 + 金色小圆点)
+- [fix] 问题4: PNG 下载空白 → visibility:hidden 改 opacity:0
+- [fix] 问题6: 免费项目完整 8 项 (i18n FREE_SERVICES 数组)
+- [fix] 问题7: 银行信息两栏 (IBAN 奶白卡 + OKO 地址)
+- [fix] 问题9: 签名区两栏 (BON POUR ACCORD + L'ÉQUIPE OKO + 签名图)
+- [deploy] https://oko-devis.vercel.app — 版本 81f90f7
+
 ## 用户反馈 v4 (7 个问题)
 1. 中列预览固定 — 不能左右滑动，用 transform:scale 缩小到容器宽度，只上下滚
 2. 价格显示不对 — TOTAL HT 要深色大条 + Playfair白字，MENSUEL/ANNUEL 双卡要黑/白对照
