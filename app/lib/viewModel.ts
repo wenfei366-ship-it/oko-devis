@@ -148,15 +148,19 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
   const items: ViewModelItem[] = devis.items.map((item) => {
     if (item.kind === 'package') {
       const pack = item as PackageLine
+      // Build per-service detail lines: "✦ Service — description"
+      const serviceDetails = pack.childNamesSnapshot.map((n, i) => {
+        const desc = pack.childDescsSnapshot[i]
+        return desc ? `✦  ${tr(n, lang)}  —  ${tr(desc, lang)}` : `✦  ${tr(n, lang)}`
+      })
       return {
         kind: 'package' as const,
         name: tr(pack.nameSnapshot, lang),
-        description: pack.childNamesSnapshot.map((n) => tr(n, lang)).join(' + '),
+        description: serviceDetails.join('\n'),
         qtyLabel: `12 ${tr(LABELS.unitAn, lang)}`,
         unitPriceLabel: formatUnitPrice(item, lang),
         lineAmount: lineAmount(item),
         lineAmountLabel: formatEuro(lineAmount(item)),
-        childNames: pack.childNamesSnapshot.map((n) => tr(n, lang)),
       }
     }
     return {

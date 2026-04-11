@@ -247,19 +247,8 @@ export function DevisPreviewContent({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#2A2620' }}>{item.name}</p>
                   {item.description && (
-                    <p style={{ fontSize: 10, color: '#5C5142' }}>{item.description}</p>
-                  )}
-                  {item.childNames && item.childNames.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {item.childNames.map((cn, ci) => (
-                        <span
-                          key={ci}
-                          className="inline-block text-[10px] px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: '#F6EFDC', color: '#5C5142' }}
-                        >
-                          {cn}
-                        </span>
-                      ))}
+                    <div style={{ fontSize: 10, color: '#5C5142', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+                      {item.description}
                     </div>
                   )}
                 </div>

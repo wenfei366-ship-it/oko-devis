@@ -6,7 +6,7 @@ import type { PackageLine, Service } from '@/app/lib/types'
 import { uuid } from '@/app/lib/numbering'
 import { packNameWithCount } from '@/app/lib/i18n'
 import { PACK_NAMES } from '@/app/lib/i18n'
-import { formatEuro } from '@/app/lib/calculations'
+import { formatEuro, formatEuroCompact } from '@/app/lib/calculations'
 import { useDevis } from './DevisContext'
 
 interface PackageGeneratorProps {
@@ -469,7 +469,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                           marginBottom: 2,
                         }}
                       >
-                        {formatEuro(baselineMonthly)}
+                        {formatEuroCompact(baselineMonthly)}
                       </p>
                     )}
                     <div className="flex items-baseline gap-1">
@@ -494,7 +494,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                             lineHeight: 1,
                           }}
                         >
-                          {formatEuro(effectiveMonthly)}
+                          {formatEuroCompact(effectiveMonthly)}
                         </button>
                       ) : (
                         <div className="flex items-center gap-1">
@@ -541,7 +541,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                           marginTop: 4,
                         }}
                       >
-                        Économie : {formatEuro(monthlyEconomy)} / mois
+                        Économie : {formatEuroCompact(monthlyEconomy)} / mois
                       </p>
                     )}
                   </div>
@@ -582,7 +582,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                           marginBottom: 2,
                         }}
                       >
-                        {formatEuro(baselineAnnual)}
+                        {formatEuroCompact(baselineAnnual)}
                       </p>
                     )}
                     <div className="flex items-baseline gap-1">
@@ -607,7 +607,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                             lineHeight: 1,
                           }}
                         >
-                          {formatEuro(effectiveAnnual)}
+                          {formatEuroCompact(effectiveAnnual)}
                         </button>
                       ) : (
                         <div className="flex items-center gap-1">
@@ -653,7 +653,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
                           marginTop: 4,
                         }}
                       >
-                        Économie : {formatEuro(annualEconomy)} / an
+                        Économie : {formatEuroCompact(annualEconomy)} / an
                       </p>
                     )}
                   </div>
@@ -677,87 +677,61 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
               ③ APERÇU DANS LE DEVIS
             </p>
 
-            {/* Preview card */}
-            <div
-              className="flex items-center"
-              style={{
-                backgroundColor: '#EFE3C6',
-                borderRadius: 8,
-                padding: '14px 18px',
-                minHeight: 70,
-                gap: 16,
-              }}
-            >
-              <div className="flex-1 min-w-0">
-                <p
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontSize: 15,
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    color: '#1C1611',
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {selectedServices.length > 0
-                    ? `Pack sur mesure · ${selectedServices.length} services`
-                    : 'Pack sur mesure'}
+            {/* Preview cards — monthly + annual side by side */}
+            <div className="grid grid-cols-2" style={{ gap: 12 }}>
+              {/* Monthly preview */}
+              <div
+                style={{
+                  backgroundColor: '#EFE3C6',
+                  borderRadius: 8,
+                  padding: '14px 18px',
+                  minHeight: 70,
+                }}
+              >
+                <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 14, fontWeight: 700, fontStyle: 'italic', color: '#1C1611', lineHeight: 1.2 }}>
+                  Pack sur mesure · {selectedServices.length} services
                 </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 10,
-                    color: '#6B5A3D',
-                    marginTop: 2,
-                  }}
-                >
-                  {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} inclus &middot; Facturation annuelle
+                <p style={{ fontSize: 10, color: '#6B5A3D', marginTop: 2 }}>
+                  {selectedServices.length} services inclus · Facturation mensuelle
                 </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 9,
-                    fontStyle: 'italic',
-                    color: '#9B8550',
-                    marginTop: 2,
-                  }}
-                >
-                  {selectedServices.map((s) => s.name.fr).join(', ') || '—'}
+                <p style={{ fontSize: 9, fontStyle: 'italic', color: '#9B8550', marginTop: 2 }}>
+                  {selectedServices.map((s) => s.name.fr).join(' · ') || '—'}
                 </p>
+                <div className="flex items-end justify-between" style={{ marginTop: 8 }}>
+                  <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 18, fontWeight: 700, fontStyle: 'italic', color: '#1C1611' }}>
+                    {formatEuroCompact(effectiveMonthly)}
+                  </p>
+                  <p style={{ fontSize: 9, color: '#9B8550' }}>/mois</p>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 10,
-                    color: '#6B5A3D',
-                    marginBottom: 2,
-                  }}
-                >
-                  x 12 mois
+
+              {/* Annual preview */}
+              <div
+                style={{
+                  backgroundColor: '#1C1611',
+                  borderRadius: 8,
+                  padding: '14px 18px',
+                  minHeight: 70,
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: '#B8922F' }} />
+                <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 14, fontWeight: 700, fontStyle: 'italic', color: '#F8EFDC', lineHeight: 1.2 }}>
+                  Pack sur mesure · {selectedServices.length} services
                 </p>
-                <p
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontSize: 20,
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    color: '#1C1611',
-                    lineHeight: 1,
-                  }}
-                >
-                  {formatEuro(effectiveAnnual)}
+                <p style={{ fontSize: 10, color: '#9B8550', marginTop: 2 }}>
+                  {selectedServices.length} services inclus · Facturation annuelle · 12 mois
                 </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 9,
-                    color: '#9B8550',
-                    marginTop: 2,
-                  }}
-                >
-                  HT / an
+                <p style={{ fontSize: 9, fontStyle: 'italic', color: '#9B8550', marginTop: 2 }}>
+                  {selectedServices.map((s) => s.name.fr).join(' · ') || '—'}
                 </p>
+                <div className="flex items-end justify-between" style={{ marginTop: 8 }}>
+                  <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 18, fontWeight: 700, fontStyle: 'italic', color: '#F8EFDC' }}>
+                    {formatEuroCompact(effectiveAnnual)}
+                  </p>
+                  <p style={{ fontSize: 9, color: '#B8922F' }}>/an</p>
+                </div>
               </div>
             </div>
           </div>
