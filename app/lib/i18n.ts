@@ -59,13 +59,14 @@ export const LABELS = {
   equipeOko: { fr: 'L\'ÉQUIPE OKO', it: 'IL TEAM OKO', es: 'EL EQUIPO OKO', de: 'DAS OKO-TEAM', zh: 'OKO 团队' } as I18nString,
   dateSignature: { fr: 'Date et signature du client', it: 'Data e firma del cliente', es: 'Fecha y firma del cliente', de: 'Datum und Unterschrift', zh: '客户日期及签字' } as I18nString,
 
-  // Legal footnote (shown on non-FR versions)
+  // Legal footnote — shown on non-FR versions in FRENCH (not translated)
+  // because the French version is the legally binding one
   legalFootnote: {
     fr: '',
-    it: 'La versione francese del preventivo prevale in caso di controversia.',
-    es: 'La versión francesa del presupuesto prevalece en caso de disputa.',
-    de: 'Die französische Fassung des Angebots ist im Streitfall maßgeblich.',
-    zh: '法语版本报价单在争议时为准。',
+    it: 'Version française du devis fait foi en cas de litige.',
+    es: 'Version française du devis fait foi en cas de litige.',
+    de: 'Version française du devis fait foi en cas de litige.',
+    zh: 'Version française du devis fait foi en cas de litige.',
   } as I18nString,
 } as const
 
