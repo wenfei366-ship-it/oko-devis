@@ -11,25 +11,27 @@ export function DevisPDF({ vm }: DevisPDFProps) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* Header — atomic block */}
-        <View wrap={false} style={s.headerRow}>
-          <Image src="/oko-logo.png" style={s.logo} />
-          <Text style={s.devisTitle}>{vm.labels.devisTitle}</Text>
-        </View>
+        {/* Header + meta — atomic block so logo and meta rows never split across pages */}
+        <View wrap={false}>
+          <View style={s.headerRow}>
+            <Image src="/oko-logo.png" style={s.logo} />
+            <Text style={s.devisTitle}>{vm.labels.devisTitle}</Text>
+          </View>
 
-        {/* Meta */}
-        <View style={s.metaRow}>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={s.metaLabel}>{vm.labels.number} </Text>
-            <Text>{vm.meta.number}</Text>
-          </View>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={s.metaLabel}>{vm.labels.date} </Text>
-            <Text>{vm.meta.date}</Text>
-          </View>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={s.metaLabel}>{vm.labels.validity} </Text>
-            <Text>{vm.meta.validity}</Text>
+          {/* Meta */}
+          <View style={s.metaRow}>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={s.metaLabel}>{vm.labels.number} </Text>
+              <Text>{vm.meta.number}</Text>
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={s.metaLabel}>{vm.labels.date} </Text>
+              <Text>{vm.meta.date}</Text>
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={s.metaLabel}>{vm.labels.validity} </Text>
+              <Text>{vm.meta.validity}</Text>
+            </View>
           </View>
         </View>
 
@@ -202,7 +204,8 @@ export function DevisPDF({ vm }: DevisPDFProps) {
           ))}
         </View>
 
-        {/* Signature block — atomic, on last page */}
+        {/* Signature block — atomic, pushed to last page if space is tight */}
+        <View break />
         <View wrap={false} style={s.mt12}>
           <View style={s.divider} />
           <View style={s.signatureRow}>

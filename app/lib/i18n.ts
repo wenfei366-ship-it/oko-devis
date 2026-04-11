@@ -59,6 +59,12 @@ export const LABELS = {
   equipeOko: { fr: 'L\'ÉQUIPE OKO', it: 'IL TEAM OKO', es: 'EL EQUIPO OKO', de: 'DAS OKO-TEAM', zh: 'OKO 团队' } as I18nString,
   dateSignature: { fr: 'Date et signature du client', it: 'Data e firma del cliente', es: 'Fecha y firma del cliente', de: 'Datum und Unterschrift', zh: '客户日期及签字' } as I18nString,
 
+  // Unit labels for qty display
+  unitMois: { fr: 'mois', it: 'mese', es: 'mes', de: 'Monat', zh: '个月' } as I18nString,
+  unitAn: { fr: 'mois', it: 'mesi', es: 'meses', de: 'Monate', zh: '个月' } as I18nString,
+  unitPhoto: { fr: 'photos', it: 'foto', es: 'fotos', de: 'Fotos', zh: '张照片' } as I18nString,
+  unitUnique: { fr: 'unité', it: 'unità', es: 'unidad', de: 'Einheit', zh: '次' } as I18nString,
+
   // Legal footnote — shown on non-FR versions in FRENCH (not translated)
   // because the French version is the legally binding one
   legalFootnote: {

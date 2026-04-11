@@ -1,20 +1,103 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useRef, useCallback } from 'react'
 import { useDevis } from './DevisContext'
 import { computeTotals, formatEuro } from '@/app/lib/calculations'
 import { buildViewModel, type DevisViewModel } from '@/app/lib/viewModel'
 
 export default function DevisLivePreview() {
-  const { devis } = useDevis()
+  const { devis, dispatch } = useDevis()
   const totals = useMemo(() => computeTotals(devis), [devis])
   const vm = useMemo(() => buildViewModel(devis, totals), [devis, totals])
 
-  return <DevisPreviewContent vm={vm} />
+  const handleQtyChange = useCallback((itemIndex: number, newQty: number) => {
+    const item = devis.items[itemIndex]
+    if (!item || item.kind !== 'line') return
+    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { qty: newQty } })
+  }, [devis.items, dispatch])
+
+  const handlePriceChange = useCallback((itemIndex: number, newPrice: number) => {
+    const item = devis.items[itemIndex]
+    if (!item || item.kind !== 'line') return
+    dispatch({ type: 'UPDATE_ITEM', id: item.id, changes: { unitPrice: newPrice } })
+  }, [devis.items, dispatch])
+
+  return <DevisPreviewContent vm={vm} onQtyChange={handleQtyChange} onPriceChange={handlePriceChange} />
+}
+
+interface EditableFieldProps {
+  value: string
+  onSave: (raw: string) => void
+  fieldName: string
+  className?: string
+}
+
+function EditableField({ value, onSave, fieldName, className }: EditableFieldProps) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const startEdit = useCallback(() => {
+    setDraft(value)
+    setEditing(true)
+    // focus on next tick after render
+    setTimeout(() => inputRef.current?.select(), 0)
+  }, [value])
+
+  const commit = useCallback(() => {
+    setEditing(false)
+    if (draft !== value) {
+      onSave(draft)
+    }
+  }, [draft, value, onSave])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') commit()
+    if (e.key === 'Escape') setEditing(false)
+  }, [commit])
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={handleKeyDown}
+        aria-label={`Modifier ${fieldName}`}
+        className={`border border-[#B8922F] rounded px-1 outline-none bg-[#FEFBF2] ${className ?? ''}`}
+        style={{ minWidth: 40, width: `${Math.max(draft.length, 3) + 2}ch` }}
+        autoFocus
+      />
+    )
+  }
+
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={startEdit}
+      onKeyDown={(e) => e.key === 'Enter' && startEdit()}
+      aria-label={`Modifier ${fieldName}`}
+      title={`Modifier ${fieldName}`}
+      className={`group/field inline-flex items-center gap-0.5 cursor-pointer border-b border-dashed border-transparent hover:border-[#B8922F] transition-colors ${className ?? ''}`}
+    >
+      {value}
+      <span className="opacity-0 group-hover/field:opacity-60 text-[#B8922F] text-[10px] ml-0.5 select-none" aria-hidden>✎</span>
+    </span>
+  )
 }
 
 /** Standalone renderer — also used for PNG export */
-export function DevisPreviewContent({ vm }: { vm: DevisViewModel }) {
+export function DevisPreviewContent({
+  vm,
+  onQtyChange,
+  onPriceChange,
+}: {
+  vm: DevisViewModel
+  onQtyChange?: (itemIndex: number, qty: number) => void
+  onPriceChange?: (itemIndex: number, price: number) => void
+}) {
   return (
     <div
       className="bg-[#FEFBF2] shadow-lg rounded-sm mx-auto"
@@ -115,6 +198,7 @@ export function DevisPreviewContent({ vm }: { vm: DevisViewModel }) {
           {vm.items.map((item, idx) => (
             <div
               key={idx}
+              data-section={`item-${idx}`}
               className="grid grid-cols-[1fr_100px_100px_100px] gap-2 py-2 border-b border-[#E8DFC6]"
             >
               <div>
@@ -135,8 +219,36 @@ export function DevisPreviewContent({ vm }: { vm: DevisViewModel }) {
                   </div>
                 )}
               </div>
-              <p className="text-xs text-center self-center">{item.qtyLabel}</p>
-              <p className="text-xs text-right self-center">{item.unitPriceLabel}</p>
+              <div className="text-xs text-center self-center">
+                {onQtyChange && item.kind === 'line' ? (
+                  <EditableField
+                    value={item.qtyLabel}
+                    fieldName="quantité"
+                    onSave={(raw) => {
+                      const num = parseFloat(raw)
+                      if (!isNaN(num) && num > 0) onQtyChange(idx, num)
+                    }}
+                  />
+                ) : (
+                  item.qtyLabel
+                )}
+              </div>
+              <div className="text-xs text-right self-center">
+                {onPriceChange && item.kind === 'line' ? (
+                  <EditableField
+                    value={item.unitPriceLabel}
+                    fieldName="prix unitaire"
+                    onSave={(raw) => {
+                      // Accept formats like "€30", "30", "30,00", "30.00"
+                      const cleaned = raw.replace(/[€\s]/g, '').replace(',', '.')
+                      const num = parseFloat(cleaned)
+                      if (!isNaN(num) && num >= 0) onPriceChange(idx, num)
+                    }}
+                  />
+                ) : (
+                  item.unitPriceLabel
+                )}
+              </div>
               <p className="text-sm font-semibold text-right self-center">
                 {item.lineAmountLabel}
               </p>

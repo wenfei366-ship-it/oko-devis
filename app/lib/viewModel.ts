@@ -104,16 +104,16 @@ export interface DevisViewModel {
 
 function formatQty(item: DevisItem, lang: Lang): string {
   if (item.kind === 'package') {
-    return '12 ' + tr(LABELS.validityText, lang).replace('30 ', '').replace('jours', 'mois').replace('giorni', 'mesi').replace('d\u00edas', 'meses').replace('Tage', 'Monate').replace('\u5929', '\u4e2a\u6708') || '12 mois'
+    return `12 ${tr(LABELS.unitAn, lang)}`
   }
   const line = item as LineItem
   switch (line.billingCadence) {
     case 'monthly':
-      return `${line.qty} mois`
+      return `${line.qty} ${tr(LABELS.unitMois, lang)}`
     case 'perUnit':
-      return `${line.qty} ${line.unit === 'photo' ? 'photos' : line.unit}`
+      return `${line.qty} ${line.unit === 'photo' ? tr(LABELS.unitPhoto, lang) : line.unit}`
     case 'oneOff':
-      return '1'
+      return `1 ${tr(LABELS.unitUnique, lang)}`
     default:
       return `${line.qty}`
   }
@@ -152,7 +152,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
         kind: 'package' as const,
         name: tr(pack.nameSnapshot, lang),
         description: pack.childNamesSnapshot.map((n) => tr(n, lang)).join(' + '),
-        qtyLabel: '12 mois',
+        qtyLabel: `12 ${tr(LABELS.unitAn, lang)}`,
         unitPriceLabel: formatUnitPrice(item, lang),
         lineAmount: lineAmount(item),
         lineAmountLabel: formatEuro(lineAmount(item)),

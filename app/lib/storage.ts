@@ -3,6 +3,7 @@
 // Legacy key migration from 'oko-devis-local-history-v1' → 'oko-devis-history-v1'.
 
 import type { Devis } from './types'
+import { generateDraftNumber, uuid } from './numbering'
 
 const HISTORY_KEY = 'oko-devis-history-v1'
 const LEGACY_HISTORY_KEY = 'oko-devis-local-history-v1'
@@ -79,6 +80,27 @@ export function deleteFromHistory(id: string): void {
 
 export function loadFromHistory(id: string): Devis | null {
   return readAll().find((d) => d.id === id) ?? null
+}
+
+/**
+ * Clone an existing history entry for editing.
+ * Generates a new id + new draft number, clears savedAt so the clone
+ * is treated as an unsaved draft. Throws if the source id is not found.
+ */
+export function cloneForEdit(id: string): Devis {
+  const source = loadFromHistory(id)
+  if (!source) throw new Error(`Devis id "${id}" not found in history.`)
+  const clone: Devis = {
+    ...source,
+    id: uuid(),
+    meta: {
+      ...source.meta,
+      number: generateDraftNumber(),
+    },
+    savedAt: undefined,
+    updatedAt: new Date().toISOString(),
+  }
+  return clone
 }
 
 export function clearHistory(): void {

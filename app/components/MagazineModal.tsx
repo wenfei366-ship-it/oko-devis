@@ -5,7 +5,7 @@ import { useDevis } from './DevisContext'
 import { DevisPreviewContent } from './DevisLivePreview'
 import { computeTotals, formatEuro } from '@/app/lib/calculations'
 import { buildViewModel } from '@/app/lib/viewModel'
-import { saveToHistory, HistoryConflictError } from '@/app/lib/storage'
+import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
 import type { Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
@@ -34,6 +34,8 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   const vm = useMemo(() => buildViewModel(displayDevis, totals), [displayDevis, totals])
 
   const previewRef = useRef<HTMLDivElement>(null)
+  // Off-screen render target for PNG export (avoids sticky/scroll CSS from modal)
+  const offscreenRef = useRef<HTMLDivElement>(null)
 
   // Save to history on first open (non-read-only)
   useEffect(() => {
@@ -83,29 +85,41 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // PNG export
+  // PNG export — use the off-screen div for capture to avoid sticky/scroll CSS
   const handlePngExport = useCallback(async () => {
     const { exportLongPng } = await import('@/app/lib/png/exportLong')
-    if (previewRef.current) {
-      await exportLongPng(previewRef.current, displayDevis.meta.number)
+    const target = offscreenRef.current ?? previewRef.current
+    if (target) {
+      await exportLongPng(target, displayDevis.meta.number)
     }
   }, [displayDevis.meta.number])
 
-  // Duplicate for edit (history mode)
+  // Duplicate for edit (history mode) — uses cloneForEdit from storage
   const handleDuplicate = useCallback(() => {
     if (!historyDevis) return
-    const cloned: Devis = {
-      ...historyDevis,
-      id: uuid(),
-      meta: {
-        ...historyDevis.meta,
-        number: generateDraftNumber(),
-      },
-      savedAt: undefined,
-      updatedAt: new Date().toISOString(),
+    try {
+      const cloned = cloneForEdit(historyDevis.id)
+      // Store in sessionStorage so the builder picks it up on navigate
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('oko-devis-pending', JSON.stringify(cloned))
+      }
+      dispatch({ type: 'LOAD_DEVIS', devis: cloned })
+      onClose()
+    } catch {
+      // Fallback: inline clone if history lookup fails (e.g. id mismatch)
+      const fallback: Devis = {
+        ...historyDevis,
+        id: uuid(),
+        meta: {
+          ...historyDevis.meta,
+          number: generateDraftNumber(),
+        },
+        savedAt: undefined,
+        updatedAt: new Date().toISOString(),
+      }
+      dispatch({ type: 'LOAD_DEVIS', devis: fallback })
+      onClose()
     }
-    dispatch({ type: 'LOAD_DEVIS', devis: cloned })
-    onClose()
   }, [historyDevis, dispatch, onClose])
 
   // Language options for temp switch
@@ -232,6 +246,22 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
             <DevisPreviewContent vm={vm} />
           </div>
         </div>
+      </div>
+
+      {/* Off-screen container for PNG export — no sticky/scroll CSS, fixed 800px width */}
+      <div
+        ref={offscreenRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '-9999px',
+          width: 800,
+          pointerEvents: 'none',
+          visibility: 'hidden',
+        }}
+      >
+        <DevisPreviewContent vm={vm} />
       </div>
     </div>
   )

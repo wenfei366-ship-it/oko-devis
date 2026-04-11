@@ -27,26 +27,27 @@ export async function exportLongPng(
     })
     downloadDataUrl(dataUrl, `${baseName}.png`)
   } else {
-    // Split into 2 parts
-    const midpoint = Math.floor(element.scrollHeight / 2)
+    // Split into 2 parts — find the nearest section boundary to the midpoint
+    const rawMid = Math.floor(element.scrollHeight / 2)
+    const splitPoint = findSectionSplitPoint(element, rawMid)
 
     // Part 1
     const dataUrl1 = await toPng(element, {
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: '#FEFBF2',
-      height: midpoint,
+      height: splitPoint,
     })
     downloadDataUrl(dataUrl1, `${baseName}-part1.png`)
 
-    // Part 2 — capture from midpoint
+    // Part 2 — capture from splitPoint
     const dataUrl2 = await toPng(element, {
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: '#FEFBF2',
-      height: element.scrollHeight - midpoint,
+      height: element.scrollHeight - splitPoint,
       style: {
-        marginTop: `-${midpoint}px`,
+        marginTop: `-${splitPoint}px`,
       },
     })
     downloadDataUrl(dataUrl2, `${baseName}-part2.png`)
@@ -56,6 +57,29 @@ export async function exportLongPng(
       showToast('Devis tres long — exporte en 2 images (part 1 + 2)')
     }
   }
+}
+
+/**
+ * Find a split point near `target` that falls at a section boundary.
+ * Looks for elements with [data-section] inside the container and picks
+ * the one whose top offset is closest to (but not exceeding) `target`.
+ * Falls back to `target` if no sections are found.
+ */
+function findSectionSplitPoint(container: HTMLElement, target: number): number {
+  const sections = container.querySelectorAll<HTMLElement>('[data-section]')
+  if (sections.length === 0) return target
+
+  const containerTop = container.getBoundingClientRect().top
+  let best = 0
+
+  sections.forEach((section) => {
+    const offsetTop = section.getBoundingClientRect().top - containerTop
+    if (offsetTop <= target && offsetTop > best) {
+      best = offsetTop
+    }
+  })
+
+  return best > 0 ? Math.floor(best) : target
 }
 
 function downloadDataUrl(dataUrl: string, filename: string): void {
