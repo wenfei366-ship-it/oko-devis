@@ -298,21 +298,6 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
                 }}
               />
 
-              {/* Washi tape — centered above paper */}
-              <div
-                className="absolute left-1/2 z-10"
-                style={{
-                  width: 250,
-                  height: 38,
-                  backgroundColor: '#E8B4B8',
-                  opacity: 0.88,
-                  transform: 'translateX(-50%) rotate(-3deg)',
-                  top: -19,
-                  borderRadius: 2,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                }}
-              />
-
               {/* ===== Yellow sticky note — LEFT of paper ===== */}
               <div
                 className="absolute z-10"
@@ -638,28 +623,26 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
           </button>
         )}
 
-        {/* PDF button — dark bg per design */}
-        <div style={{ borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.4)' }}>
+        <div style={{ borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.28)' }}>
           <PdfDownloadButton devis={displayDevis} totals={totals} />
         </div>
 
-        {/* PNG button — cream bg per design */}
         <button
           type="button"
           onClick={handlePngExport}
           style={{
             width: 200,
             height: 56,
-            borderRadius: 12,
+            borderRadius: 8,
             backgroundColor: '#F8EFDC',
             color: '#1C1611',
             fontFamily: 'Inter, sans-serif',
             fontSize: 13,
             fontWeight: 700,
-            border: 'none',
+            border: '1px solid rgba(184,146,47,0.55)',
             cursor: 'pointer',
             letterSpacing: 0.5,
-            boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.24)',
           }}
         >
           &#10022; Image longue &#10022;

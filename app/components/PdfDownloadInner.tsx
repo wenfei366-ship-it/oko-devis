@@ -33,7 +33,20 @@ export default function PdfDownloadInner({ vm, fileName }: PdfDownloadInnerProps
     <button
       type="button"
       onClick={handleDownload}
-      className="px-3 py-1.5 text-xs rounded-md bg-[var(--gold)] text-white font-medium hover:opacity-90 transition-opacity"
+      className="transition-opacity hover:opacity-90"
+      style={{
+        width: 200,
+        height: 56,
+        borderRadius: 8,
+        backgroundColor: '#1C1611',
+        color: '#F8EFDC',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 13,
+        fontWeight: 700,
+        border: '1px solid rgba(248,239,220,0.16)',
+        cursor: 'pointer',
+        letterSpacing: 0.5,
+      }}
     >
       T&eacute;l&eacute;charger PDF
     </button>

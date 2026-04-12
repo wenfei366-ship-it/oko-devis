@@ -8,7 +8,25 @@ import { buildViewModel } from '@/app/lib/viewModel'
 // Dynamic import to avoid SSR issues with @react-pdf/renderer
 const PdfDownloadInner = dynamic(
   () => import('./PdfDownloadInner'),
-  { ssr: false, loading: () => <span className="text-xs text-[var(--ink-muted)]">...</span> }
+  {
+    ssr: false,
+    loading: () => (
+      <span
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 200,
+          height: 56,
+          borderRadius: 8,
+          backgroundColor: '#1C1611',
+          color: '#F8EFDC',
+          fontSize: 13,
+          fontWeight: 700,
+        }}
+      >
+        ...
+      </span>
+    ),
+  }
 )
 
 interface PdfDownloadButtonProps {
@@ -25,7 +43,20 @@ export default function PdfDownloadButton({ devis, totals }: PdfDownloadButtonPr
       <button
         type="button"
         onClick={() => setReady(true)}
-        className="px-3 py-1.5 text-xs rounded-md bg-[var(--gold)] text-white font-medium hover:opacity-90 transition-opacity"
+        className="transition-opacity hover:opacity-90"
+        style={{
+          width: 200,
+          height: 56,
+          borderRadius: 8,
+          backgroundColor: '#1C1611',
+          color: '#F8EFDC',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: 13,
+          fontWeight: 700,
+          border: '1px solid rgba(248,239,220,0.16)',
+          cursor: 'pointer',
+          letterSpacing: 0.5,
+        }}
       >
         T&eacute;l&eacute;charger PDF
       </button>
