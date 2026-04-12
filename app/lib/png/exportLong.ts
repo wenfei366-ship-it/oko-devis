@@ -1,69 +1,53 @@
 // OKO Devis Generator — PNG long image export
 // Uses html-to-image with 2x pixel ratio for crisp fonts.
-// If effective height > 12000px, splits into 2 files.
+// Captures the visible Devis DOM directly to avoid blank off-screen exports.
 
 import { toPng } from 'html-to-image'
 
-const MAX_SINGLE_HEIGHT = 12000
+const MAX_SINGLE_HEIGHT = 30000
 const EXPORT_BACKGROUND = '#F8F1E0'
 const EXPORT_WIDTH = 800
 const PIXEL_RATIO = 2
+
+export interface ExportImage {
+  dataUrl: string
+  width: number
+  height: number
+}
 
 export async function exportLongPng(
   element: HTMLElement,
   devisNumber: string
 ): Promise<void> {
+  const { dataUrl } = await createExportImage(element)
+  downloadDataUrl(dataUrl, `Devis-${devisNumber}.png`)
+}
+
+export async function createExportImage(element: HTMLElement): Promise<ExportImage> {
   // Wait for fonts, images, and a render frame
   await waitForExportReady(element)
 
   const width = Math.ceil(element.getBoundingClientRect().width || element.scrollWidth || EXPORT_WIDTH)
   const height = Math.ceil(element.scrollHeight || element.getBoundingClientRect().height || element.clientHeight || 1)
   const effectiveHeight = height * PIXEL_RATIO
-  const baseName = `Devis-${devisNumber}`
 
-  if (effectiveHeight <= MAX_SINGLE_HEIGHT) {
-    // Single PNG
-    const dataUrl = await toPng(element, {
-      width,
-      height,
-      pixelRatio: PIXEL_RATIO,
-      cacheBust: true,
-      backgroundColor: EXPORT_BACKGROUND,
-    })
-    downloadDataUrl(dataUrl, `${baseName}.png`)
-  } else {
-    // Split into 2 parts — find the nearest section boundary to the midpoint
-    const rawMid = Math.floor(height / 2)
-    const splitPoint = findSectionSplitPoint(element, rawMid)
-
-    // Part 1
-    const dataUrl1 = await toPng(element, {
-      width,
-      height: splitPoint,
-      pixelRatio: PIXEL_RATIO,
-      cacheBust: true,
-      backgroundColor: EXPORT_BACKGROUND,
-    })
-    downloadDataUrl(dataUrl1, `${baseName}-part1.png`)
-
-    // Part 2 — capture from splitPoint
-    const dataUrl2 = await toPng(element, {
-      width,
-      height: height - splitPoint,
-      pixelRatio: PIXEL_RATIO,
-      cacheBust: true,
-      backgroundColor: EXPORT_BACKGROUND,
-      style: {
-        marginTop: `-${splitPoint}px`,
-      },
-    })
-    downloadDataUrl(dataUrl2, `${baseName}-part2.png`)
-
-    // Toast notification
-    if (typeof window !== 'undefined') {
-      showToast('Devis tres long — exporte en 2 images (part 1 + 2)')
-    }
+  if (width <= 1 || height <= 1) {
+    throw new Error('Export impossible: la zone du devis est vide.')
   }
+
+  if (effectiveHeight > MAX_SINGLE_HEIGHT) {
+    throw new Error('Export impossible: le devis est trop long pour une image unique.')
+  }
+
+  const dataUrl = await toPng(element, {
+    width,
+    height,
+    pixelRatio: PIXEL_RATIO,
+    cacheBust: true,
+    backgroundColor: EXPORT_BACKGROUND,
+  })
+
+  return { dataUrl, width, height }
 }
 
 /** Wait for render frame, fonts, and all images inside element */
@@ -90,29 +74,6 @@ async function waitForExportReady(element: HTMLElement): Promise<void> {
   )
 }
 
-/**
- * Find a split point near `target` that falls at a section boundary.
- * Looks for elements with [data-section] inside the container and picks
- * the one whose top offset is closest to (but not exceeding) `target`.
- * Falls back to `target` if no sections are found.
- */
-function findSectionSplitPoint(container: HTMLElement, target: number): number {
-  const sections = container.querySelectorAll<HTMLElement>('[data-section]')
-  if (sections.length === 0) return target
-
-  const containerTop = container.getBoundingClientRect().top
-  let best = 0
-
-  sections.forEach((section) => {
-    const offsetTop = section.getBoundingClientRect().top - containerTop
-    if (offsetTop <= target && offsetTop > best) {
-      best = offsetTop
-    }
-  })
-
-  return best > 0 ? Math.floor(best) : target
-}
-
 function downloadDataUrl(dataUrl: string, filename: string): void {
   const link = document.createElement('a')
   link.download = filename
@@ -122,7 +83,7 @@ function downloadDataUrl(dataUrl: string, filename: string): void {
   document.body.removeChild(link)
 }
 
-function showToast(message: string): void {
+export function showExportToast(message: string): void {
   const toast = document.createElement('div')
   toast.textContent = message
   toast.style.cssText = `

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import { useDevis } from './DevisContext'
 import { DevisPreviewContent } from './DevisLivePreview'
-import { computeTotals, formatEuro } from '@/app/lib/calculations'
+import { computeTotals } from '@/app/lib/calculations'
 import { buildViewModel } from '@/app/lib/viewModel'
 import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
@@ -54,8 +54,6 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   const vm = useMemo(() => buildViewModel(displayDevis, totals), [displayDevis, totals])
 
   const previewRef = useRef<HTMLDivElement>(null)
-  // Off-screen render target for PNG export (avoids sticky/scroll CSS from modal)
-  const offscreenRef = useRef<HTMLDivElement>(null)
 
   // Save to history on first open (non-read-only)
   useEffect(() => {
@@ -105,19 +103,15 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // PNG export — create a temporary visible clone for html-to-image
+  // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {
-    const { exportLongPng } = await import('@/app/lib/png/exportLong')
-    // Use the off-screen div; if blank, fall back to creating a temp clone
-    const offscreen = offscreenRef.current
-    if (offscreen && offscreen.scrollHeight > 10) {
-      await exportLongPng(offscreen, displayDevis.meta.number)
-      return
-    }
-    // Fallback: create a temporary visible div, render preview, capture, remove
+    const { exportLongPng, showExportToast } = await import('@/app/lib/png/exportLong')
     const preview = previewRef.current
-    if (preview) {
+    try {
+      if (!preview) throw new Error('Export impossible: preview indisponible.')
       await exportLongPng(preview, displayDevis.meta.number)
+    } catch (err) {
+      showExportToast(err instanceof Error ? err.message : 'Export image impossible.')
     }
   }, [displayDevis.meta.number])
 
@@ -495,7 +489,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
               </div>
 
               {/* Actual A4 paper content */}
-              <div className="relative bg-white" ref={previewRef} style={{ borderRadius: 2 }}>
+              <div className="relative bg-white" ref={previewRef} style={{ width: 800, borderRadius: 2 }}>
                 <DevisPreviewContent vm={vm} />
               </div>
             </div>
@@ -574,7 +568,10 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         )}
 
         <div style={{ borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.28)' }}>
-          <PdfDownloadButton devis={displayDevis} totals={totals} />
+          <PdfDownloadButton
+            devis={displayDevis}
+            getExportElement={() => previewRef.current}
+          />
         </div>
 
         <button
@@ -599,22 +596,6 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         </button>
       </div>
 
-      {/* Off-screen container for PNG export — no sticky/scroll CSS, fixed 800px width */}
-      <div
-        ref={offscreenRef}
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: '-9999px',
-          width: 800,
-          backgroundColor: '#F8F1E0',
-          pointerEvents: 'none',
-          zIndex: -1,
-        }}
-      >
-        <DevisPreviewContent vm={vm} />
-      </div>
     </div>
   )
 }

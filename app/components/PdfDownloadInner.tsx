@@ -1,32 +1,41 @@
 'use client'
 
-import { useMemo } from 'react'
-import { pdf } from '@react-pdf/renderer'
-import { DevisPDF } from '@/app/lib/pdf/DevisPDF'
-import { registerPdfFonts } from '@/app/lib/pdf/fonts'
-import type { DevisViewModel } from '@/app/lib/viewModel'
-
+import { Document, Image, Page, StyleSheet, pdf } from '@react-pdf/renderer'
+import { createExportImage, showExportToast } from '@/app/lib/png/exportLong'
 interface PdfDownloadInnerProps {
-  vm: DevisViewModel
   fileName: string
+  getExportElement: () => HTMLElement | null
 }
 
-export default function PdfDownloadInner({ vm, fileName }: PdfDownloadInnerProps) {
-  // Register fonts once
-  useMemo(() => {
-    registerPdfFonts()
-  }, [])
+function DevisPreviewPdf({ image }: { image: { dataUrl: string; width: number; height: number } }) {
+  return (
+    <Document>
+      <Page size={[image.width, image.height]} style={styles.page}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <Image src={image.dataUrl} style={{ width: image.width, height: image.height }} />
+      </Page>
+    </Document>
+  )
+}
 
+export default function PdfDownloadInner({ fileName, getExportElement }: PdfDownloadInnerProps) {
   const handleDownload = async () => {
-    const blob = await pdf(<DevisPDF vm={vm} />).toBlob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    try {
+      const element = getExportElement()
+      if (!element) throw new Error('Export impossible: preview indisponible.')
+      const image = await createExportImage(element)
+      const blob = await pdf(<DevisPreviewPdf image={image} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      showExportToast(err instanceof Error ? err.message : 'Export PDF impossible.')
+    }
   }
 
   return (
@@ -52,3 +61,11 @@ export default function PdfDownloadInner({ vm, fileName }: PdfDownloadInnerProps
     </button>
   )
 }
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 0,
+    margin: 0,
+    backgroundColor: '#F8F1E0',
+  },
+})
