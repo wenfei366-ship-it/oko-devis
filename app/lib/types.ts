@@ -63,6 +63,9 @@ export interface LineItem {
  * - website (monthly 30): qty=12, unit='mois', unitPrice=30 → 360 €/an
  * - reservation (monthly 50): qty=12, unit='mois', unitPrice=50 → 600 €/an
  * - ai-photo (perUnit 5): qty=N, unit='photo', unitPrice=5 → N × 5
+ * - social-media-campaign (oneOff 300): qty=1, unit='mois', unitPrice=300 → 300
+ * - domain-fee (annual 20): qty=1, unit='an', unitPrice=20 → 20
+ * - sunmi-terminal (oneOff 240): qty=1, unit='unique', unitPrice=240 → 240
  * - printer-wifi (oneOff 120): qty=1, unit='unique', unitPrice=120 → 120
  * - website-setup (oneOff 100): qty=1, unit='unique', unitPrice=100 → 100
  *

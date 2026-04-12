@@ -27,8 +27,8 @@ describe('i18n dictionary coverage', () => {
     expect(missing).toEqual([])
   })
 
-  it('SERVICE_DICT has exactly 10 entries', () => {
-    expect(Object.keys(SERVICE_DICT)).toHaveLength(10)
+  it('SERVICE_DICT has exactly 13 entries', () => {
+    expect(Object.keys(SERVICE_DICT)).toHaveLength(13)
   })
 
   it('SERVICE_DICT: each service name and description in all 5 languages', () => {

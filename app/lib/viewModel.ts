@@ -194,6 +194,8 @@ function formatQty(item: DevisItem, lang: Lang): string {
   switch (line.billingCadence) {
     case 'monthly':
       return `${line.qty} ${tr(LABELS.unitMois, lang)}`
+    case 'annual':
+      return `${line.qty} ${tr(LABELS.perYear, lang).replace('/', '').trim()}`
     case 'perUnit':
       return `${line.qty} ${line.unit === 'photo' ? tr(LABELS.unitPhoto, lang) : line.unit}`
     case 'oneOff':
@@ -216,6 +218,8 @@ function formatUnitPrice(item: DevisItem, lang: Lang): string {
   switch (line.billingCadence) {
     case 'monthly':
       return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
+    case 'annual':
+      return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perYear, lang)}`
     case 'perUnit':
       return `${formatEuroCompact(line.unitPrice)} / ${line.unit}`
     case 'oneOff':

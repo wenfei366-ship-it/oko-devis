@@ -96,7 +96,7 @@ export const FREE_SERVICES: I18nString[] = [
   { fr: 'Guide de collecte d\'emails clients', it: 'Guida alla raccolta e-mail clienti', es: 'Guía de recopilación de emails de clientes', de: 'Leitfaden zur Kunden-E-Mail-Sammlung', zh: '客户邮箱收集指南' },
 ]
 
-// ---------- Service dictionary (10 services × 5 languages) ----------
+// ---------- Service dictionary (13 services × 5 languages) ----------
 
 export type ServiceKey =
   | 'website'
@@ -107,6 +107,9 @@ export type ServiceKey =
   | 'ai-google'
   | 'e-reputation'
   | 'ai-photo'
+  | 'social-media-campaign'
+  | 'domain-fee'
+  | 'sunmi-terminal'
   | 'printer-wifi'
   | 'website-setup'
 
@@ -189,6 +192,36 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
       es: 'Fotos de platos generadas por IA · calidad profesional',
       de: 'KI-generierte Gerichtsfotos · Profi-Qualität',
       zh: 'AI 生成菜品照片 · 专业品质',
+    },
+  },
+  'social-media-campaign': {
+    name: { fr: 'Forfait réseaux sociaux', it: 'Pacchetto social media', es: 'Pack redes sociales', de: 'Social-Media-Paket', zh: '社媒推广套餐' },
+    description: {
+      fr: 'Meta, Google Business, TikTok · publication et optimisation',
+      it: 'Meta, Google Business, TikTok · pubblicazione e ottimizzazione',
+      es: 'Meta, Google Business, TikTok · publicación y optimización',
+      de: 'Meta, Google Business, TikTok · Veröffentlichung und Optimierung',
+      zh: 'Meta、Google Business、TikTok · 内容发布与账号优化',
+    },
+  },
+  'domain-fee': {
+    name: { fr: 'Frais de nom de domaine', it: 'Costo dominio', es: 'Coste de dominio', de: 'Domaingebühr', zh: '域名费' },
+    description: {
+      fr: 'Perçu annuellement · reversé au fournisseur de nom de domaine',
+      it: 'Riscossione annuale · riversata al fornitore del dominio',
+      es: 'Cobro anual · transferido al proveedor del dominio',
+      de: 'Jährlich erhoben · an den Domainanbieter weitergeleitet',
+      zh: '按年收取 · 代收代缴给域名服务商',
+    },
+  },
+  'sunmi-terminal': {
+    name: { fr: 'Terminal Sunmi', it: 'Terminale Sunmi', es: 'Terminal Sunmi', de: 'Sunmi-Terminal', zh: 'Sunmi 机器' },
+    description: {
+      fr: 'Terminal de caisse Sunmi · configuration OKO',
+      it: 'Terminale cassa Sunmi · configurazione OKO',
+      es: 'Terminal de caja Sunmi · configuración OKO',
+      de: 'Sunmi-Kassenterminal · OKO-Konfiguration',
+      zh: 'Sunmi 收银设备 · OKO 已配置',
     },
   },
   'printer-wifi': {

@@ -103,6 +103,22 @@ export default function ServiceCatalog() {
           const isAdded = addedServiceIds.has(svc.id)
           const annualPrice = svc.billingCadence === 'monthly' ? svc.defaultPrice * 12 : svc.defaultPrice
           const isRecurring = svc.billingCadence === 'monthly'
+          const priceText =
+            svc.billingCadence === 'monthly'
+              ? `${annualPrice} € / an`
+              : svc.billingCadence === 'annual'
+                ? `${svc.defaultPrice} € / an`
+                : svc.billingCadence === 'perUnit'
+                  ? `${svc.defaultPrice} € / ${svc.unit}`
+                  : `${svc.defaultPrice} €`
+          const cadenceText =
+            svc.billingCadence === 'perUnit'
+              ? 'à la carte'
+              : svc.billingCadence === 'annual'
+                ? 'perçu annuellement'
+                : svc.billingCadence === 'oneOff'
+                  ? `une fois${svc.id === 'website-setup' ? ' · à la signature' : svc.pdfSection === 'hardware' ? ' · matériel' : ''}`
+                  : ''
 
           return (
             <div
@@ -130,7 +146,7 @@ export default function ServiceCatalog() {
                 </div>
                 {/* Annual price big */}
                 <div className="text-[15px] font-bold italic mt-[2px]" style={{ color: '#B8922F', fontFamily: 'var(--font-playfair)' }}>
-                  {isRecurring ? `${annualPrice} € / an` : svc.billingCadence === 'perUnit' ? `${svc.defaultPrice} € / photo` : `${svc.defaultPrice} €`}
+                  {priceText}
                 </div>
                 {/* Monthly subtext */}
                 {isRecurring && (
@@ -138,12 +154,9 @@ export default function ServiceCatalog() {
                     = {svc.defaultPrice} € / mois
                   </div>
                 )}
-                {svc.billingCadence === 'perUnit' && (
-                  <div className="text-[9px] font-medium" style={{ color: '#9B8550' }}>à la carte</div>
-                )}
-                {svc.billingCadence === 'oneOff' && (
+                {cadenceText && (
                   <div className="text-[9px] font-medium" style={{ color: '#9B8550' }}>
-                    une fois{svc.id === 'website-setup' ? ' · à la signature' : ' · matériel'}
+                    {cadenceText}
                   </div>
                 )}
               </div>
