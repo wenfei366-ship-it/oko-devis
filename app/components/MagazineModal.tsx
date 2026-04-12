@@ -298,56 +298,6 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
                 }}
               />
 
-              {/* ===== Yellow sticky note — LEFT of paper ===== */}
-              <div
-                className="absolute z-10"
-                style={{
-                  width: 180,
-                  minHeight: 160,
-                  backgroundColor: '#F7D968',
-                  transform: 'rotate(-5deg)',
-                  top: 40,
-                  left: -100,
-                  borderRadius: 3,
-                  padding: '16px 14px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: 18,
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    color: '#1C1611',
-                    lineHeight: 1.3,
-                    marginBottom: 8,
-                  }}
-                >
-                  {vm.destinataire.name}
-                </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 11,
-                    color: '#4A3F2F',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {vm.destinataire.address}
-                </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 11,
-                    color: '#4A3F2F',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {vm.destinataire.postalCity}
-                </p>
-              </div>
-
               {/* ===== Amount card — RIGHT of paper top ===== */}
               <div
                 className="absolute z-10"
