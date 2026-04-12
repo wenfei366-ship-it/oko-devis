@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Document, Image, Page, StyleSheet, pdf } from '@react-pdf/renderer'
 import { createExportImage, showExportToast } from '@/app/lib/png/exportLong'
 interface PdfDownloadInnerProps {
@@ -19,7 +20,11 @@ function DevisPreviewPdf({ image }: { image: { dataUrl: string; width: number; h
 }
 
 export default function PdfDownloadInner({ fileName, getExportElement }: PdfDownloadInnerProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+
   const handleDownload = async () => {
+    if (isDownloading) return
+    setIsDownloading(true)
     try {
       const element = getExportElement()
       if (!element) throw new Error('Export impossible: preview indisponible.')
@@ -35,6 +40,8 @@ export default function PdfDownloadInner({ fileName, getExportElement }: PdfDown
       URL.revokeObjectURL(url)
     } catch (err) {
       showExportToast(err instanceof Error ? err.message : 'Export PDF impossible.')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -42,7 +49,8 @@ export default function PdfDownloadInner({ fileName, getExportElement }: PdfDown
     <button
       type="button"
       onClick={handleDownload}
-      className="transition-opacity hover:opacity-90"
+      disabled={isDownloading}
+      className="transition duration-150 hover:opacity-90 active:translate-y-[1px] disabled:opacity-70"
       style={{
         width: 200,
         height: 56,
@@ -53,11 +61,11 @@ export default function PdfDownloadInner({ fileName, getExportElement }: PdfDown
         fontSize: 13,
         fontWeight: 700,
         border: '1px solid rgba(248,239,220,0.16)',
-        cursor: 'pointer',
+        cursor: isDownloading ? 'wait' : 'pointer',
         letterSpacing: 0.5,
       }}
     >
-      T&eacute;l&eacute;charger PDF
+      {isDownloading ? 'Préparation...' : 'Télécharger PDF'}
     </button>
   )
 }

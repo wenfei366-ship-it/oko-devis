@@ -43,6 +43,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
 
   // For history read-only view, allow temporary language switch
   const [tempLang, setTempLang] = useState<Lang | null>(null)
+  const [pngExporting, setPngExporting] = useState(false)
   const displayDevis = useMemo(() => {
     if (tempLang && readOnly) {
       return { ...sourceDevis, lang: tempLang }
@@ -105,15 +106,20 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
 
   // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {
-    const { exportLongPng, showExportToast } = await import('@/app/lib/png/exportLong')
+    if (pngExporting) return
+    setPngExporting(true)
     const preview = previewRef.current
     try {
+      const { exportLongPng } = await import('@/app/lib/png/exportLong')
       if (!preview) throw new Error('Export impossible: preview indisponible.')
       await exportLongPng(preview, displayDevis.meta.number)
     } catch (err) {
+      const { showExportToast } = await import('@/app/lib/png/exportLong')
       showExportToast(err instanceof Error ? err.message : 'Export image impossible.')
+    } finally {
+      setPngExporting(false)
     }
-  }, [displayDevis.meta.number])
+  }, [displayDevis.meta.number, pngExporting])
 
   // Duplicate for edit (history mode) — uses cloneForEdit from storage
   const handleDuplicate = useCallback(() => {
@@ -317,7 +323,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
                     marginBottom: 6,
                   }}
                 >
-                  {vm.totalsFormatted.total}
+                  {vm.isFrance ? vm.totalsFormatted.totalHT : vm.totalsFormatted.total}
                 </p>
                 <p
                   style={{
@@ -330,7 +336,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
                     marginBottom: 4,
                   }}
                 >
-                  {vm.isFrance ? 'TTC' : 'Total'}
+                  {vm.labels.totalHT}
                 </p>
                 <p
                   style={{
@@ -577,6 +583,8 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         <button
           type="button"
           onClick={handlePngExport}
+          disabled={pngExporting}
+          className="transition duration-150 hover:opacity-90 active:translate-y-[1px] disabled:opacity-70"
           style={{
             width: 200,
             height: 56,
@@ -587,12 +595,12 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
             fontSize: 13,
             fontWeight: 700,
             border: '1px solid rgba(184,146,47,0.55)',
-            cursor: 'pointer',
+            cursor: pngExporting ? 'wait' : 'pointer',
             letterSpacing: 0.5,
             boxShadow: '0 8px 24px rgba(0,0,0,0.24)',
           }}
         >
-          &#10022; Image longue &#10022;
+          {pngExporting ? 'Préparation...' : <>&#10022; Image longue &#10022;</>}
         </button>
       </div>
 

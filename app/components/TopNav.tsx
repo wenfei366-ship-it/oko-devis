@@ -10,6 +10,13 @@ interface TopNavProps {
 export default function TopNav({ onCreateDevis }: TopNavProps) {
   const { dispatch } = useDevis()
 
+  const handleNewDevis = () => {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('oko-devis-pending')
+    }
+    dispatch({ type: 'NEW_DEVIS' })
+  }
+
   return (
     <header
       className="flex items-center justify-between h-[72px] px-10"
@@ -37,8 +44,8 @@ export default function TopNav({ onCreateDevis }: TopNavProps) {
 
         <button
           type="button"
-          onClick={() => dispatch({ type: 'NEW_DEVIS' })}
-          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[12px] font-semibold transition-colors"
+          onClick={handleNewDevis}
+          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[12px] font-semibold transition duration-150 hover:opacity-90 active:translate-y-[1px]"
           style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
         >
           +  新建

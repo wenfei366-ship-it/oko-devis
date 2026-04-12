@@ -140,6 +140,14 @@ export function DevisPreviewContent({
   onTotalChange?: (itemIndex: number, total: number) => void
   onRemoveItem?: (itemIndex: number) => void
 }) {
+  const destinataireLines = [
+    vm.destinataire.address,
+    vm.destinataire.postalCity,
+    vm.destinataire.contactName,
+    vm.destinataire.phone,
+    vm.destinataire.email,
+  ].filter(Boolean).join('\n')
+
   return (
     <div
       className="shadow-lg rounded-sm mx-auto"
@@ -214,10 +222,14 @@ export function DevisPreviewContent({
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#A8702E' }}>
             {vm.labels.destinataire}
           </p>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#2A2620' }}>{vm.destinataire.name || '—'}</p>
-          <p style={{ fontSize: 11, color: '#5C5142', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
-            {vm.destinataire.address || '—'}{'\n'}{vm.destinataire.phone}{'\n'}{vm.destinataire.email}
-          </p>
+          {vm.destinataire.name && (
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#2A2620' }}>{vm.destinataire.name}</p>
+          )}
+          {destinataireLines && (
+            <p style={{ fontSize: 11, color: '#5C5142', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+              {destinataireLines}
+            </p>
+          )}
         </div>
       </div>
 

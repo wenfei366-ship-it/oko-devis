@@ -93,15 +93,6 @@ export default function ServiceCatalog() {
         CATALOGUE  ·  {CATALOG.length} services
       </div>
 
-      {/* Search placeholder */}
-      <div
-        className="flex items-center gap-2 h-[36px] px-3 rounded-[8px] mb-2"
-        style={{ backgroundColor: '#F6EFDC' }}
-      >
-        <span className="text-[13px]" style={{ color: '#9B8550' }}>⌕</span>
-        <span className="text-[12px]" style={{ color: '#9B8550' }}>搜索服务…</span>
-      </div>
-
       <div className="text-[10px] italic mb-4" style={{ color: '#8B7A3E' }}>
         点击 + 添加到预览
       </div>
