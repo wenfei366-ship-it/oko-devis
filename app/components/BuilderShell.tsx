@@ -9,7 +9,15 @@ import CustomerForm from './CustomerForm'
 import DatePickerCard from './DatePickerCard'
 import LanguagePicker from './LanguagePicker'
 import MagazineModal from './MagazineModal'
-import { computeTotals } from '../lib/calculations'
+import type { Lang } from '../lib/types'
+
+const LANGUAGE_PILL: Record<Lang, { flag: string; label: string }> = {
+  fr: { flag: '🇫🇷', label: 'Français' },
+  it: { flag: '🇮🇹', label: 'Italiano' },
+  es: { flag: '🇪🇸', label: 'Español' },
+  de: { flag: '🇩🇪', label: 'Deutsch' },
+  zh: { flag: '🇨🇳', label: '中文' },
+}
 
 function ScaledPreview() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -70,7 +78,7 @@ function CreateDevisButton({ onClick }: { onClick: () => void }) {
 function BuilderContent() {
   const [showModal, setShowModal] = useState(false)
   const { devis } = useDevis()
-  const totals = computeTotals(devis)
+  const languagePill = LANGUAGE_PILL[devis.lang]
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: '#F6EFDC' }}>
@@ -114,8 +122,8 @@ function BuilderContent() {
                 className="flex items-center gap-1.5 h-[28px] px-3 rounded-full text-[11px] font-bold"
                 style={{ backgroundColor: '#FEFBF2', color: '#1C1611' }}
               >
-                <span>🇫🇷</span>
-                <span>Français</span>
+                <span>{languagePill.flag}</span>
+                <span>{languagePill.label}</span>
               </div>
             </div>
           </div>
