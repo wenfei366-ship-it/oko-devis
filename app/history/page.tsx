@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useReducer } from 'react'
 import Link from 'next/link'
-import { listHistory, deleteFromHistory } from '@/app/lib/storage'
+import { listHistory, deleteFromHistory, clearHistory } from '@/app/lib/storage'
 import { computeTotals, formatEuro } from '@/app/lib/calculations'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Devis, Lang } from '@/app/lib/types'
@@ -26,11 +26,19 @@ function HistoryContent() {
   void historyVersion
   const [selectedDevis, setSelectedDevis] = useState<Devis | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [confirmClear, setConfirmClear] = useState(false)
 
   const handleDelete = useCallback((id: string) => {
     deleteFromHistory(id)
     bumpHistory()
     setConfirmDelete(null)
+  }, [bumpHistory])
+
+  const handleClearHistory = useCallback(() => {
+    clearHistory()
+    bumpHistory()
+    setConfirmClear(false)
+    setSelectedDevis(null)
   }, [bumpHistory])
 
   const handleCloseModal = useCallback(() => {
@@ -52,12 +60,43 @@ function HistoryContent() {
         <h1 className="font-serif text-lg font-bold text-[var(--ink)] tracking-tight">
           历史记录
         </h1>
-        <Link
-          href="/"
-          className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
-        >
-          &larr; 返回编辑器
-        </Link>
+        <div className="flex items-center gap-2">
+          {history.length > 0 && (
+            confirmClear ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--danger)]">确认清空全部?</span>
+                <button
+                  type="button"
+                  onClick={handleClearHistory}
+                  className="px-3 py-1.5 text-sm rounded-md bg-[var(--danger)] text-white transition-opacity hover:opacity-90 active:translate-y-[1px]"
+                >
+                  清空
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmClear(true)}
+                className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:text-[var(--danger)] hover:bg-[var(--surface-alt)] transition-colors active:translate-y-[1px]"
+              >
+                清空历史
+              </button>
+            )
+          )}
+          <Link
+            href="/"
+            className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
+          >
+            &larr; 返回编辑器
+          </Link>
+        </div>
       </header>
 
       {/* Warning banner */}
