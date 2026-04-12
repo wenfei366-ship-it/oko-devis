@@ -213,25 +213,23 @@ export default function ServiceCatalog() {
             className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none resize-none"
             style={{ backgroundColor: '#F6EFDC', minHeight: 64 }}
           />
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="€（0 = 免费赠送）"
-              value={customPrice}
-              onChange={(e) => setCustomPrice(e.target.value)}
-              className="flex-1 text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none"
-              style={{ backgroundColor: '#F6EFDC' }}
-            />
-            <select
-              value={customCadence}
-              onChange={(e) => setCustomCadence(e.target.value as 'monthly' | 'oneOff')}
-              className="text-[10px] px-2 py-2 rounded-[8px] border-none"
-              style={{ backgroundColor: '#F6EFDC' }}
-            >
-              <option value="monthly">月付</option>
-              <option value="oneOff">一次性</option>
-            </select>
-          </div>
+          <input
+            type="number"
+            placeholder="€（0 = 免费赠送）"
+            value={customPrice}
+            onChange={(e) => setCustomPrice(e.target.value)}
+            className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none focus:outline-none"
+            style={{ backgroundColor: '#F6EFDC' }}
+          />
+          <select
+            value={customCadence}
+            onChange={(e) => setCustomCadence(e.target.value as 'monthly' | 'oneOff')}
+            className="w-full text-[12px] px-3 py-2 rounded-[8px] border-none"
+            style={{ backgroundColor: '#F6EFDC' }}
+          >
+            <option value="monthly">月付</option>
+            <option value="oneOff">一次性</option>
+          </select>
           {customCadence === 'oneOff' && (
             <input
               type="text"
