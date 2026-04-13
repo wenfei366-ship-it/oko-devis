@@ -387,6 +387,15 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               {saving ? '保存中…' : '保存草稿'}
             </button>
           )}
+          {contract?.id && (
+            <Link
+              href={`/contract/${contract.id}/detail`}
+              className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold"
+              style={{ borderColor: '#1C1611', color: '#1C1611' }}
+            >
+              查看跟进页
+            </Link>
+          )}
           <button
             type="button"
             onClick={handleExport}
