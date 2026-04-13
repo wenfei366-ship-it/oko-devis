@@ -14,6 +14,35 @@ Current status:
 - Supabase project: `oko-devis-apac`
 - Supabase region: `Southeast Asia (Singapore)`
 - Supabase project ref: `ndsusktrnlmtxvgnryag`
+- Devis module has already gone through multiple detail-fix rounds and is live in production
+
+## 1.1 Current Infra Status
+
+### Supabase
+
+- Supabase is the source of truth for shared structured data
+- Devis history is already shared in the cloud
+- Shared workspace mode is active
+- Login is not required for normal devis history read/write
+
+### Cloudflare
+
+- Cloudflare CLI is already logged in
+- Login email: `dev@joinoko.com`
+- Account name: `OKO DEV`
+- Account id: `245ce970bb12cc9b92a47f23f3653bd0`
+
+### R2
+
+- R2 is already enabled
+- Existing buckets:
+  - `hot-uploader`
+  - `oko-sites-dev`
+
+### Confirmed storage direction
+
+- Structured devis / contract data stays in Supabase
+- Files such as PDF, screenshots, evidence images, and attachments go to R2
 
 ## 2. What Exists Today
 
@@ -42,6 +71,13 @@ Current user flow:
 - Same `devis.id` collision throws and forces fork/save-as-new-version
 - RLS currently allows `anon` / `authenticated` access only to the shared workspace
 - Future account login can be added later for `created_by` / `updated_by` tracking
+
+### Confirmed file storage direction for next phase
+
+- Supabase continues to store structured history records
+- R2 should be used for generated PDFs
+- R2 should be used for confirmation screenshots and evidence files
+- R2 should be used for any future contract attachments
 
 ## 3. Technical Stack
 
@@ -162,6 +198,12 @@ Searchable fields should include:
 
 Suggested new table:
 - `contract_history`
+
+Suggested linked file storage:
+- `pdf_path`
+- `pdf_url`
+- `evidence_files` jsonb
+- `attachments` jsonb
 
 Suggested fields:
 - `id`
