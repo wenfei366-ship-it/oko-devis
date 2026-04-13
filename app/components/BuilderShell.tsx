@@ -23,38 +23,55 @@ function ScaledPreview() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [paperH, setPaperH] = useState(0)
+  const paperWidth = 800
 
   const recalc = useCallback(() => {
     if (!containerRef.current) return
-    const w = containerRef.current.clientWidth - 40
-    const s = Math.min(w / 800, 1)
+    const w = Math.max(containerRef.current.clientWidth - 48, 320)
+    const s = Math.min(w / paperWidth, 1)
     setScale(s)
     const paper = containerRef.current.querySelector('[data-paper]') as HTMLElement | null
     if (paper) setPaperH(paper.scrollHeight)
-  }, [])
+  }, [paperWidth])
 
   useEffect(() => {
     recalc()
     const ro = new ResizeObserver(recalc)
     if (containerRef.current) ro.observe(containerRef.current)
-    return () => ro.disconnect()
+    window.addEventListener('resize', recalc)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', recalc)
+    }
   }, [recalc])
 
+  const scaledWidth = paperWidth * scale
+  const scaledHeight = paperH * scale
+
   return (
-    <div ref={containerRef} className="px-5 pb-6 overflow-x-hidden overflow-y-auto">
-      <div
-        data-paper
-        className="rounded-[3px]"
-        style={{
-          width: 800,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          boxShadow: '8px 8px 24px rgba(28,22,17,0.18)',
-          backgroundColor: '#FEFBF2',
-          marginBottom: paperH > 0 ? -(paperH * (1 - scale)) : 0,
-        }}
-      >
-        <DevisLivePreview />
+    <div ref={containerRef} className="h-full px-6 pb-6 overflow-y-auto overflow-x-hidden">
+      <div className="mx-auto flex justify-center" style={{ minWidth: scaledWidth }}>
+        <div
+          style={{
+            width: scaledWidth,
+            minHeight: scaledHeight || undefined,
+            position: 'relative',
+          }}
+        >
+          <div
+            data-paper
+            className="rounded-[3px]"
+            style={{
+              width: paperWidth,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              boxShadow: '8px 8px 24px rgba(28,22,17,0.18)',
+              backgroundColor: '#FEFBF2',
+            }}
+          >
+            <DevisLivePreview />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -84,13 +101,18 @@ function BuilderContent() {
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: '#F6EFDC' }}>
       <TopNav onCreateDevis={() => setShowModal(true)} />
 
-      {/* 3-column body matching Pencil YxXBG: left 240, middle flex, right 436 */}
-      <div className="flex flex-1 overflow-hidden" style={{ padding: '24px 20px' }}>
+      <div
+        className="grid flex-1 overflow-hidden"
+        style={{
+          padding: '24px 20px',
+          gap: 12,
+          gridTemplateColumns: 'clamp(252px, 18vw, 288px) minmax(0, 1fr) clamp(360px, 27vw, 408px)',
+        }}
+      >
         {/* Left column — catalog (w=240, bg #FEFBF2, rounded 14, shadow) */}
         <aside
-          className="flex-shrink-0 overflow-y-auto rounded-[14px]"
+          className="min-w-0 overflow-y-auto rounded-[14px]"
           style={{
-            width: 240,
             backgroundColor: '#FEFBF2',
             boxShadow: '4px 0 16px rgba(28,22,17,0.08)',
           }}
@@ -100,7 +122,7 @@ function BuilderContent() {
 
         {/* Middle column — preview (flex, bg #EFE3C6, rounded 14, shadow) */}
         <main
-          className="flex-1 mx-3 overflow-y-auto rounded-[14px]"
+          className="min-w-0 overflow-hidden rounded-[14px]"
           style={{
             backgroundColor: '#EFE3C6',
             boxShadow: '4px 0 16px rgba(28,22,17,0.08)',
@@ -133,7 +155,7 @@ function BuilderContent() {
         </main>
 
         {/* Right column — forms (w=436) */}
-        <aside className="flex-shrink-0 flex flex-col gap-3 overflow-y-auto" style={{ width: 436 }}>
+        <aside className="min-w-0 flex flex-col gap-3 overflow-y-auto">
           {/* Client card */}
           <div
             className="rounded-[14px] p-5"

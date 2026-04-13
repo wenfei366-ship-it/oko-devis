@@ -7,7 +7,6 @@ import { computeTotals, formatEuro } from '@/app/lib/calculations'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Devis, Lang } from '@/app/lib/types'
 import { DevisProvider } from '@/app/components/DevisContext'
-import { useAuth } from '@/app/components/AuthContext'
 import MagazineModal from '@/app/components/MagazineModal'
 
 const FLAG_MAP: Record<Lang, string> = {
@@ -20,7 +19,6 @@ const FLAG_MAP: Record<Lang, string> = {
 
 function HistoryContent() {
   const mounted = useMounted()
-  const { user, loading: authLoading } = useAuth()
   const [history, setHistory] = useState<Devis[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -29,14 +27,7 @@ function HistoryContent() {
   const [confirmClear, setConfirmClear] = useState(false)
 
   const refreshHistory = useCallback(async () => {
-    if (!mounted || authLoading) return
-
-    if (!user) {
-      setHistory([])
-      setLoadError(null)
-      setLoading(false)
-      return
-    }
+    if (!mounted) return
 
     setLoading(true)
     setLoadError(null)
@@ -47,7 +38,7 @@ function HistoryContent() {
     } finally {
       setLoading(false)
     }
-  }, [authLoading, mounted, user])
+  }, [mounted])
 
   useEffect(() => {
     void refreshHistory()
@@ -86,7 +77,7 @@ function HistoryContent() {
           历史记录
         </h1>
         <div className="flex items-center gap-2">
-          {user && history.length > 0 && (
+          {history.length > 0 && (
             confirmClear ? (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[var(--danger)]">确认清空全部?</span>
@@ -126,24 +117,14 @@ function HistoryContent() {
 
       <div className="px-6 py-2 bg-[var(--bg-cream)] border-b border-[var(--divider-soft)]">
         <p className="text-xs text-[var(--ink-muted)]">
-          Historique cloud synchronisé &mdash; visible sur tous vos appareils connectés
+          Historique cloud partagé &mdash; visible sur tous vos appareils de travail
         </p>
       </div>
 
       <div className="p-6">
-        {authLoading || loading ? (
+        {loading ? (
           <div className="text-center py-16">
             <p className="text-[var(--ink-muted)] text-sm">同步云端历史中…</p>
-          </div>
-        ) : !user ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--ink-muted)] text-sm">请先在首页登录云端历史，再查看多设备共享记录。</p>
-            <Link
-              href="/"
-              className="inline-block mt-4 px-4 py-2 text-sm rounded-md bg-[var(--gold)] text-white hover:opacity-90 transition-opacity"
-            >
-              返回首页登录
-            </Link>
           </div>
         ) : loadError ? (
           <div className="text-center py-16">
@@ -158,7 +139,7 @@ function HistoryContent() {
           </div>
         ) : history.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[var(--ink-muted)] text-sm">云端历史里还没有 devis</p>
+            <p className="text-[var(--ink-muted)] text-sm">共享历史里还没有 devis</p>
             <Link
               href="/"
               className="inline-block mt-4 px-4 py-2 text-sm rounded-md bg-[var(--gold)] text-white hover:opacity-90 transition-opacity"

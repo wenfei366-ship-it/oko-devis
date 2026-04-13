@@ -3,14 +3,14 @@ import type { Devis } from './types'
 import { uuid } from './numbering'
 
 type Row = {
-  user_id: string
+  workspace_id: string
+  user_id: string | null
   devis_id: string
   devis: Devis
   saved_at: string
 }
 
 const rows: Row[] = []
-let currentUserId: string | null = 'user-1'
 
 const i18n = (s: string) => ({ fr: s, it: s, es: s, de: s, zh: s })
 
@@ -30,11 +30,11 @@ function mkDevis(id?: string): Devis {
 
 function buildDeleteQuery() {
   return {
-    match(filters: { user_id?: string; devis_id?: string }) {
+    match(filters: { workspace_id?: string; devis_id?: string }) {
       for (let index = rows.length - 1; index >= 0; index -= 1) {
-        const matchesUser = !filters.user_id || rows[index].user_id === filters.user_id
+        const matchesWorkspace = !filters.workspace_id || rows[index].workspace_id === filters.workspace_id
         const matchesDevis = !filters.devis_id || rows[index].devis_id === filters.devis_id
-        if (matchesUser && matchesDevis) rows.splice(index, 1)
+        if (matchesWorkspace && matchesDevis) rows.splice(index, 1)
       }
 
       return Promise.resolve({ error: null })
@@ -43,19 +43,19 @@ function buildDeleteQuery() {
 }
 
 function buildSelectQuery() {
-  let userId: string | null = null
+  let workspaceId: string | null = null
   let devisId: string | null = null
   let limitValue = Number.POSITIVE_INFINITY
 
   const exec = () => {
-    let result = rows.filter((row) => (!userId || row.user_id === userId) && (!devisId || row.devis_id === devisId))
+    let result = rows.filter((row) => (!workspaceId || row.workspace_id === workspaceId) && (!devisId || row.devis_id === devisId))
     result = [...result].sort((left, right) => right.saved_at.localeCompare(left.saved_at)).slice(0, limitValue)
     return result.map((row) => ({ devis: row.devis }))
   }
 
   return {
     eq(column: string, value: string) {
-      if (column === 'user_id') userId = value
+      if (column === 'workspace_id') workspaceId = value
       if (column === 'devis_id') devisId = value
       return this
     },
@@ -75,19 +75,10 @@ function buildSelectQuery() {
 
 vi.mock('./supabase/client', () => ({
   getSupabaseBrowserClient: () => ({
-    auth: {
-      getSession: vi.fn(async () => ({
-        data: {
-          session: currentUserId
-            ? { user: { id: currentUserId } }
-            : null,
-        },
-      })),
-    },
     from: () => ({
       select: () => buildSelectQuery(),
       insert: async (payload: Row) => {
-        const exists = rows.some((row) => row.user_id === payload.user_id && row.devis_id === payload.devis_id)
+        const exists = rows.some((row) => row.workspace_id === payload.workspace_id && row.devis_id === payload.devis_id)
         if (exists) return { error: { code: '23505' } }
         rows.push(payload)
         return { error: null }
@@ -105,13 +96,11 @@ const {
   clearHistory,
   cloneForEdit,
   HistoryConflictError,
-  AuthRequiredError,
 } = await import('./storage')
 
 describe('storage (supabase)', () => {
   beforeEach(() => {
     rows.length = 0
-    currentUserId = 'user-1'
   })
 
   it('starts empty', async () => {
@@ -176,10 +165,5 @@ describe('storage (supabase)', () => {
     expect(cloned.id).not.toBe(d.id)
     expect(cloned.savedAt).toBeUndefined()
     expect(cloned.meta.number).not.toBe(d.meta.number)
-  })
-
-  it('throws AuthRequiredError when not signed in', async () => {
-    currentUserId = null
-    await expect(listHistory()).rejects.toBeInstanceOf(AuthRequiredError)
   })
 })

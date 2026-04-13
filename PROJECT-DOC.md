@@ -9,6 +9,7 @@ Last updated: 2026-04-13
 Current status:
 - Production URL: `https://oko-devis.vercel.app`
 - Latest deployed commit: `04ec1c0`
+- Latest local commit target: shared history + adaptive layout update
 - Vercel project: `oko-devis`
 - Supabase project: `oko-devis-apac`
 - Supabase region: `Southeast Asia (Singapore)`
@@ -24,21 +25,23 @@ Implemented and deployed:
 - Builder + live preview + PDF + PNG export
 - Devis history page
 - Supabase-backed shared history across devices
-- Magic-link login for shared cloud history
+- Responsive three-column builder with centered preview scaling
 
 Current user flow:
 1. Sales fills customer + services + language
 2. User opens magazine preview modal
-3. Devis is auto-saved to Supabase history if user is logged in
-4. User can revisit `/history` from any device logged into the same email
+3. Devis is auto-saved to shared Supabase history
+4. User can revisit `/history` from any work device without logging in
 
 ### Current cloud history behavior
 
 - History is now stored in Supabase, not localStorage
-- Auth is email magic link via Supabase Auth
+- History currently uses one shared workspace: `oko-shared`
+- No login is required to read or save shared history
 - History records are immutable snapshots
 - Same `devis.id` collision throws and forces fork/save-as-new-version
-- Data is isolated per user with RLS
+- RLS currently allows `anon` / `authenticated` access only to the shared workspace
+- Future account login can be added later for `created_by` / `updated_by` tracking
 
 ## 3. Technical Stack
 
@@ -49,7 +52,7 @@ Current user flow:
 - `@react-pdf/renderer`
 - `html-to-image`
 - Supabase JS client
-- Supabase Auth + Postgres
+- Supabase Postgres
 - Vercel deployment
 
 ## 4. Important Existing Files
@@ -62,6 +65,7 @@ Current user flow:
 - [app/components/MagazineModal.tsx](/Users/zhangxiaonan/Downloads/oko-devis/app/components/MagazineModal.tsx)
 - [app/history/page.tsx](/Users/zhangxiaonan/Downloads/oko-devis/app/history/page.tsx)
 - [supabase/migrations/20260413061814_create_devis_history.sql](/Users/zhangxiaonan/Downloads/oko-devis/supabase/migrations/20260413061814_create_devis_history.sql)
+- [supabase/migrations/20260413102000_switch_devis_history_to_shared_workspace.sql](/Users/zhangxiaonan/Downloads/oko-devis/supabase/migrations/20260413102000_switch_devis_history_to_shared_workspace.sql)
 
 ## 5. Contract Module Direction
 

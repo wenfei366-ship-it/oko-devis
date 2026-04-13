@@ -5,23 +5,11 @@ import { generateDraftNumber, uuid } from './numbering'
 import { getSupabaseBrowserClient } from './supabase/client'
 
 const TABLE_NAME = 'devis_history'
+const WORKSPACE_ID = 'oko-shared'
 const MAX_HISTORY = 100
 
 interface DevisHistoryRow {
   devis: Devis
-}
-
-async function requireUserId(): Promise<string> {
-  const supabase = getSupabaseBrowserClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session?.user?.id) {
-    throw new AuthRequiredError()
-  }
-
-  return session.user.id
 }
 
 export class HistoryConflictError extends Error {
@@ -31,20 +19,12 @@ export class HistoryConflictError extends Error {
   }
 }
 
-export class AuthRequiredError extends Error {
-  constructor() {
-    super('You must sign in before using shared history.')
-    this.name = 'AuthRequiredError'
-  }
-}
-
 export async function listHistory(): Promise<Devis[]> {
-  const userId = await requireUserId()
   const supabase = getSupabaseBrowserClient()
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select('devis')
-    .eq('user_id', userId)
+    .eq('workspace_id', WORKSPACE_ID)
     .order('saved_at', { ascending: false })
     .limit(MAX_HISTORY)
 
@@ -54,7 +34,6 @@ export async function listHistory(): Promise<Devis[]> {
 }
 
 export async function saveToHistory(devis: Devis): Promise<void> {
-  const userId = await requireUserId()
   const supabase = getSupabaseBrowserClient()
   const stamped: Devis = {
     ...devis,
@@ -62,7 +41,7 @@ export async function saveToHistory(devis: Devis): Promise<void> {
   }
 
   const { error } = await supabase.from(TABLE_NAME).insert({
-    user_id: userId,
+    workspace_id: WORKSPACE_ID,
     devis_id: stamped.id,
     devis: stamped,
     saved_at: stamped.savedAt,
@@ -74,23 +53,21 @@ export async function saveToHistory(devis: Devis): Promise<void> {
 }
 
 export async function deleteFromHistory(id: string): Promise<void> {
-  const userId = await requireUserId()
   const supabase = getSupabaseBrowserClient()
   const { error } = await supabase
     .from(TABLE_NAME)
     .delete()
-    .match({ user_id: userId, devis_id: id })
+    .match({ workspace_id: WORKSPACE_ID, devis_id: id })
 
   if (error) throw error
 }
 
 export async function loadFromHistory(id: string): Promise<Devis | null> {
-  const userId = await requireUserId()
   const supabase = getSupabaseBrowserClient()
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select('devis')
-    .eq('user_id', userId)
+    .eq('workspace_id', WORKSPACE_ID)
     .eq('devis_id', id)
     .maybeSingle()
 
@@ -116,8 +93,7 @@ export async function cloneForEdit(id: string): Promise<Devis> {
 }
 
 export async function clearHistory(): Promise<void> {
-  const userId = await requireUserId()
   const supabase = getSupabaseBrowserClient()
-  const { error } = await supabase.from(TABLE_NAME).delete().match({ user_id: userId })
+  const { error } = await supabase.from(TABLE_NAME).delete().match({ workspace_id: WORKSPACE_ID })
   if (error) throw error
 }

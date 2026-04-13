@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import { useDevis } from './DevisContext'
-import { useAuth } from './AuthContext'
 import { DevisPreviewContent } from './DevisLivePreview'
 import { computeTotals } from '@/app/lib/calculations'
 import { buildViewModel } from '@/app/lib/viewModel'
-import { saveToHistory, HistoryConflictError, cloneForEdit, AuthRequiredError } from '@/app/lib/storage'
+import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
 import type { Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
@@ -39,7 +38,6 @@ const LANG_DISPLAY: Record<string, string> = {
 
 export default function MagazineModal({ readOnly, onClose, historyDevis }: MagazineModalProps) {
   const ctx = useDevis()
-  const { user } = useAuth()
   const sourceDevis = historyDevis ?? ctx.devis
   const dispatch = ctx.dispatch
 
@@ -63,10 +61,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   // Save to history on first open (non-read-only)
   useEffect(() => {
     if (readOnly) return
-    if (!user || didPersistRef.current) {
-      if (!user) {
-        setSaveNotice('未登录：当前预览不会进入云端历史。请先回首页登录。')
-      }
+    if (didPersistRef.current) {
       return
     }
 
@@ -128,11 +123,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         }
 
         if (!cancelled) {
-          if (err instanceof AuthRequiredError) {
-            setSaveNotice('未登录：当前预览不会进入云端历史。请先回首页登录。')
-          } else {
-            setSaveNotice(err instanceof Error ? err.message : '保存到云端历史失败。')
-          }
+          setSaveNotice(err instanceof Error ? err.message : '保存到共享历史失败。')
         }
       }
     }
@@ -142,7 +133,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     return () => {
       cancelled = true
     }
-  }, [dispatch, readOnly, sourceDevis, user])
+  }, [dispatch, readOnly, sourceDevis])
 
   // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {
