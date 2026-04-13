@@ -185,6 +185,23 @@ describe('buildViewModel custom line units', () => {
 
     expect(vm.items[0].qtyLabel).toBe('1')
   })
+
+  it('shows offered instead of a zero price for custom free lines', () => {
+    const devis = mkDevis([
+      mkLine({
+        billingCadence: 'oneOff',
+        recurringEligible: false,
+        qty: 1,
+        unit: 'unique',
+        unitPrice: 0,
+      }),
+    ])
+    devis.lang = 'zh'
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.items[0].unitPriceLabel).toBe('赠送')
+    expect(vm.items[0].lineAmountLabel).toBe('赠送')
+  })
 })
 
 describe('buildViewModel item groups', () => {

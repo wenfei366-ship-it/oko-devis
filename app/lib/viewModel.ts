@@ -214,11 +214,17 @@ function formatQty(item: DevisItem, lang: Lang): string {
 function formatUnitPrice(item: DevisItem, lang: Lang): string {
   if (item.kind === 'package') {
     const pack = item as PackageLine
+    if ((pack.preferredMode === 'monthly' && pack.monthlyPrice === 0) || (pack.preferredMode === 'annual' && pack.annualPrice === 0)) {
+      return tr(LABELS.offered, lang)
+    }
     return pack.preferredMode === 'monthly'
       ? `${formatEuroCompact(pack.monthlyPrice)} ${tr(LABELS.perMonth, lang)}`
       : `${formatEuroCompact(pack.annualPrice)} ${tr(LABELS.perYear, lang)}`
   }
   const line = item as LineItem
+  if (line.unitPrice === 0) {
+    return tr(LABELS.offered, lang)
+  }
   switch (line.billingCadence) {
     case 'monthly':
       return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
@@ -324,9 +330,10 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
         qtyLabel: `12 ${tr(LABELS.unitAn, lang)}`,
         unitPriceLabel: formatUnitPrice(item, lang),
         lineAmount: lineAmount(item),
-        lineAmountLabel: formatEuro(lineAmount(item)),
+        lineAmountLabel: lineAmount(item) === 0 ? tr(LABELS.offered, lang) : formatEuro(lineAmount(item)),
       }
     }
+    const lineTotal = lineAmount(item)
     return {
       kind: 'line' as const,
       section: itemSection(item),
@@ -334,8 +341,8 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       description: tr(item.descSnapshot, lang),
       qtyLabel: formatQty(item, lang),
       unitPriceLabel: formatUnitPrice(item, lang),
-      lineAmount: lineAmount(item),
-      lineAmountLabel: formatEuro(lineAmount(item)),
+      lineAmount: lineTotal,
+      lineAmountLabel: lineTotal === 0 ? tr(LABELS.offered, lang) : formatEuro(lineTotal),
     }
   })
 
