@@ -227,7 +227,9 @@ function formatUnitPrice(item: DevisItem, lang: Lang): string {
   }
   switch (line.billingCadence) {
     case 'monthly':
-      return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
+      return line.unit && line.unit !== 'mois'
+        ? `${formatEuroCompact(line.unitPrice)} / ${line.unit} ${tr(LABELS.perMonth, lang)}`
+        : `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perMonth, lang)}`
     case 'annual':
       return `${formatEuroCompact(line.unitPrice)} ${tr(LABELS.perYear, lang)}`
     case 'perUnit':

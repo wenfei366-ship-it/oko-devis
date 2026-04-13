@@ -202,6 +202,21 @@ describe('buildViewModel custom line units', () => {
     expect(vm.items[0].unitPriceLabel).toBe('赠送')
     expect(vm.items[0].lineAmountLabel).toBe('赠送')
   })
+
+  it('shows a custom monthly unit in the unit price label', () => {
+    const devis = mkDevis([
+      mkLine({
+        unit: '店',
+        unitPrice: 50,
+        billingCadence: 'monthly',
+        recurringEligible: true,
+      }),
+    ])
+    devis.lang = 'zh'
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.items[0].unitPriceLabel).toContain('/ 店 /月')
+  })
 })
 
 describe('buildViewModel item groups', () => {
