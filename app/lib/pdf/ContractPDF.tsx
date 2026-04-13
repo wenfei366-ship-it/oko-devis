@@ -18,6 +18,14 @@ interface ContractPDFProps {
   contract: Contract
 }
 
+function assetPath(file: string) {
+  if (typeof window === 'undefined') {
+    return `${process.cwd()}/public/${file}`
+  }
+
+  return `/${file}`
+}
+
 function BulletList({ items, fontFamily }: { items: string[]; fontFamily?: string }) {
   return (
     <View style={cs.bulletList}>
@@ -31,11 +39,14 @@ function BulletList({ items, fontFamily }: { items: string[]; fontFamily?: strin
   )
 }
 
-function Footer({ page }: { page: string }) {
+function Footer() {
   return (
     <View style={cs.footer} fixed>
       <Text style={cs.footerText}>SAS OKO · 31 boulevard de Magenta · 75010 Paris</Text>
-      <Text style={cs.footerText}>{page}</Text>
+      <Text
+        style={cs.footerText}
+        render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+      />
     </View>
   )
 }
@@ -69,7 +80,7 @@ export function ContractPDF({ contract }: ContractPDFProps) {
 
           <View style={cs.logoBlock}>
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
-            <Image src="/oko-logo.png" style={cs.logo} />
+            <Image src={assetPath('oko-logo.png')} style={cs.logo} />
             <Text style={cs.logoUrl}>joinoko.com</Text>
           </View>
         </View>
@@ -124,7 +135,7 @@ export function ContractPDF({ contract }: ContractPDFProps) {
           <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article3Point2Content}</Text>
         </View>
 
-        <Footer page="1 / 2" />
+        <Footer />
       </Page>
 
       <Page size="A4" style={cs.page}>
@@ -136,25 +147,25 @@ export function ContractPDF({ contract }: ContractPDFProps) {
         <View style={cs.divider} />
 
         <View style={cs.article}>
-          <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article4Title}</Text>
-          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article4Content1}</Text>
-          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article4Content2}</Text>
+          <Text style={{ ...cs.sectionTitleCompact, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article4Title}</Text>
+          <Text style={{ ...cs.paragraphCompact, fontFamily: bodyFont }}>{copy.article4Content1}</Text>
+          <Text style={{ ...cs.paragraphCompact, fontFamily: bodyFont }}>{copy.article4Content2}</Text>
         </View>
 
         <View style={cs.article}>
-          <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article5Title}</Text>
-          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article5Intro}</Text>
+          <Text style={{ ...cs.sectionTitleCompact, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article5Title}</Text>
+          <Text style={{ ...cs.paragraphCompact, fontFamily: bodyFont }}>{copy.article5Intro}</Text>
           <BulletList items={[copy.article5a, copy.article5b, copy.article5c]} fontFamily={bodyFont} />
         </View>
 
         <View style={cs.article}>
-          <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article6Title}</Text>
-          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article6Content}</Text>
+          <Text style={{ ...cs.sectionTitleCompact, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article6Title}</Text>
+          <Text style={{ ...cs.paragraphCompact, fontFamily: bodyFont }}>{copy.article6Content}</Text>
         </View>
 
         <View style={cs.article}>
-          <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article7Title}</Text>
-          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{copy.article7Intro}</Text>
+          <Text style={{ ...cs.sectionTitleCompact, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article7Title}</Text>
+          <Text style={{ ...cs.paragraphCompact, fontFamily: bodyFont }}>{copy.article7Intro}</Text>
 
           <View style={cs.priceCard}>
             <View style={cs.priceHeaderRow}>
@@ -182,9 +193,9 @@ export function ContractPDF({ contract }: ContractPDFProps) {
             ))}
           </View>
 
-          <Text style={{ ...cs.paragraph, marginTop: 6, fontFamily: bodyFont }}>{copy.article7Note}</Text>
+          <Text style={{ ...cs.paragraph, marginTop: 4, fontFamily: bodyFont, fontSize: 7.8, lineHeight: 1.18, color: '#5C5142' }}>{copy.article7Note}</Text>
 
-          <View style={cs.choiceRow}>
+          <View style={cs.choiceRow} wrap={false}>
             <View style={cs.choiceBox}>
               <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>
                 {copy.article7ClientChoice} · {contract.selectedServices.length} SERVICES
@@ -218,39 +229,41 @@ export function ContractPDF({ contract }: ContractPDFProps) {
           </View>
         </View>
 
-        <View style={cs.article} wrap={false}>
-          <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article8Title}</Text>
-          <View style={cs.noteBox}>
-            <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{contract.specialConditions || copy.article8Placeholder}</Text>
+        <View style={cs.pageBottomBlock} wrap={false}>
+          <View style={cs.articleCompact}>
+            <Text style={{ ...cs.sectionTitle, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{copy.article8Title}</Text>
+            <View style={cs.noteBox}>
+              <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>{contract.specialConditions || copy.article8Placeholder}</Text>
+            </View>
           </View>
+
+          <View style={cs.articleDivider} />
+          <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>
+            {copy.madeIn} {copy.madeOn} {dateLabel} {copy.inParis}.
+          </Text>
+
+          <View style={cs.signatureRow}>
+            <View style={cs.signatureBox}>
+              <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.clientSignatureLabel}</Text>
+              <Text style={{ ...cs.paragraph, marginTop: 8, fontFamily: bodyFont }}>{contract.customer.name || '—'}</Text>
+              <Text style={{ ...cs.signatureHint, fontFamily: bodyFont }}>{copy.clientSignatureHint}</Text>
+              <View style={cs.signatureArea} />
+              <Text style={{ ...cs.signatureDate, fontFamily: bodyFont }}>{dateLabel}</Text>
+            </View>
+
+            <View style={cs.signatureBox}>
+              <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.providerSignatureLabel}</Text>
+              <Text style={{ ...cs.paragraph, marginTop: 8, fontFamily: bodyFont }}>SAS OKO · M. Shengmao KE, Président</Text>
+              <Text style={{ ...cs.signatureHint, fontFamily: bodyFont }}>{dateLabel} · Paris</Text>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image src={assetPath('oko-signature.png')} style={cs.signatureImg} />
+              <Text style={{ ...cs.signatureDate, fontFamily: bodyFont }}>support@joinoko.com</Text>
+            </View>
+          </View>
+
+          <Text style={{ ...cs.legalNote, fontFamily: bodyFont }}>{copy.frenchLegalNote}</Text>
         </View>
-
-        <View style={cs.articleDivider} />
-        <Text style={{ ...cs.paragraph, fontFamily: bodyFont }}>
-          {copy.madeIn} {copy.madeOn} {dateLabel} {copy.inParis}.
-        </Text>
-
-        <View style={cs.signatureRow} wrap={false}>
-          <View style={cs.signatureBox}>
-            <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.clientSignatureLabel}</Text>
-            <Text style={{ ...cs.paragraph, marginTop: 8, fontFamily: bodyFont }}>{contract.customer.name || '—'}</Text>
-            <Text style={{ ...cs.signatureHint, fontFamily: bodyFont }}>{copy.clientSignatureHint}</Text>
-            <View style={cs.signatureArea} />
-            <Text style={{ ...cs.signatureDate, fontFamily: bodyFont }}>{dateLabel}</Text>
-          </View>
-
-          <View style={cs.signatureBox}>
-            <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.providerSignatureLabel}</Text>
-            <Text style={{ ...cs.paragraph, marginTop: 8, fontFamily: bodyFont }}>SAS OKO · M. Shengmao KE, Président</Text>
-            <Text style={{ ...cs.signatureHint, fontFamily: bodyFont }}>{dateLabel} · Paris</Text>
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
-            <Image src="/oko-signature.png" style={cs.signatureImg} />
-            <Text style={{ ...cs.signatureDate, fontFamily: bodyFont }}>support@joinoko.com</Text>
-          </View>
-        </View>
-
-        <Text style={{ ...cs.legalNote, fontFamily: bodyFont }}>{copy.frenchLegalNote}</Text>
-        <Footer page="2 / 2" />
+        <Footer />
       </Page>
     </Document>
   )

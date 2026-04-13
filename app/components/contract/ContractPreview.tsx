@@ -33,19 +33,31 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function ArticleBlock({
   title,
   children,
+  compact = false,
 }: {
   title: string
   children: React.ReactNode
+  compact?: boolean
 }) {
   return (
     <section className="space-y-2">
       <h3
-        className="text-[20px] font-bold italic leading-tight"
-        style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+        className={compact ? 'text-[17px] font-bold italic leading-tight' : 'text-[19px] font-bold italic leading-tight'}
+        style={{
+          color: '#1C1611',
+          fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif',
+          ...(compact
+            ? {
+                display: 'inline-block',
+                paddingRight: 10,
+                backgroundColor: '#FEFBF2',
+              }
+            : {}),
+        }}
       >
         {title}
       </h3>
-      <div className="space-y-2 text-[11px] leading-[1.76]" style={{ color: '#2A2620', fontFamily: 'var(--font-inter), Inter, sans-serif' }}>
+      <div className={compact ? 'space-y-1 text-[9px] leading-[1.45]' : 'space-y-1.5 text-[10px] leading-[1.6]'} style={{ color: '#2A2620', fontFamily: 'var(--font-inter), Inter, sans-serif' }}>
         {children}
       </div>
     </section>
@@ -61,10 +73,11 @@ function Paper({
 }) {
   return (
     <div
-      className="rounded-[2px] border px-[58px] py-[56px]"
+      className="rounded-[2px] border px-[52px] py-[46px]"
       style={{
         width: 800,
         minHeight: 1132,
+        position: 'relative',
         backgroundColor: '#FEFBF2',
         borderColor: '#D9CFB8',
         boxShadow: '8px 8px 24px rgba(28,22,17,0.18)',
@@ -72,7 +85,7 @@ function Paper({
     >
       {children}
       <div
-        className="mt-10 flex items-center justify-between border-t pt-3 text-[9px] uppercase tracking-[1.5px]"
+        className="mt-7 flex items-center justify-between border-t pt-2 text-[9px] uppercase tracking-[1.5px]"
         style={{ color: '#8B7A3E', borderColor: '#D9CFB8' }}
       >
         <span>SAS OKO · 31 boulevard de Magenta · 75010 Paris</span>
@@ -122,7 +135,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           </div>
         </div>
 
-        <div className="my-6 h-px" style={{ backgroundColor: '#B8922F' }} />
+        <div className="my-5 h-px" style={{ backgroundColor: '#B8922F' }} />
 
         <section className="space-y-4">
           <h2
@@ -163,7 +176,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           {copy.intro}
         </p>
 
-        <div className="mt-6 space-y-5">
+        <div className="mt-5 space-y-4">
           <ArticleBlock title={copy.article1Title}>
             <p>{copy.article1Intro}</p>
             <ul className="space-y-1.5 pl-5">
@@ -201,15 +214,15 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           </div>
         </div>
 
-        <div className="my-5 h-px" style={{ backgroundColor: '#B8922F' }} />
+        <div className="my-4 h-px" style={{ backgroundColor: '#B8922F' }} />
 
-        <div className="space-y-5">
-          <ArticleBlock title={copy.article4Title}>
+        <div className="space-y-4">
+          <ArticleBlock title={copy.article4Title} compact>
             <p>{copy.article4Content1}</p>
             <p>{copy.article4Content2}</p>
           </ArticleBlock>
 
-          <ArticleBlock title={copy.article5Title}>
+          <ArticleBlock title={copy.article5Title} compact>
             <p>{copy.article5Intro}</p>
             <ul className="space-y-1.5 pl-5">
               <li>{copy.article5a}</li>
@@ -218,14 +231,14 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
             </ul>
           </ArticleBlock>
 
-          <ArticleBlock title={copy.article6Title}>
+          <ArticleBlock title={copy.article6Title} compact>
             <p>{copy.article6Content}</p>
           </ArticleBlock>
 
-          <ArticleBlock title={copy.article7Title}>
+          <ArticleBlock title={copy.article7Title} compact>
             <p>{copy.article7Intro}</p>
             <div className="overflow-hidden rounded-[2px] border" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
-              <div className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-3 text-[8px] font-bold uppercase tracking-[1.2px]" style={{ backgroundColor: '#F4ECD6', color: '#6B5A3D' }}>
+              <div className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-1 text-[8px] font-bold uppercase tracking-[1.2px]" style={{ backgroundColor: '#F4ECD6', color: '#6B5A3D' }}>
                 <div />
                 <div>Désignation</div>
                 <div className="text-right">Mensuel</div>
@@ -234,39 +247,39 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
               {article7Rows.map((row) => (
                 <div
                   key={row.numeral}
-                  className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-3"
+                  className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-0.5"
                   style={{
                     backgroundColor: row.emphasized ? '#1C1611' : row.muted ? 'rgba(246,239,220,0.5)' : '#FEFBF2',
                   }}
                 >
-                  <div className="text-[13px] font-bold italic" style={{ color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>{row.numeral}</div>
+                  <div className="text-[11px] font-bold italic" style={{ color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>{row.numeral}</div>
                   <div>
-                    <div className="text-[11px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.title}</div>
-                    <div className="mt-1 text-[9px] italic leading-[1.5]" style={{ color: row.emphasized ? '#D9CFB8' : '#6B5A3D' }}>{row.description}</div>
+                    <div className="text-[9px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.title}</div>
+                    <div className="mt-0.5 text-[6px] italic leading-[1.25]" style={{ color: row.emphasized ? '#D9CFB8' : '#6B5A3D' }}>{row.description}</div>
                   </div>
-                  <div className="text-right text-[10px]" style={{ color: row.emphasized ? '#D9CFB8' : '#1C1611' }}>{row.monthly}</div>
-                  <div className="text-right text-[11px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.annual}</div>
+                  <div className="text-right text-[8px]" style={{ color: row.emphasized ? '#D9CFB8' : '#1C1611' }}>{row.monthly}</div>
+                  <div className="text-right text-[9px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.annual}</div>
                 </div>
               ))}
             </div>
 
-            <p>{copy.article7Note}</p>
+            <p className="text-[8px] leading-[1.25]" style={{ color: '#5C5142' }}>{copy.article7Note}</p>
 
-            <div className="grid grid-cols-[1.45fr_0.95fr] items-start gap-4">
-              <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="grid grid-cols-[1.45fr_0.95fr] items-start gap-2">
+              <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
                 <SectionLabel>
                   {copy.article7ClientChoice} · {contract.selectedServices.length} SERVICES
                 </SectionLabel>
-                <div className="mt-3 space-y-2 text-[11px] leading-[1.65]" style={{ color: '#2A2620' }}>
+                <div className="mt-2 space-y-1 text-[9px] leading-[1.45]" style={{ color: '#2A2620' }}>
                   {contract.selectedServices.length === 0 ? (
                     <div className="rounded-[2px] border px-3 py-2" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
                       <div className="font-semibold">{copy.noServices}</div>
                     </div>
                   ) : (
                     contract.selectedServices.map((item, index) => (
-                      <div key={`${item.id}-${index}`} className="rounded-[2px] border px-3 py-2" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
+                      <div key={`${item.id}-${index}`} className="rounded-[2px] border px-2.5 py-1" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
                         <div className="font-semibold">{selectedServices[index]}</div>
-                        <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>
+                        <div className="mt-0.5 text-[8px]" style={{ color: '#6B5A3D' }}>
                           {getContractPriceHint(item, contract.lang, contract.paymentMode)}
                         </div>
                       </div>
@@ -276,59 +289,59 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
               </div>
 
               <div
-                className="self-start rounded-[2px] border p-4"
+                className="self-start rounded-[2px] border p-2.5"
                 style={{ borderColor: '#B8922F', backgroundColor: '#1C1611' }}
               >
                 <SectionLabel>{copy.article7FinalPrice}</SectionLabel>
                 <div
-                  className="mt-4 text-[31px] font-bold italic leading-none"
+                  className="mt-2 text-[23px] font-bold italic leading-none"
                   style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
                 >
                   {formatEuroCompact(contract.finalTotal)}
                 </div>
-                <div className="mt-2 text-[10px] tracking-[1.6px]" style={{ color: '#F8F1E0' }}>
+                <div className="mt-1.5 text-[9px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
                   {getPaymentModeLabel(contract)} · {getTotalUnitLabel(contract)}
                 </div>
-                <div className="mt-5 text-[11px]" style={{ color: '#D9CFB8' }}>
+                <div className="mt-2.5 text-[8px]" style={{ color: '#D9CFB8' }}>
                   {copy.total}: {formatEuroCompact(contract.subtotalDisplay)}
                 </div>
               </div>
             </div>
           </ArticleBlock>
+        </div>
 
+        <div className="absolute left-[52px] right-[52px] bottom-[6px] space-y-3">
           <ArticleBlock title={copy.article8Title}>
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <p>{contract.specialConditions || copy.article8Placeholder}</p>
             </div>
           </ArticleBlock>
-        </div>
 
-        <div className="mt-7 space-y-5">
-          <p className="text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
+          <p className="text-[10px] leading-[1.6]" style={{ color: '#2A2620' }}>
             {copy.madeIn} {copy.madeOn} {formatContractDate(contract.meta.date, contract.lang)} {copy.inParis}.
           </p>
 
           <div className="h-px" style={{ backgroundColor: '#B8922F' }} />
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.clientSignatureLabel}</SectionLabel>
-              <div className="mt-3 space-y-3 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
+              <div className="mt-1.5 space-y-1 text-[9px] leading-[1.45]" style={{ color: '#2A2620' }}>
                 <div>{contract.customer.name || '—'}</div>
                 <div>{copy.clientSignatureHint}</div>
-                <div className="h-[92px] rounded-[2px] border border-dashed" style={{ borderColor: '#C8B987' }} />
+                <div className="h-[36px] rounded-[2px] border border-dashed" style={{ borderColor: '#C8B987' }} />
                 <div className="border-t pt-2" style={{ borderColor: '#D9CFB8' }}>
                   {formatContractDate(contract.meta.date, contract.lang)}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.providerSignatureLabel}</SectionLabel>
-              <div className="mt-3 space-y-3 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
+              <div className="mt-1.5 space-y-1 text-[9px] leading-[1.45]" style={{ color: '#2A2620' }}>
                 <div>SAS OKO · M. Shengmao KE, Président</div>
                 <div>{formatContractDate(contract.meta.date, contract.lang)} · Paris</div>
-                <Image src="/oko-signature.png" alt="OKO signature" width={120} height={56} className="h-auto w-[120px]" />
+                <Image src="/oko-signature.png" alt="OKO signature" width={62} height={22} className="h-auto w-[62px]" />
                 <div className="border-t pt-2" style={{ borderColor: '#D9CFB8' }}>
                   support@joinoko.com
                 </div>
@@ -336,7 +349,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
             </div>
           </div>
 
-          <p className="text-center text-[9px] tracking-[1.2px]" style={{ color: '#8B7A3E' }}>
+          <p className="text-center text-[9px] tracking-[1.2px]" style={{ color: '#8B7A3E', marginTop: 2 }}>
             {copy.frenchLegalNote}
           </p>
         </div>
