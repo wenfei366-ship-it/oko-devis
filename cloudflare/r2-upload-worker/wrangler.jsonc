@@ -1,0 +1,13 @@
+{
+  "name": "oko-devis-r2-upload",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-13",
+  "account_id": "245ce970bb12cc9b92a47f23f3653bd0",
+  "r2_buckets": [
+    {
+      "binding": "FILES_BUCKET",
+      "bucket_name": "oko-devis-files-dev",
+      "jurisdiction": "eu"
+    }
+  ]
+}
