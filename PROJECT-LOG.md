@@ -49,6 +49,7 @@
 - [docs] 新增 `CONTRACT-TEMPLATE-CONTENT.md`，基于 `/Users/zhangxiaonan/Downloads/contract-generator/index.html` 把当前实际在用的合同模板内容整理成 Markdown，明确固定正文、可填写字段、正文结构、变量插槽和给 Claude Code 的模板制作要求
 - [docs] 补充基础设施现状到 `PROJECT-DOC.md`：确认 devis 已上线并多轮修复完成；Supabase 继续承载共享结构化数据；Cloudflare CLI 已登录；R2 已开通且现有 bucket 为 `hot-uploader` / `oko-sites-dev`；存储方向明确为“结构化数据进 Supabase，PDF/截图/附件进 R2”
 - [docs] 补充 R2 使用约束：如果后续 contract/devis 文件接入 R2，必须新开一个专用 bucket，不能复用现有 bucket
+- [infra] 新建 R2 专用 bucket `oko-devis-files-dev`，供后续 devis / contract 的 PDF、截图、证据文件和附件使用
 - [design] 新增 `design-ref/contract-module-wireframes.svg`，先把 contract 模块的 3 个关键页面画成可视草图：统一历史记录页、合同编辑页、合同查看/跟进页；沿用当前 devis 的奶油纸感与三栏阅读逻辑，但把合同做得更正式、更偏留档
 - [fix] Builder 自适应重构：三栏从固定 flex 改为响应式 grid，左侧产品目录加宽，中间预览改为居中缩放，解决不同浏览器下大面积空白
 - [fix] 共享历史模式：取消“先登录再同步”，Supabase 历史改为 `oko-shared` 共享工作台，多设备直接查看与保存

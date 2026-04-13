@@ -38,6 +38,8 @@ Current status:
 - Existing buckets:
   - `hot-uploader`
   - `oko-sites-dev`
+- Dedicated bucket created for devis / contract files:
+  - `oko-devis-files-dev`
 - If contract/devis files use R2, create a new dedicated bucket for this project/module
 - Do not reuse the existing buckets for contract file storage
 
