@@ -1,4 +1,4 @@
-import type { Contract, ContractSentChannel, ContractStatus, DevisItem, Lang } from './types'
+import type { BillingCadence, Contract, ContractSentChannel, ContractStatus, DevisItem, Lang } from './types'
 import { OKO_SENDER } from './legal'
 import { formatEuroCompact } from './calculations'
 
@@ -31,6 +31,8 @@ type ContractCopy = {
   article6Content: string
   article7Title: string
   article7Intro: string
+  article7CatalogLabel: string
+  article7CatalogNote: string
   article7ClientChoice: string
   article7FinalPrice: string
   article7Note: string
@@ -106,6 +108,8 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     article6Content: 'Le Client accepte que le Prestataire puisse faire figurer parmi ses références les travaux accomplis dans le cadre du présent contrat.',
     article7Title: 'Article 7 · Facturation et prix',
     article7Intro: "Les prestations définies à l'article 1 ci-dessus seront facturées au Client selon la grille de référence suivante :",
+    article7CatalogLabel: 'Catalogue OKO partagé',
+    article7CatalogNote: 'Le présent contrat reprend directement les services retenus dans le devis, ou à défaut la sélection effectuée dans le catalogue partagé OKO.',
     article7ClientChoice: 'Forfait retenu pour le client',
     article7FinalPrice: 'Prix final convenu',
     article7Note: "Le Client peut choisir de payer mensuellement ou annuellement. En cas de paiement annuel, aucune restitution des frais ne sera effectuée en cas de résiliation anticipée.",
@@ -154,6 +158,8 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     article6Content: '客户同意服务提供商可将本合同框架内完成的工作列入其参考案例。',
     article7Title: '第七条 · 计费与价格',
     article7Intro: '第一条所列服务将根据以下标准价格体系向客户收费：',
+    article7CatalogLabel: '共享 OKO 产品目录',
+    article7CatalogNote: '本合同直接引用报价单已选服务；如独立创建合同，则引用同一份 OKO 共享产品目录。',
     article7ClientChoice: '客户选定套餐',
     article7FinalPrice: '最终成交价',
     article7Note: '客户可选择按月或按年付款。如选择按年付款，提前解约将不予退款。',
@@ -202,6 +208,8 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     article6Content: 'Il Cliente accetta che il Fornitore possa includere tra le sue referenze i lavori realizzati nell’ambito del presente contratto.',
     article7Title: 'Articolo 7 · Fatturazione e prezzo',
     article7Intro: "Le prestazioni definite nell'articolo 1 saranno fatturate al Cliente secondo la seguente griglia di riferimento:",
+    article7CatalogLabel: 'Catalogo OKO condiviso',
+    article7CatalogNote: 'Il presente contratto riprende direttamente i servizi selezionati nel devis oppure, in creazione diretta, la stessa selezione del catalogo condiviso OKO.',
     article7ClientChoice: 'Pacchetto scelto dal cliente',
     article7FinalPrice: 'Prezzo finale concordato',
     article7Note: 'Il Cliente può scegliere di pagare mensilmente o annualmente. In caso di pagamento annuale, non è previsto rimborso in caso di risoluzione anticipata.',
@@ -250,6 +258,8 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     article6Content: 'Der Kunde erklärt sich damit einverstanden, dass der Dienstleister die im Rahmen dieses Vertrags durchgeführten Arbeiten als Referenz verwenden darf.',
     article7Title: 'Artikel 7 · Abrechnung und Preise',
     article7Intro: 'Die in Artikel 1 definierten Leistungen werden dem Kunden nach folgender Referenzpreisliste in Rechnung gestellt:',
+    article7CatalogLabel: 'Geteilter OKO-Katalog',
+    article7CatalogNote: 'Dieser Vertrag übernimmt direkt die im Devis ausgewählten Leistungen oder bei direkter Erstellung dieselbe Auswahl aus dem gemeinsamen OKO-Katalog.',
     article7ClientChoice: 'Für den Kunden ausgewähltes Paket',
     article7FinalPrice: 'Vereinbarter Endpreis',
     article7Note: 'Der Kunde kann monatlich oder jährlich zahlen. Bei jährlicher Zahlung erfolgt keine Erstattung bei vorzeitiger Vertragskündigung.',
@@ -298,6 +308,8 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     article6Content: 'El Cliente acepta que el Prestador pueda incluir entre sus referencias los trabajos realizados en el marco del presente contrato.',
     article7Title: 'Artículo 7 · Facturación y precio',
     article7Intro: 'Los servicios definidos en el artículo 1 se facturarán al Cliente según la siguiente tarifa de referencia:',
+    article7CatalogLabel: 'Catálogo compartido de OKO',
+    article7CatalogNote: 'Este contrato retoma directamente los servicios elegidos en el devis o, si se crea sin devis, la misma selección del catálogo compartido de OKO.',
     article7ClientChoice: 'Paquete elegido por el cliente',
     article7FinalPrice: 'Precio final acordado',
     article7Note: 'El Cliente puede elegir pagar mensualmente o anualmente. En caso de pago anual, no se realizará ningún reembolso en caso de resolución anticipada.',
@@ -372,64 +384,12 @@ const STANDARD_SERVICE_LINES: Record<Lang, string[]> = {
   ],
 }
 
-const FIXED_PRICE_LINES: Record<Lang, string[]> = {
-  fr: [
-    'A. Frais de création du web : 100 € HT (frais uniques)',
-    'B. Site web : 30 € HT / mois ou 300 € HT / an',
-    'C. Système de géolocalisation : 50 € HT / mois ou 500 € HT / an',
-    'D. Commande en ligne : 50 € HT / mois ou 500 € HT / an',
-    'E. Commande en salle : 50 € HT / mois ou 500 € HT / an',
-    'F. Image en ligne / Réputation : 50 € HT / mois ou 500 € HT / an',
-    'G. Jeu de roulette : 50 € HT / mois ou 500 € HT / an',
-  ],
-  zh: [
-    'A. 网站创建费：100 欧元（一次性）',
-    'B. 网站：30 欧元 / 月 或 300 欧元 / 年',
-    'C. 地理定位系统：50 欧元 / 月 或 500 欧元 / 年',
-    'D. 在线订购：50 欧元 / 月 或 500 欧元 / 年',
-    'E. 店内点餐：50 欧元 / 月 或 500 欧元 / 年',
-    'F. 网络形象 / 声誉：50 欧元 / 月 或 500 欧元 / 年',
-    'G. 转盘游戏：50 欧元 / 月 或 500 欧元 / 年',
-  ],
-  it: [
-    'A. Spese di creazione del web: 100 € (una tantum)',
-    'B. Sito web: 30 € / mese o 300 € / anno',
-    'C. Sistema di geolocalizzazione: 50 € / mese o 500 € / anno',
-    'D. Ordini online: 50 € / mese o 500 € / anno',
-    'E. Ordini in sala: 50 € / mese o 500 € / anno',
-    'F. Immagine online / Reputazione: 50 € / mese o 500 € / anno',
-    'G. Gioco della roulette: 50 € / mese o 500 € / anno',
-  ],
-  de: [
-    'A. Erstellungsgebühr Web: 100 € (einmalig)',
-    'B. Website: 30 € / Monat oder 300 € / Jahr',
-    'C. Geolokalisierungssystem: 50 € / Monat oder 500 € / Jahr',
-    'D. Online-Bestellung: 50 € / Monat oder 500 € / Jahr',
-    'E. Bestellung im Restaurant: 50 € / Monat oder 500 € / Jahr',
-    'F. Online-Image / Reputation: 50 € / Monat oder 500 € / Jahr',
-    'G. Glücksrad-Spiel: 50 € / Monat oder 500 € / Jahr',
-  ],
-  es: [
-    'A. Gastos de creación web: 100 € (único)',
-    'B. Sitio web: 30 € / mes o 300 € / año',
-    'C. Sistema de geolocalización: 50 € / mes o 500 € / año',
-    'D. Pedidos en línea: 50 € / mes o 500 € / año',
-    'E. Pedidos en sala: 50 € / mes o 500 € / año',
-    'F. Imagen en línea / Reputación: 50 € / mes o 500 € / año',
-    'G. Juego de ruleta: 50 € / mes o 500 € / año',
-  ],
-}
-
 export function getContractCopy(lang: Lang): ContractCopy {
   return CONTRACT_COPY[lang]
 }
 
 export function getStandardServiceLines(lang: Lang): string[] {
   return STANDARD_SERVICE_LINES[lang]
-}
-
-export function getFixedPriceLines(lang: Lang): string[] {
-  return FIXED_PRICE_LINES[lang]
 }
 
 export function formatContractDate(dateString: string, lang: Lang): string {
@@ -459,9 +419,13 @@ export function getSelectedServiceSummaries(contract: Contract): string[] {
 
   return contract.selectedServices.map((item) => {
     const name = getDevisItemName(item, contract.lang)
-    const amount = formatEuroCompact(getItemPrice(item))
+    const amount = formatEuroCompact(getContractServicePrice(item, contract.paymentMode))
     return `${name} · ${amount}`
   })
+}
+
+export function getContractReferenceTotal(items: DevisItem[], paymentMode: Contract['paymentMode']): number {
+  return items.reduce((sum, item) => sum + getContractServicePrice(item, paymentMode), 0)
 }
 
 function getDevisItemName(item: DevisItem, lang: Lang): string {
@@ -476,6 +440,69 @@ function getItemPrice(item: DevisItem): number {
 
   if (typeof item.lineTotalOverride === 'number') return item.lineTotalOverride
   return item.qty * item.unitPrice
+}
+
+function getRecurringLinePrice(item: Extract<DevisItem, { kind: 'line' }>, paymentMode: Contract['paymentMode']): number {
+  if (item.billingCadence === 'monthly') return paymentMode === 'monthly' ? item.unitPrice : item.unitPrice * 12
+  if (item.billingCadence === 'annual') return item.unitPrice
+  return getItemPrice(item)
+}
+
+export function getContractServicePrice(item: DevisItem, paymentMode: Contract['paymentMode']): number {
+  if (item.kind === 'package') {
+    return paymentMode === 'monthly' ? item.monthlyPrice : item.annualPrice
+  }
+
+  return getRecurringLinePrice(item, paymentMode)
+}
+
+export function getContractPriceHint(item: DevisItem, lang: Lang, paymentMode: Contract['paymentMode']): string {
+  const amount = formatEuroCompact(getContractServicePrice(item, paymentMode))
+
+  if (item.kind === 'package') {
+    return `${amount} · ${paymentMode === 'monthly' ? getBillingLabel('monthly', lang) : getBillingLabel('annual', lang)}`
+  }
+
+  if (item.billingCadence === 'monthly' || item.billingCadence === 'annual') {
+    return `${amount} · ${getBillingLabel(paymentMode, lang)}`
+  }
+
+  return `${amount} · ${getBillingLabel(item.billingCadence, lang)}`
+}
+
+function getBillingLabel(cadence: BillingCadence, lang: Lang): string {
+  const labels: Record<BillingCadence, Record<Lang, string>> = {
+    monthly: {
+      fr: 'catalogue mensuel',
+      zh: '按月目录价',
+      it: 'catalogo mensile',
+      de: 'Monatstarif',
+      es: 'tarifa mensual',
+    },
+    annual: {
+      fr: 'catalogue annuel',
+      zh: '按年目录价',
+      it: 'catalogo annuale',
+      de: 'Jahrestarif',
+      es: 'tarifa anual',
+    },
+    oneOff: {
+      fr: 'frais uniques',
+      zh: '一次性费用',
+      it: 'costo una tantum',
+      de: 'einmalige Gebühr',
+      es: 'cargo único',
+    },
+    perUnit: {
+      fr: 'à l’unité',
+      zh: '按件计费',
+      it: 'a unità',
+      de: 'pro Einheit',
+      es: 'por unidad',
+    },
+  }
+
+  return labels[cadence][lang]
 }
 
 export function getPaymentModeLabel(contract: Contract): string {

@@ -4,14 +4,18 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ContractPreview from './ContractPreview'
+import { CATALOG } from '@/app/lib/catalog'
 import { formatEuroCompact } from '@/app/lib/calculations'
 import {
   CONTRACT_LANGUAGE_LABELS,
   CONTRACT_SENT_CHANNEL_LABELS,
   CONTRACT_STATUS_LABELS,
+  getContractReferenceTotal,
+  getSelectedServiceSummaries,
 } from '@/app/lib/contractContent'
 import {
   cloneContractForEdit,
+  createContractLineItemFromService,
   createContractFromDevis,
   createEmptyContract,
   loadContract,
@@ -171,6 +175,19 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     setSaveMessage(null)
   }, [])
 
+  const applyServiceSelection = useCallback((nextServices: Contract['selectedServices']) => {
+    updateContract((current) => {
+      const nextSubtotal = getContractReferenceTotal(nextServices, current.paymentMode)
+      const shouldSyncFinal = current.finalTotal === 0 || current.finalTotal === current.subtotalDisplay
+      return {
+        ...current,
+        selectedServices: nextServices,
+        subtotalDisplay: nextSubtotal,
+        finalTotal: shouldSyncFinal ? nextSubtotal : current.finalTotal,
+      }
+    })
+  }, [updateContract])
+
   const handleSave = useCallback(async () => {
     if (!contract) return
 
@@ -226,6 +243,21 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     if (!contract || exporting) return
 
     void (async () => {
+      if (!contract.customer.name.trim()) {
+        setSaveMessage('先把客户名称填好，再导出合同。')
+        return
+      }
+
+      if (contract.selectedServices.length === 0) {
+        setSaveMessage('先从报价单或产品目录里选好服务，再导出合同。')
+        return
+      }
+
+      if (contract.finalTotal <= 0) {
+        setSaveMessage('先填好最终成交价，再导出合同。')
+        return
+      }
+
       setExporting(true)
       setSaveMessage(null)
 
@@ -297,6 +329,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     if (contract.status === 'sent') return '#C9A35B'
     return '#9B8550'
   }, [contract])
+
+  const selectedServiceSummaries = useMemo(
+    () => (contract ? getSelectedServiceSummaries(contract) : []),
+    [contract],
+  )
 
   if (!mounted || loading) {
     return (
@@ -740,11 +777,18 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                       <select
                         value={contract.paymentMode}
                         disabled={readOnly}
-                        onChange={(event) => updateContract((current) => ({
-                          ...current,
-                          paymentMode: event.target.value as Contract['paymentMode'],
-                          totalUnit: event.target.value as Contract['totalUnit'],
-                        }))}
+                        onChange={(event) => updateContract((current) => {
+                          const paymentMode = event.target.value as Contract['paymentMode']
+                          const nextSubtotal = getContractReferenceTotal(current.selectedServices, paymentMode)
+                          const shouldSyncFinal = current.finalTotal === 0 || current.finalTotal === current.subtotalDisplay
+                          return {
+                            ...current,
+                            paymentMode,
+                            totalUnit: paymentMode,
+                            subtotalDisplay: nextSubtotal,
+                            finalTotal: shouldSyncFinal ? nextSubtotal : current.finalTotal,
+                          }
+                        })}
                         className={smallFieldClassName(readOnly)}
                         style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
                       >
@@ -781,6 +825,74 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               </div>
 
               <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>{contract.devisId ? '服务内容（来自报价单）' : '服务目录（同 devis）'}</InputLabel>
+                {contract.devisId ? (
+                  <>
+                    <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
+                      这份合同直接引用原报价单里的服务内容，不再单独维护一份合同价格表。
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {selectedServiceSummaries.map((line) => (
+                        <div key={line} className="rounded-[10px] border px-3 py-3 text-[12px] font-semibold" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4', color: '#1C1611' }}>
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
+                      新建合同也用和 devis 一样的产品目录。点一下添加，再点一次移除。
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {CATALOG.map((service) => {
+                        const isAdded = contract.selectedServices.some(
+                          (item) => item.kind === 'line' && item.serviceId === service.id,
+                        )
+                        return (
+                          <button
+                            key={service.id}
+                            type="button"
+                            onClick={() => {
+                              if (isAdded) {
+                                applyServiceSelection(
+                                  contract.selectedServices.filter(
+                                    (item) => !(item.kind === 'line' && item.serviceId === service.id),
+                                  ),
+                                )
+                                return
+                              }
+
+                              applyServiceSelection([
+                                ...contract.selectedServices,
+                                createContractLineItemFromService(service),
+                              ])
+                            }}
+                            className="flex w-full items-start justify-between rounded-[10px] border px-3 py-3 text-left transition-opacity hover:opacity-90"
+                            style={{
+                              borderColor: isAdded ? '#B8922F' : '#E4D9BE',
+                              backgroundColor: isAdded ? '#F8EFDC' : '#FBF5E4',
+                              color: '#1C1611',
+                            }}
+                          >
+                            <div>
+                              <div className="text-[12px] font-semibold">{service.name.zh}</div>
+                              <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>
+                                {service.name.fr}
+                              </div>
+                            </div>
+                            <div className="text-[11px] font-bold" style={{ color: isAdded ? '#A8702E' : '#9B8550' }}>
+                              {isAdded ? '已选' : '添加'}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
                 <InputLabel>特别备注</InputLabel>
                 <textarea
                   value={contract.specialConditions}
@@ -793,53 +905,61 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               </div>
 
               <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>发送与确认记录</InputLabel>
+                <InputLabel>跟进与确认</InputLabel>
                 <div className="mt-3 space-y-3">
                   <div>
-                    <InputLabel>发送渠道</InputLabel>
-                    <select
-                      value={contract.sentChannel || ''}
-                      disabled={readOnly}
-                      onChange={(event) => updateContract((current) => ({ ...current, sentChannel: (event.target.value || undefined) as ContractSentChannel | undefined }))}
-                      className={smallFieldClassName(readOnly)}
-                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                    >
-                      <option value="">未记录</option>
-                      <option value="email">邮件</option>
-                      <option value="feishu">飞书</option>
-                      <option value="wechat">微信</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="in_person">当面确认</option>
-                    </select>
-                  </div>
-                  <div>
-                    <InputLabel>客户确认方式</InputLabel>
-                    <input
-                      value={contract.confirmationMethod || ''}
-                      disabled={readOnly}
-                      onChange={(event) => updateContract((current) => ({ ...current, confirmationMethod: event.target.value }))}
-                      className={fieldClassName(readOnly)}
-                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                    />
+                    <InputLabel>发送方式</InputLabel>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {[
+                        ['email', '邮件'],
+                        ['wechat', '微信'],
+                        ['whatsapp', 'WhatsApp'],
+                        ['in_person', '当面'],
+                      ].map(([value, label]) => {
+                        const active = contract.sentChannel === value
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => updateContract((current) => ({
+                              ...current,
+                              sentChannel: (current.sentChannel === value ? undefined : value) as ContractSentChannel | undefined,
+                            }))}
+                            className="rounded-full border px-3 py-1.5 text-[11px] font-semibold"
+                            style={{
+                              borderColor: active ? '#B8922F' : '#E4D9BE',
+                              backgroundColor: active ? '#1C1611' : '#FBF5E4',
+                              color: active ? '#F5D48A' : '#1C1611',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                   <div>
                     <InputLabel>确认备注</InputLabel>
                     <textarea
                       value={contract.confirmationNote || ''}
                       disabled={readOnly}
-                      onChange={(event) => updateContract((current) => ({ ...current, confirmationNote: event.target.value }))}
+                      onChange={(event) => updateContract((current) => ({
+                        ...current,
+                        confirmationMethod: current.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[current.sentChannel] : current.confirmationMethod,
+                        confirmationNote: event.target.value,
+                      }))}
                       rows={4}
                       className={`${fieldClassName(readOnly)} resize-none`}
                       style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
                     />
                   </div>
                   <div>
-                    <InputLabel>内部备注</InputLabel>
+                    <InputLabel>截图说明</InputLabel>
                     <textarea
                       value={contract.internalNote || ''}
                       disabled={readOnly}
                       onChange={(event) => updateContract((current) => ({ ...current, internalNote: event.target.value }))}
-                      rows={3}
+                      rows={4}
                       className={`${fieldClassName(readOnly)} resize-none`}
                       style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
                     />

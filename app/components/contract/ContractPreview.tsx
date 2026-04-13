@@ -7,7 +7,7 @@ import {
   buildProviderLines,
   formatContractDate,
   getContractCopy,
-  getFixedPriceLines,
+  getContractPriceHint,
   getPaymentModeLabel,
   getSelectedServiceSummaries,
   getStandardServiceLines,
@@ -85,7 +85,6 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
   const copy = getContractCopy(contract.lang)
   const providerLines = buildProviderLines()
   const serviceLines = getStandardServiceLines(contract.lang)
-  const priceLines = getFixedPriceLines(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
 
   return (
@@ -224,11 +223,10 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           <ArticleBlock title={copy.article7Title}>
             <p>{copy.article7Intro}</p>
             <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
-              <div className="space-y-2 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
-                {priceLines.map((line) => (
-                  <div key={line}>{line}</div>
-                ))}
-              </div>
+              <SectionLabel>{copy.article7CatalogLabel}</SectionLabel>
+              <p className="mt-3 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
+                {copy.article7CatalogNote}
+              </p>
             </div>
 
             <p>{copy.article7Note}</p>
@@ -238,10 +236,21 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                 <SectionLabel>
                   {copy.article7ClientChoice} · {contract.selectedServices.length} SERVICES
                 </SectionLabel>
-                <div className="mt-3 space-y-1.5 text-[11px] leading-[1.65]" style={{ color: '#2A2620' }}>
-                  {selectedServices.map((line) => (
-                    <div key={line}>{line}</div>
-                  ))}
+                <div className="mt-3 space-y-2 text-[11px] leading-[1.65]" style={{ color: '#2A2620' }}>
+                  {contract.selectedServices.length === 0 ? (
+                    <div className="rounded-[2px] border px-3 py-2" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
+                      <div className="font-semibold">{selectedServices[0]}</div>
+                    </div>
+                  ) : (
+                    contract.selectedServices.map((item, index) => (
+                      <div key={`${item.id}-${index}`} className="rounded-[2px] border px-3 py-2" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
+                        <div className="font-semibold">{selectedServices[index]}</div>
+                        <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>
+                          {getContractPriceHint(item, contract.lang, contract.paymentMode)}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 

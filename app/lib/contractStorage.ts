@@ -1,6 +1,6 @@
 'use client'
 
-import type { Contract, ContractActivity, ContractSentChannel, ContractStatus, Devis } from './types'
+import type { Contract, ContractActivity, ContractSentChannel, ContractStatus, Devis, LineItem, Service } from './types'
 import { computeTotals } from './calculations'
 import { generateContractNumber, uuid } from './numbering'
 import { getSupabaseBrowserClient } from './supabase/client'
@@ -11,6 +11,14 @@ const MAX_HISTORY = 100
 
 interface ContractHistoryRow {
   contract: Contract
+}
+
+function isMissingContractTable(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+
+  const maybeError = error as { code?: string; message?: string }
+  return maybeError.code === '42P01'
+    || maybeError.message?.includes('contract_history') === true
 }
 
 export class ContractConflictError extends Error {
@@ -66,6 +74,22 @@ export function createEmptyContract(): Contract {
   }
 }
 
+export function createContractLineItemFromService(service: Service): LineItem {
+  return {
+    kind: 'line',
+    id: uuid(),
+    serviceId: service.id,
+    nameSnapshot: { ...service.name },
+    descSnapshot: { ...service.description },
+    qty: service.defaultQty,
+    unit: service.unit,
+    unitPrice: service.defaultPrice,
+    billingCadence: service.billingCadence,
+    pdfSection: service.pdfSection,
+    recurringEligible: service.recurringEligible,
+  }
+}
+
 export function createContractFromDevis(devis: Devis): Contract {
   const now = new Date().toISOString()
   const totals = computeTotals(devis)
@@ -108,7 +132,10 @@ export async function listContracts(): Promise<Contract[]> {
     .order('saved_at', { ascending: false })
     .limit(MAX_HISTORY)
 
-  if (error) throw error
+  if (error) {
+    if (isMissingContractTable(error)) return []
+    throw error
+  }
   return ((data ?? []) as ContractHistoryRow[]).map((row) => row.contract)
 }
 
@@ -121,7 +148,10 @@ export async function loadContract(id: string): Promise<Contract | null> {
     .eq('contract_id', id)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) {
+    if (isMissingContractTable(error)) return null
+    throw error
+  }
   return data ? (data as ContractHistoryRow).contract : null
 }
 
@@ -144,6 +174,9 @@ export async function saveContract(contract: Contract): Promise<void> {
   )
 
   if (!error) return
+  if (isMissingContractTable(error)) {
+    throw new Error('合同数据表还没有准备好，先完成数据库迁移。')
+  }
   throw error
 }
 
@@ -154,7 +187,10 @@ export async function deleteContract(id: string): Promise<void> {
     .delete()
     .match({ workspace_id: WORKSPACE_ID, contract_id: id })
 
-  if (error) throw error
+  if (error) {
+    if (isMissingContractTable(error)) return
+    throw error
+  }
 }
 
 export async function cloneContractForEdit(id: string): Promise<Contract> {

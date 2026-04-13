@@ -30,6 +30,7 @@ function HistoryContent() {
   const [contractList, setContractList] = useState<Contract[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [contractWarning, setContractWarning] = useState<string | null>(null)
   const [selectedDevis, setSelectedDevis] = useState<Devis | null>(null)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<HistoryFilter>('all')
@@ -38,10 +39,18 @@ function HistoryContent() {
     if (!mounted) return
     setLoading(true)
     setError(null)
+    setContractWarning(null)
     try {
-      const [devis, contracts] = await Promise.all([listHistory(), listContracts()])
+      const devis = await listHistory()
       setDevisList(devis)
-      setContractList(contracts)
+
+      try {
+        const contracts = await listContracts()
+        setContractList(contracts)
+      } catch (contractError) {
+        setContractList([])
+        setContractWarning(contractError instanceof Error ? contractError.message : '合同暂时没加载出来。')
+      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : '历史记录加载失败。')
     } finally {
@@ -212,6 +221,11 @@ function HistoryContent() {
       </div>
 
       <div className="px-8 py-8">
+        {contractWarning && !loading && !error && (
+          <div className="mb-4 rounded-[12px] border px-4 py-3 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4', color: '#6B5A3D' }}>
+            合同区暂时没加载出来，但报价单历史可以正常使用。原因：{contractWarning}
+          </div>
+        )}
         {loading ? (
           <div className="py-20 text-center text-sm" style={{ color: '#6B5A3D' }}>
             同步共享历史中…

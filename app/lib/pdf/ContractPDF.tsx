@@ -5,7 +5,7 @@ import {
   buildProviderLines,
   formatContractDate,
   getContractCopy,
-  getFixedPriceLines,
+  getContractPriceHint,
   getPaymentModeLabel,
   getSelectedServiceSummaries,
   getStandardServiceLines,
@@ -43,7 +43,6 @@ export function ContractPDF({ contract }: ContractPDFProps) {
   const copy = getContractCopy(contract.lang)
   const providerLines = buildProviderLines()
   const serviceLines = getStandardServiceLines(contract.lang)
-  const fixedPrices = getFixedPriceLines(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
   const dateLabel = formatContractDate(contract.meta.date, contract.lang)
   const customerTitle = contract.customer.name || 'Client'
@@ -153,12 +152,13 @@ export function ContractPDF({ contract }: ContractPDFProps) {
           <Text style={cs.paragraph}>{copy.article7Intro}</Text>
 
           <View style={cs.priceCard}>
-            {fixedPrices.map((line) => (
-              <Text key={line} style={cs.paragraph}>{line}</Text>
-            ))}
+            <Text style={cs.sectionLabel}>{copy.article7CatalogLabel}</Text>
+            <Text style={{ ...cs.paragraph, marginTop: 8 }}>
+              {copy.article7CatalogNote}
+            </Text>
           </View>
 
-          <Text style={{ ...cs.paragraph, marginTop: 8 }}>{copy.article7Note}</Text>
+          <Text style={{ ...cs.paragraph, marginTop: 6 }}>{copy.article7Note}</Text>
 
           <View style={cs.choiceRow}>
             <View style={cs.choiceBox}>
@@ -166,9 +166,18 @@ export function ContractPDF({ contract }: ContractPDFProps) {
                 {copy.article7ClientChoice} · {contract.selectedServices.length} SERVICES
               </Text>
               <View style={{ marginTop: 8 }}>
-                {selectedServices.map((line) => (
-                  <Text key={line} style={cs.paragraph}>{line}</Text>
-                ))}
+                {contract.selectedServices.length === 0 ? (
+                  <View style={cs.serviceChip}>
+                    <Text style={cs.serviceName}>{selectedServices[0]}</Text>
+                  </View>
+                ) : (
+                  contract.selectedServices.map((item, index) => (
+                    <View key={`${item.id}-${index}`} style={cs.serviceChip}>
+                      <Text style={cs.serviceName}>{selectedServices[index]}</Text>
+                      <Text style={cs.serviceMeta}>{getContractPriceHint(item, contract.lang, contract.paymentMode)}</Text>
+                    </View>
+                  ))
+                )}
               </View>
             </View>
 
@@ -185,7 +194,7 @@ export function ContractPDF({ contract }: ContractPDFProps) {
           </View>
         </View>
 
-        <View style={cs.article}>
+        <View style={cs.article} wrap={false}>
           <Text style={cs.sectionTitle}>{copy.article8Title}</Text>
           <View style={cs.noteBox}>
             <Text style={cs.paragraph}>{contract.specialConditions || copy.article8Placeholder}</Text>
@@ -197,7 +206,7 @@ export function ContractPDF({ contract }: ContractPDFProps) {
           {copy.madeIn} {copy.madeOn} {dateLabel} {copy.inParis}.
         </Text>
 
-        <View style={cs.signatureRow}>
+        <View style={cs.signatureRow} wrap={false}>
           <View style={cs.signatureBox}>
             <Text style={cs.sectionLabel}>{copy.clientSignatureLabel}</Text>
             <Text style={{ ...cs.paragraph, marginTop: 8 }}>{contract.customer.name || '—'}</Text>
