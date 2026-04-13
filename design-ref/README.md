@@ -6,6 +6,7 @@ Use them as pixel-perfect targets when writing CSS.
 - `YxXBG.png` — Web Builder (main page, 3-column layout, 1600×1600)
 - `ymZax.png` — Magazine Preview Modal (1800×2100) 
 - `c5XaK.png` — Package Generator Modal (1200×980)
+- `contract-module-wireframes.svg` — Contract 模块草图（历史记录页 / 合同编辑页 / 合同查看页）
 
 Source: `/Users/zhangxiaonan/Downloads/oko-devis-design.pen`
 

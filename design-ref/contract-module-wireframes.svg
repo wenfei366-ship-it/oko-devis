@@ -1,0 +1,351 @@
+<svg width="1800" height="4740" viewBox="0 0 1800 4740" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #F6EFDC; }
+      .nav { fill: #F8EFDC; stroke: #D4C58E; stroke-width: 1; }
+      .panel { fill: #FEFBF2; stroke: #D4C58E; stroke-width: 1; }
+      .preview { fill: #EFE3C6; stroke: #D4C58E; stroke-width: 1; }
+      .paper { fill: #FEFBF2; stroke: #D9CFB8; stroke-width: 1; }
+      .ink { fill: #1C1611; }
+      .gold { fill: #B8922F; }
+      .muted { fill: #8B7A3E; }
+      .line { stroke: #D9CFB8; stroke-width: 1; }
+      .dash { stroke: #CDBF99; stroke-width: 1; stroke-dasharray: 5 5; }
+      .title { font: 700 34px Georgia, 'Times New Roman', serif; fill: #1C1611; }
+      .subtitle { font: 600 18px Arial, sans-serif; fill: #8B7A3E; letter-spacing: 1px; }
+      .section { font: 700 22px Arial, sans-serif; fill: #1C1611; }
+      .body { font: 500 16px Arial, sans-serif; fill: #1C1611; }
+      .small { font: 500 13px Arial, sans-serif; fill: #6B5A3D; }
+      .tiny { font: 600 11px Arial, sans-serif; fill: #9B8550; letter-spacing: 1.2px; }
+      .btnDark { fill: #1C1611; }
+      .btnLight { fill: #F6EFDC; stroke: #D4C58E; stroke-width: 1; }
+      .chip { fill: #F3E6C1; stroke: #D4C58E; stroke-width: 1; }
+      .statusDraft { fill: #EFE3C6; stroke: #D4C58E; stroke-width: 1; }
+      .statusSent { fill: #F5E8BF; stroke: #B8922F; stroke-width: 1; }
+      .statusOk { fill: #E8F0D9; stroke: #92A35E; stroke-width: 1; }
+      .white { fill: #FEFBF2; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1800" height="4740" class="bg"/>
+
+  <!-- PAGE 1 -->
+  <g transform="translate(60,40)">
+    <text x="0" y="0" class="title">Contract UI · Page 1 · 历史记录页</text>
+    <text x="0" y="34" class="subtitle">报价单和合同放在一个总档案页里，重点按钮是“制作合同”</text>
+
+    <rect x="0" y="70" width="1680" height="1420" rx="22" class="bg"/>
+    <rect x="0" y="70" width="1680" height="72" rx="18" class="nav"/>
+    <text x="32" y="114" class="section">OKO Workspace</text>
+    <text x="32" y="134" class="tiny">历史记录 · 报价单 / 合同统一搜索</text>
+
+    <rect x="1170" y="88" width="120" height="38" rx="10" class="btnLight"/>
+    <text x="1202" y="112" class="small">Devis</text>
+    <rect x="1306" y="88" width="126" height="38" rx="10" class="btnLight"/>
+    <text x="1338" y="112" class="small">历史记录</text>
+    <rect x="1448" y="88" width="190" height="38" rx="10" class="btnDark"/>
+    <text x="1502" y="112" class="small" fill="#FEFBF2">+ 新建合同</text>
+
+    <rect x="0" y="164" width="1680" height="108" rx="18" class="panel"/>
+    <rect x="28" y="192" width="820" height="54" rx="14" class="white" stroke="#D4C58E"/>
+    <text x="52" y="225" class="body">搜索餐厅名 / 邮编 / 城市 / 联系人 / 邮箱 / devis 编号 / contract 编号</text>
+    <rect x="874" y="192" width="94" height="38" rx="19" class="chip"/>
+    <text x="907" y="216" class="small">All</text>
+    <rect x="980" y="192" width="110" height="38" rx="19" class="btnLight"/>
+    <text x="1018" y="216" class="small">Devis</text>
+    <rect x="1104" y="192" width="142" height="38" rx="19" class="btnLight"/>
+    <text x="1141" y="216" class="small">Contracts</text>
+    <text x="1306" y="216" class="tiny">团队共享工作台 · 打开即同步</text>
+
+    <!-- devis cards -->
+    <rect x="0" y="304" width="810" height="252" rx="18" class="panel"/>
+    <rect x="0" y="304" width="810" height="54" rx="18" class="preview"/>
+    <text x="24" y="338" class="body">DEVIS-2026-0413-01</text>
+    <text x="642" y="338" class="small">🇫🇷 FR</text>
+    <text x="24" y="394" class="section">Chez Lin - 75011</text>
+    <text x="24" y="424" class="body">Paris · Madame Lin · lin@chezlin.fr</text>
+    <text x="24" y="454" class="small">网站 + 预订 + 域名管理 · 总金额 1 280 €</text>
+    <rect x="24" y="484" width="110" height="38" rx="10" class="btnLight"/>
+    <text x="60" y="508" class="small">查看</text>
+    <rect x="148" y="484" width="126" height="38" rx="10" class="btnLight"/>
+    <text x="175" y="508" class="small">复制编辑</text>
+    <rect x="288" y="484" width="156" height="38" rx="10" class="btnDark"/>
+    <text x="329" y="508" class="small" fill="#FEFBF2">制作合同</text>
+    <rect x="458" y="484" width="96" height="38" rx="10" class="btnLight"/>
+    <text x="490" y="508" class="small">删除</text>
+    <rect x="650" y="484" width="130" height="30" rx="15" class="statusOk"/>
+    <text x="674" y="504" class="tiny">已生成合同</text>
+
+    <rect x="0" y="580" width="810" height="252" rx="18" class="panel"/>
+    <rect x="0" y="580" width="810" height="54" rx="18" class="preview"/>
+    <text x="24" y="614" class="body">DEVIS-2026-0411-09</text>
+    <text x="642" y="614" class="small">🇮🇹 IT</text>
+    <text x="24" y="670" class="section">Soleil - 13008</text>
+    <text x="24" y="700" class="body">Marseille · Marco · hello@soleil.fr</text>
+    <text x="24" y="730" class="small">只找到报价单，还没有合同</text>
+    <rect x="24" y="760" width="110" height="38" rx="10" class="btnLight"/>
+    <text x="60" y="784" class="small">查看</text>
+    <rect x="148" y="760" width="126" height="38" rx="10" class="btnLight"/>
+    <text x="175" y="784" class="small">复制编辑</text>
+    <rect x="288" y="760" width="156" height="38" rx="10" class="btnDark"/>
+    <text x="329" y="784" class="small" fill="#FEFBF2">制作合同</text>
+
+    <!-- contract cards -->
+    <rect x="870" y="304" width="810" height="252" rx="18" class="panel"/>
+    <rect x="870" y="304" width="810" height="54" rx="18" class="nav"/>
+    <text x="894" y="338" class="body">CONTRACT-2026-0007</text>
+    <rect x="1528" y="318" width="120" height="28" rx="14" class="statusSent"/>
+    <text x="1564" y="337" class="tiny">已发送</text>
+    <text x="894" y="394" class="section">Chez Lin - 75011</text>
+    <text x="894" y="424" class="body">关联报价单：DEVIS-2026-0413-01</text>
+    <text x="894" y="454" class="small">客户已收到合同，等待“bon pour accord”</text>
+    <rect x="894" y="484" width="124" height="38" rx="10" class="btnLight"/>
+    <text x="931" y="508" class="small">查看 / 编辑</text>
+    <rect x="1032" y="484" width="116" height="38" rx="10" class="btnLight"/>
+    <text x="1064" y="508" class="small">导出 PDF</text>
+    <rect x="1162" y="484" width="116" height="38" rx="10" class="btnLight"/>
+    <text x="1192" y="508" class="small">更新状态</text>
+    <text x="1400" y="510" class="tiny">最后更新：2026-04-13 14:20</text>
+
+    <rect x="870" y="580" width="810" height="252" rx="18" class="panel"/>
+    <rect x="870" y="580" width="810" height="54" rx="18" class="nav"/>
+    <text x="894" y="614" class="body">CONTRACT-2026-0006</text>
+    <rect x="1508" y="594" width="140" height="28" rx="14" class="statusOk"/>
+    <text x="1546" y="613" class="tiny">客户已确认</text>
+    <text x="894" y="670" class="section">Dragon Wok - 69003</text>
+    <text x="894" y="700" class="body">确认方式：群聊截图</text>
+    <text x="894" y="730" class="small">下一步只需要内部标记为“已完成”</text>
+    <rect x="894" y="760" width="124" height="38" rx="10" class="btnLight"/>
+    <text x="931" y="784" class="small">查看 / 编辑</text>
+    <rect x="1032" y="760" width="116" height="38" rx="10" class="btnLight"/>
+    <text x="1064" y="784" class="small">导出 PDF</text>
+    <rect x="1162" y="760" width="116" height="38" rx="10" class="btnDark"/>
+    <text x="1194" y="784" class="small" fill="#FEFBF2">标记完成</text>
+
+    <rect x="0" y="870" width="1680" height="580" rx="18" class="panel"/>
+    <text x="24" y="912" class="section">这个页面你会怎么用</text>
+    <text x="24" y="950" class="body">1. 先搜到报价单</text>
+    <text x="24" y="982" class="body">2. 点“制作合同”</text>
+    <text x="24" y="1014" class="body">3. 自动进入合同编辑页</text>
+    <text x="24" y="1046" class="body">4. 后面所有合同也都能在这里再找回来</text>
+    <line x1="420" y1="928" x2="420" y2="1398" class="dash"/>
+    <text x="454" y="950" class="body">这个页面最重要的不是“看文件”，而是“推进业务流程”。</text>
+    <text x="454" y="990" class="body">所以一张报价单卡片上一定要直接能做合同，</text>
+    <text x="454" y="1030" class="body">一张合同卡片上一定要直接能看状态、导出、更新进度。</text>
+  </g>
+
+  <!-- PAGE 2 -->
+  <g transform="translate(60,1600)">
+    <text x="0" y="0" class="title">Contract UI · Page 2 · 合同编辑页</text>
+    <text x="0" y="34" class="subtitle">延续现在 devis 的三栏结构，但更正式、更稳重</text>
+
+    <rect x="0" y="70" width="1680" height="1500" rx="22" class="bg"/>
+    <rect x="0" y="70" width="1680" height="72" rx="18" class="nav"/>
+    <text x="32" y="114" class="section">OKO Contract Builder</text>
+    <text x="32" y="134" class="tiny">从 devis 自动生成的正式合同</text>
+
+    <rect x="1260" y="88" width="116" height="38" rx="10" class="btnLight"/>
+    <text x="1294" y="112" class="small">历史记录</text>
+    <rect x="1390" y="88" width="108" height="38" rx="10" class="btnLight"/>
+    <text x="1428" y="112" class="small">保存草稿</text>
+    <rect x="1512" y="88" width="126" height="38" rx="10" class="btnDark"/>
+    <text x="1543" y="112" class="small" fill="#FEFBF2">导出合同</text>
+
+    <!-- left -->
+    <rect x="0" y="164" width="300" height="1368" rx="18" class="panel"/>
+    <text x="26" y="206" class="section">来源信息</text>
+    <rect x="26" y="226" width="248" height="130" rx="14" class="preview"/>
+    <text x="44" y="258" class="tiny">关联报价单</text>
+    <text x="44" y="288" class="body">DEVIS-2026-0413-01</text>
+    <text x="44" y="318" class="small">Chez Lin - 75011</text>
+    <text x="44" y="344" class="small">网站 + 预订 + 域名管理</text>
+
+    <text x="26" y="398" class="section">当前状态</text>
+    <rect x="26" y="418" width="248" height="110" rx="14" class="panel"/>
+    <rect x="44" y="440" width="74" height="28" rx="14" class="statusDraft"/>
+    <text x="66" y="459" class="tiny">草稿</text>
+    <text x="44" y="494" class="small">还没发给客户</text>
+
+    <text x="26" y="570" class="section">合同包含内容</text>
+    <rect x="26" y="590" width="248" height="240" rx="14" class="panel"/>
+    <text x="44" y="626" class="body">• 网站制作</text>
+    <text x="44" y="658" class="body">• 在线预订</text>
+    <text x="44" y="690" class="body">• 域名管理</text>
+    <text x="44" y="732" class="small">这里是“合同范围”，不是产品目录。</text>
+
+    <text x="26" y="872" class="section">快速跳转</text>
+    <rect x="26" y="892" width="248" height="292" rx="14" class="panel"/>
+    <text x="44" y="928" class="body">1. 甲乙双方</text>
+    <text x="44" y="964" class="body">2. 服务内容</text>
+    <text x="44" y="1000" class="body">3. 付款条款</text>
+    <text x="44" y="1036" class="body">4. 特别备注</text>
+    <text x="44" y="1072" class="body">5. 确认方式</text>
+    <text x="44" y="1108" class="body">6. 导出与发送</text>
+
+    <!-- middle -->
+    <rect x="324" y="164" width="820" height="1368" rx="18" class="preview"/>
+    <text x="350" y="206" class="section">实时预览</text>
+    <text x="350" y="230" class="tiny">中间永远看的是正式合同长什么样</text>
+    <rect x="420" y="264" width="628" height="1180" rx="8" class="paper"/>
+    <text x="484" y="340" class="title">CONTRAT</text>
+    <text x="484" y="372" class="subtitle">N° CONTRACT-2026-0007</text>
+    <line x1="484" y1="392" x2="984" y2="392" class="line"/>
+    <text x="484" y="444" class="tiny">PRESTATAIRE</text>
+    <text x="484" y="474" class="body">OKO SAS</text>
+    <text x="744" y="444" class="tiny">CLIENT</text>
+    <text x="744" y="474" class="body">Chez Lin</text>
+    <rect x="484" y="520" width="500" height="86" rx="6" class="white" stroke="#D9CFB8"/>
+    <text x="504" y="550" class="tiny">OBJET DU CONTRAT</text>
+    <text x="504" y="580" class="body">Création et mise en place des services digitaux du restaurant.</text>
+
+    <rect x="484" y="640" width="500" height="170" rx="6" class="white" stroke="#D9CFB8"/>
+    <text x="504" y="670" class="tiny">PÉRIMÈTRE DES PRESTATIONS</text>
+    <text x="504" y="704" class="body">• Création du site</text>
+    <text x="504" y="736" class="body">• Module de réservation</text>
+    <text x="504" y="768" class="body">• Gestion du nom de domaine</text>
+
+    <rect x="484" y="844" width="500" height="150" rx="6" class="white" stroke="#D9CFB8"/>
+    <text x="504" y="874" class="tiny">CONDITIONS COMMERCIALES</text>
+    <text x="504" y="906" class="body">Total : 1 280 €</text>
+    <text x="504" y="938" class="body">Paiement : virement bancaire</text>
+
+    <rect x="484" y="1028" width="500" height="120" rx="6" class="white" stroke="#D9CFB8"/>
+    <text x="504" y="1058" class="tiny">CLAUSES SPÉCIALES</text>
+    <text x="504" y="1090" class="small">这里允许补充谈好的特殊条件</text>
+
+    <rect x="484" y="1180" width="500" height="160" rx="6" class="white" stroke="#D9CFB8"/>
+    <text x="504" y="1210" class="tiny">ACCORD CLIENT</text>
+    <text x="504" y="1242" class="body">客户可通过邮件回复、群聊消息或人工备注确认。</text>
+    <text x="504" y="1274" class="small">不做在线签字，重点是能留档。</text>
+
+    <!-- right -->
+    <rect x="1164" y="164" width="516" height="1368" rx="18" class="panel"/>
+    <text x="1190" y="206" class="section">你真正要填的内容</text>
+
+    <rect x="1190" y="230" width="464" height="230" rx="14" class="panel"/>
+    <text x="1212" y="262" class="tiny">客户信息</text>
+    <text x="1212" y="298" class="small">客户公司名</text>
+    <rect x="1212" y="308" width="420" height="34" rx="8" class="white" stroke="#D4C58E"/>
+    <text x="1212" y="368" class="small">地址 / 邮编 / 城市 / 联系人</text>
+    <rect x="1212" y="378" width="420" height="34" rx="8" class="white" stroke="#D4C58E"/>
+
+    <rect x="1190" y="484" width="464" height="170" rx="14" class="panel"/>
+    <text x="1212" y="516" class="tiny">合同信息</text>
+    <text x="1212" y="552" class="small">合同日期</text>
+    <rect x="1212" y="562" width="190" height="34" rx="8" class="white" stroke="#D4C58E"/>
+    <text x="1430" y="552" class="small">开始日期</text>
+    <rect x="1430" y="562" width="202" height="34" rx="8" class="white" stroke="#D4C58E"/>
+    <text x="1212" y="622" class="small">付款方式</text>
+    <rect x="1212" y="632" width="420" height="34" rx="8" class="white" stroke="#D4C58E"/>
+
+    <rect x="1190" y="678" width="464" height="190" rx="14" class="panel"/>
+    <text x="1212" y="710" class="tiny">特别备注</text>
+    <rect x="1212" y="728" width="420" height="116" rx="8" class="white" stroke="#D4C58E"/>
+
+    <rect x="1190" y="892" width="464" height="280" rx="14" class="panel"/>
+    <text x="1212" y="924" class="tiny">发送与确认</text>
+    <text x="1212" y="960" class="small">发送方式</text>
+    <rect x="1212" y="970" width="420" height="34" rx="8" class="white" stroke="#D4C58E"/>
+    <text x="1212" y="1030" class="small">客户确认方式</text>
+    <rect x="1212" y="1040" width="420" height="34" rx="8" class="white" stroke="#D4C58E"/>
+    <text x="1212" y="1100" class="small">确认备注 / 截图说明</text>
+    <rect x="1212" y="1110" width="420" height="38" rx="8" class="white" stroke="#D4C58E"/>
+
+    <rect x="1190" y="1200" width="220" height="48" rx="12" class="btnLight"/>
+    <text x="1248" y="1230" class="body">保存草稿</text>
+    <rect x="1434" y="1200" width="220" height="48" rx="12" class="btnDark"/>
+    <text x="1490" y="1230" class="body" fill="#FEFBF2">导出 PDF</text>
+    <rect x="1190" y="1264" width="464" height="54" rx="12" class="chip"/>
+    <text x="1218" y="1298" class="body">导出后，如果已经发给客户，就把状态改成“已发送”</text>
+  </g>
+
+  <!-- PAGE 3 -->
+  <g transform="translate(60,3180)">
+    <text x="0" y="0" class="title">Contract UI · Page 3 · 合同查看 / 跟进页</text>
+    <text x="0" y="34" class="subtitle">打开旧合同时，看状态、看确认记录、看有没有走完</text>
+
+    <rect x="0" y="70" width="1680" height="1420" rx="22" class="bg"/>
+    <rect x="0" y="70" width="1680" height="72" rx="18" class="nav"/>
+    <text x="32" y="114" class="section">合同详情</text>
+    <text x="32" y="134" class="tiny">旧合同主要用来查和推进，不是重写一遍</text>
+
+    <rect x="1280" y="88" width="114" height="38" rx="10" class="btnLight"/>
+    <text x="1314" y="112" class="small">返回历史</text>
+    <rect x="1408" y="88" width="114" height="38" rx="10" class="btnLight"/>
+    <text x="1443" y="112" class="small">导出 PDF</text>
+    <rect x="1536" y="88" width="102" height="38" rx="10" class="btnDark"/>
+    <text x="1569" y="112" class="small" fill="#FEFBF2">编辑</text>
+
+    <rect x="0" y="164" width="1680" height="154" rx="18" class="panel"/>
+    <text x="28" y="212" class="title">Chez Lin - 75011</text>
+    <text x="28" y="248" class="body">合同编号：CONTRACT-2026-0007</text>
+    <text x="28" y="278" class="small">来源报价单：DEVIS-2026-0413-01</text>
+    <rect x="1410" y="194" width="110" height="34" rx="17" class="statusSent"/>
+    <text x="1444" y="216" class="tiny">已发送</text>
+    <rect x="1530" y="194" width="118" height="34" rx="17" class="statusOk"/>
+    <text x="1564" y="216" class="tiny">待完结</text>
+
+    <rect x="0" y="342" width="440" height="1120" rx="18" class="panel"/>
+    <text x="26" y="384" class="section">状态时间线</text>
+    <line x1="56" y1="430" x2="56" y2="726" class="dash"/>
+    <circle cx="56" cy="454" r="10" class="gold"/>
+    <text x="86" y="460" class="body">草稿已创建</text>
+    <text x="86" y="488" class="small">2026-04-13 10:05</text>
+    <circle cx="56" cy="548" r="10" class="gold"/>
+    <text x="86" y="554" class="body">合同 PDF 已生成</text>
+    <text x="86" y="582" class="small">2026-04-13 10:18</text>
+    <circle cx="56" cy="642" r="10" class="gold"/>
+    <text x="86" y="648" class="body">已通过邮件发送</text>
+    <text x="86" y="676" class="small">2026-04-13 10:26</text>
+
+    <text x="26" y="782" class="section">客户确认</text>
+    <rect x="26" y="804" width="388" height="220" rx="14" class="preview"/>
+    <text x="48" y="840" class="tiny">确认方式</text>
+    <text x="48" y="872" class="body">邮件回复 bon pour accord</text>
+    <text x="48" y="916" class="tiny">确认时间</text>
+    <text x="48" y="948" class="body">2026-04-14 09:12</text>
+    <text x="48" y="992" class="tiny">证据</text>
+    <text x="48" y="1024" class="body">mail-confirmation-chezlin.png</text>
+
+    <text x="26" y="1080" class="section">下一步动作</text>
+    <rect x="26" y="1102" width="388" height="48" rx="12" class="btnDark"/>
+    <text x="142" y="1132" class="body" fill="#FEFBF2">标记为已完成</text>
+    <rect x="26" y="1166" width="388" height="48" rx="12" class="btnLight"/>
+    <text x="146" y="1196" class="body">补充确认备注</text>
+
+    <rect x="464" y="342" width="654" height="1120" rx="18" class="preview"/>
+    <text x="492" y="384" class="section">合同预览</text>
+    <rect x="566" y="418" width="450" height="980" rx="8" class="paper"/>
+    <text x="614" y="486" class="title">CONTRAT</text>
+    <line x1="614" y1="512" x2="968" y2="512" class="line"/>
+    <text x="614" y="558" class="small">这里是只读预览，方便复查和再次导出。</text>
+    <rect x="614" y="590" width="354" height="90" rx="6" class="white" stroke="#D9CFB8"/>
+    <rect x="614" y="700" width="354" height="140" rx="6" class="white" stroke="#D9CFB8"/>
+    <rect x="614" y="860" width="354" height="120" rx="6" class="white" stroke="#D9CFB8"/>
+    <rect x="614" y="1000" width="354" height="150" rx="6" class="white" stroke="#D9CFB8"/>
+
+    <rect x="1142" y="342" width="538" height="1120" rx="18" class="panel"/>
+    <text x="1168" y="384" class="section">右侧信息卡</text>
+    <rect x="1168" y="408" width="486" height="174" rx="14" class="panel"/>
+    <text x="1190" y="440" class="tiny">基本信息</text>
+    <text x="1190" y="474" class="body">客户：Chez Lin</text>
+    <text x="1190" y="506" class="body">城市：Paris</text>
+    <text x="1190" y="538" class="body">金额：1 280 €</text>
+
+    <rect x="1168" y="608" width="486" height="220" rx="14" class="panel"/>
+    <text x="1190" y="640" class="tiny">发送记录</text>
+    <text x="1190" y="676" class="body">发送渠道：Email</text>
+    <text x="1190" y="708" class="body">发送时间：2026-04-13 10:26</text>
+    <text x="1190" y="740" class="small">这里可以补一条“发给了谁”的内部备注。</text>
+
+    <rect x="1168" y="854" width="486" height="260" rx="14" class="panel"/>
+    <text x="1190" y="886" class="tiny">确认记录</text>
+    <text x="1190" y="922" class="body">确认方式：邮件回复</text>
+    <text x="1190" y="954" class="body">确认时间：2026-04-14 09:12</text>
+    <text x="1190" y="986" class="body">证据文件：mail-confirmation-chezlin.png</text>
+    <text x="1190" y="1030" class="small">如果以后需要，也可以在这里加“查看截图”。</text>
+
+    <rect x="1168" y="1140" width="486" height="52" rx="12" class="chip"/>
+    <text x="1198" y="1172" class="body">这个页面解决的是“后面还能不能追得回来”</text>
+  </g>
+</svg>
