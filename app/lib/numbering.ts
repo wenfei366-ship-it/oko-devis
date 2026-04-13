@@ -5,26 +5,58 @@
 //   XXXX = 4 random hex chars (collision mitigation)
 
 const COUNTER_KEY = 'oko-devis-counter-v1'
+const CONTRACT_COUNTER_KEY = 'oko-contract-counter-v1'
 
 type CounterState = { year: number; seq: number }
+const memoryCounters = new Map<string, CounterState>()
 
 function safeGet(): CounterState {
-  if (typeof window === 'undefined') return { year: new Date().getFullYear(), seq: 0 }
+  if (typeof window === 'undefined') {
+    return memoryCounters.get(COUNTER_KEY) ?? { year: new Date().getFullYear(), seq: 0 }
+  }
   try {
     const raw = localStorage.getItem(COUNTER_KEY)
     if (!raw) return { year: new Date().getFullYear(), seq: 0 }
     return JSON.parse(raw) as CounterState
   } catch {
-    return { year: new Date().getFullYear(), seq: 0 }
+    return memoryCounters.get(COUNTER_KEY) ?? { year: new Date().getFullYear(), seq: 0 }
   }
 }
 
 function safeSet(state: CounterState): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    memoryCounters.set(COUNTER_KEY, state)
+    return
+  }
   try {
     localStorage.setItem(COUNTER_KEY, JSON.stringify(state))
   } catch {
-    // quota exceeded — silently drop
+    memoryCounters.set(COUNTER_KEY, state)
+  }
+}
+
+function safeGetForKey(key: string): CounterState {
+  if (typeof window === 'undefined') {
+    return memoryCounters.get(key) ?? { year: new Date().getFullYear(), seq: 0 }
+  }
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return { year: new Date().getFullYear(), seq: 0 }
+    return JSON.parse(raw) as CounterState
+  } catch {
+    return memoryCounters.get(key) ?? { year: new Date().getFullYear(), seq: 0 }
+  }
+}
+
+function safeSetForKey(key: string, state: CounterState): void {
+  if (typeof window === 'undefined') {
+    memoryCounters.set(key, state)
+    return
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(state))
+  } catch {
+    memoryCounters.set(key, state)
   }
 }
 
@@ -48,6 +80,14 @@ export function generateDraftNumber(): string {
   const seq = incrementCounter()
   const suffix = fourHex()
   return `DRAFT-${year}-${String(seq).padStart(3, '0')}-${suffix}`
+}
+
+export function generateContractNumber(): string {
+  const year = new Date().getFullYear()
+  const state = safeGetForKey(CONTRACT_COUNTER_KEY)
+  const nextSeq = state.year === year ? state.seq + 1 : 1
+  safeSetForKey(CONTRACT_COUNTER_KEY, { year, seq: nextSeq })
+  return `CT-${year}-${String(nextSeq).padStart(3, '0')}`
 }
 
 /** crypto.randomUUID() with a fallback for older runtimes */

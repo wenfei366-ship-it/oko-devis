@@ -1,13 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import { listHistory, deleteFromHistory, clearHistory } from '@/app/lib/storage'
-import { computeTotals, formatEuro } from '@/app/lib/calculations'
-import { useMounted } from '@/app/lib/useMounted'
-import type { Devis, Lang } from '@/app/lib/types'
-import { DevisProvider } from '@/app/components/DevisContext'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MagazineModal from '@/app/components/MagazineModal'
+import { DevisProvider } from '@/app/components/DevisContext'
+import { deleteContract, listContracts } from '@/app/lib/contractStorage'
+import { formatEuro } from '@/app/lib/calculations'
+import {
+  CONTRACT_STATUS_LABELS,
+  CONTRACT_SENT_CHANNEL_LABELS,
+} from '@/app/lib/contractContent'
+import { deleteFromHistory, listHistory } from '@/app/lib/storage'
+import { useMounted } from '@/app/lib/useMounted'
+import type { Contract, Devis, Lang } from '@/app/lib/types'
 
 const FLAG_MAP: Record<Lang, string> = {
   fr: '🇫🇷',
@@ -17,50 +22,96 @@ const FLAG_MAP: Record<Lang, string> = {
   zh: '🇨🇳',
 }
 
+type HistoryFilter = 'all' | 'devis' | 'contract'
+
 function HistoryContent() {
   const mounted = useMounted()
-  const [history, setHistory] = useState<Devis[]>([])
+  const [devisList, setDevisList] = useState<Devis[]>([])
+  const [contractList, setContractList] = useState<Contract[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [selectedDevis, setSelectedDevis] = useState<Devis | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
-  const [confirmClear, setConfirmClear] = useState(false)
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<HistoryFilter>('all')
 
-  const refreshHistory = useCallback(async () => {
+  const refresh = useCallback(async () => {
     if (!mounted) return
-
     setLoading(true)
-    setLoadError(null)
+    setError(null)
     try {
-      setHistory(await listHistory())
-    } catch (error) {
-      setLoadError(error instanceof Error ? error.message : '加载云端历史失败。')
+      const [devis, contracts] = await Promise.all([listHistory(), listContracts()])
+      setDevisList(devis)
+      setContractList(contracts)
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : '历史记录加载失败。')
     } finally {
       setLoading(false)
     }
   }, [mounted])
 
   useEffect(() => {
-    void refreshHistory()
-  }, [refreshHistory])
+    void refresh()
+  }, [refresh])
 
-  const handleDelete = useCallback(async (id: string) => {
+  const filteredDevis = useMemo(() => {
+    const keyword = query.trim().toLowerCase()
+    return devisList.filter((item) => {
+      if (filter === 'contract') return false
+      if (!keyword) return true
+      const haystack = [
+        item.meta.number,
+        item.customer.name,
+        item.customer.postalCode,
+        item.customer.city,
+        item.customer.contactName,
+        item.customer.email,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(keyword)
+    })
+  }, [devisList, filter, query])
+
+  const filteredContracts = useMemo(() => {
+    const keyword = query.trim().toLowerCase()
+    return contractList.filter((item) => {
+      if (filter === 'devis') return false
+      if (!keyword) return true
+      const haystack = [
+        item.meta.number,
+        item.meta.devisNumber,
+        item.customer.name,
+        item.customer.postalCode,
+        item.customer.city,
+        item.customer.contactName,
+        item.customer.email,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(keyword)
+    })
+  }, [contractList, filter, query])
+
+  const handleDeleteDevis = useCallback(async (id: string) => {
     await deleteFromHistory(id)
-    setConfirmDelete(null)
-    setSelectedDevis((current) => (current?.id === id ? null : current))
-    await refreshHistory()
-  }, [refreshHistory])
+    if (selectedDevis?.id === id) setSelectedDevis(null)
+    await refresh()
+  }, [refresh, selectedDevis])
 
-  const handleClearHistory = useCallback(async () => {
-    await clearHistory()
-    setConfirmClear(false)
-    setSelectedDevis(null)
-    await refreshHistory()
-  }, [refreshHistory])
+  const handleDeleteContract = useCallback(async (id: string) => {
+    await deleteContract(id)
+    await refresh()
+  }, [refresh])
 
-  const handleCloseModal = useCallback(() => {
-    setSelectedDevis(null)
-  }, [])
+  const waitingCount = contractList.filter((item) => item.status === 'sent' || item.status === 'draft').length
+  const signedAmount = contractList
+    .filter((item) => item.status === 'confirmed' || item.status === 'completed')
+    .reduce((sum, item) => sum + item.finalTotal, 0)
+  const pendingAmount = contractList
+    .filter((item) => item.status === 'sent')
+    .reduce((sum, item) => sum + item.finalTotal, 0)
 
   if (!mounted) {
     return (
@@ -71,165 +122,269 @@ function HistoryContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      <header className="flex items-center justify-between px-6 py-3 border-b border-[var(--divider)] bg-[var(--surface)]">
-        <h1 className="font-serif text-lg font-bold text-[var(--ink)] tracking-tight">
-          历史记录
-        </h1>
-        <div className="flex items-center gap-2">
-          {history.length > 0 && (
-            confirmClear ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[var(--danger)]">确认清空全部?</span>
-                <button
-                  type="button"
-                  onClick={() => void handleClearHistory()}
-                  className="px-3 py-1.5 text-sm rounded-md bg-[var(--danger)] text-white transition-opacity hover:opacity-90 active:translate-y-[1px]"
-                >
-                  清空
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmClear(false)}
-                  className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
-                >
-                  取消
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setConfirmClear(true)}
-                className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:text-[var(--danger)] hover:bg-[var(--surface-alt)] transition-colors active:translate-y-[1px]"
-              >
-                清空历史
-              </button>
-            )
-          )}
-          <Link
-            href="/"
-            className="px-3 py-1.5 text-sm rounded-md border border-[var(--border)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] transition-colors"
-          >
-            &larr; 返回编辑器
-          </Link>
+    <div className="min-h-screen" style={{ backgroundColor: '#F6EFDC' }}>
+      <header className="border-b px-8 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#F8EFDC' }}>
+        <div className="flex items-center justify-between gap-6">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-[2px]" style={{ color: '#A8702E' }}>
+              OKO · 历史档案 · 2026
+            </div>
+            <div
+              className="mt-2 text-[52px] font-bold leading-[0.96] tracking-[-1.2px]"
+              style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+            >
+              历史记录
+            </div>
+            <p
+              className="mt-2 text-[16px] italic"
+              style={{ color: '#6B5A3D', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+            >
+              所有报价单和合同，一个地方一起看。
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/" className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
+              + 新建报价单
+            </Link>
+            <Link href="/contract/new" className="rounded-[10px] px-5 py-2 text-[13px] font-bold" style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}>
+              + 新建合同
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>报价单</div>
+            <div className="mt-2 text-[34px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {devisList.length}
+            </div>
+          </div>
+          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>合同</div>
+            <div className="mt-2 text-[34px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {contractList.length}
+            </div>
+          </div>
+          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>待处理</div>
+            <div className="mt-2 text-[34px] font-bold" style={{ color: '#9B2A2A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+              {waitingCount}
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="px-6 py-2 bg-[var(--bg-cream)] border-b border-[var(--divider-soft)]">
-        <p className="text-xs text-[var(--ink-muted)]">
-          Historique cloud partagé &mdash; visible sur tous vos appareils de travail
-        </p>
+      <div className="border-b px-8 py-5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="w-full max-w-[720px]">
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="搜索餐厅、邮编、城市、联系人、邮箱、编号……"
+              className="w-full rounded-[12px] border px-4 py-3 text-[14px] outline-none"
+              style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2', color: '#1C1611' }}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {([
+              ['all', `全部 ${devisList.length + contractList.length}`],
+              ['devis', `报价单 ${devisList.length}`],
+              ['contract', `合同 ${contractList.length}`],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                className="rounded-full border px-4 py-2 text-[12px] font-semibold"
+                style={{
+                  borderColor: filter === key ? '#B8922F' : '#D9CFB8',
+                  backgroundColor: filter === key ? '#1C1611' : '#FEFBF2',
+                  color: filter === key ? '#F5D48A' : '#1C1611',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="p-6">
+      <div className="px-8 py-8">
         {loading ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--ink-muted)] text-sm">同步云端历史中…</p>
+          <div className="py-20 text-center text-sm" style={{ color: '#6B5A3D' }}>
+            同步共享历史中…
           </div>
-        ) : loadError ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--danger)] text-sm">{loadError}</p>
-            <button
-              type="button"
-              onClick={() => void refreshHistory()}
-              className="inline-block mt-4 px-4 py-2 text-sm rounded-md bg-[var(--gold)] text-white hover:opacity-90 transition-opacity"
-            >
+        ) : error ? (
+          <div className="py-20 text-center">
+            <p className="text-sm" style={{ color: '#9B2A2A' }}>{error}</p>
+            <button type="button" onClick={() => void refresh()} className="mt-4 rounded-[10px] px-4 py-2 text-sm font-semibold" style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}>
               重试
             </button>
           </div>
-        ) : history.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--ink-muted)] text-sm">共享历史里还没有 devis</p>
-            <Link
-              href="/"
-              className="inline-block mt-4 px-4 py-2 text-sm rounded-md bg-[var(--gold)] text-white hover:opacity-90 transition-opacity"
-            >
-              创建第一个 Devis
-            </Link>
+        ) : filteredDevis.length + filteredContracts.length === 0 ? (
+          <div className="py-20 text-center text-sm" style={{ color: '#6B5A3D' }}>
+            这里还没有匹配的记录。
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {history.map((devis) => {
-              const totals = computeTotals(devis)
-              return (
-                <div
-                  key={devis.id}
-                  className="relative bg-[var(--surface)] rounded-lg border border-[var(--border)] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedDevis(devis)}
-                >
-                  <div className="px-4 py-3 bg-[var(--bg-cream-soft)] border-b border-[var(--divider-soft)]">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-mono text-[var(--ink-muted)]">
-                        {devis.meta.number}
-                      </p>
-                      <span className="text-sm">{FLAG_MAP[devis.lang]}</span>
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            {filteredContracts.map((contract) => (
+              <div key={contract.id} className="overflow-hidden rounded-[16px] border" style={{ borderColor: '#C8B987', backgroundColor: '#FEFBF2' }}>
+                <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                  <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold" style={{ backgroundColor: '#1C1611', color: '#F5D48A' }}>
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#B8922F' }} />
+                    合同
+                  </span>
+                  <div className="text-[11px] font-mono" style={{ color: '#A8702E' }}>{contract.meta.number}</div>
+                </div>
+
+                <div className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-[28px] font-bold leading-tight" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                        {contract.customer.name || '未命名客户'}
+                      </div>
+                      <div className="mt-2 text-[12px]" style={{ color: '#5C5142' }}>
+                        {[contract.customer.postalCode, contract.customer.city, contract.customer.contactName].filter(Boolean).join(' · ') || '暂无客户资料'}
+                      </div>
+                    </div>
+                    <div className="text-[18px]">{FLAG_MAP[contract.lang]}</div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>关联报价单</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{contract.meta.devisNumber || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>金额</div>
+                      <div className="mt-1 text-[22px] font-bold italic leading-none" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                        {formatEuro(contract.finalTotal)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>最后更新</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>
+                        {new Date(contract.updatedAt).toLocaleDateString('zh-CN')}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="px-4 py-3">
-                    <p className="font-semibold text-sm text-[var(--ink)] truncate">
-                      {devis.customer.name || 'Client sans nom'}
-                    </p>
-                    <p className="text-xs text-[var(--ink-muted)] mt-1">
-                      {devis.meta.date}
-                    </p>
-                    <p className="text-lg font-bold text-[var(--gold)] mt-2">
-                      {formatEuro(totals.total)}
-                    </p>
-                    <p className="text-xs text-[var(--ink-muted)]">
-                      {devis.items.length} article{devis.items.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-
-                  <div className="px-4 py-2 border-t border-[var(--divider-soft)] flex justify-end">
-                    {confirmDelete === devis.id ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--danger)]">确认删除?</span>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            void handleDelete(devis.id)
-                          }}
-                          className="text-xs px-2 py-0.5 rounded bg-[var(--danger)] text-white"
-                        >
-                          删除
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            setConfirmDelete(null)
-                          }}
-                          className="text-xs px-2 py-0.5 rounded text-[var(--ink-muted)]"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setConfirmDelete(devis.id)
-                        }}
-                        className="text-xs text-[var(--ink-muted)] hover:text-[var(--danger)] transition-colors"
-                      >
-                        删除
-                      </button>
+                  <div className="mt-4 flex items-center gap-2 text-[12px] font-semibold" style={{ color: '#3A3228' }}>
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: contract.status === 'completed' ? '#4A6B3A' : contract.status === 'confirmed' ? '#6B8E4E' : contract.status === 'sent' ? '#C9A35B' : contract.status === 'cancelled' ? '#9B2A2A' : '#9B8550' }} />
+                    <span>{CONTRACT_STATUS_LABELS[contract.status]}</span>
+                    {contract.sentChannel && (
+                      <>
+                        <span style={{ color: '#C8B987' }}>·</span>
+                        <span>{CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel]}</span>
+                      </>
                     )}
                   </div>
                 </div>
-              )
-            })}
+
+                <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
+                  <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
+                    <Link href={`/contract/${contract.id}/detail`} style={{ color: '#A8702E' }}>
+                      查看
+                    </Link>
+                    <Link href={`/contract/${contract.id}`} style={{ color: '#A8702E' }}>
+                      编辑
+                    </Link>
+                    <Link href={`/contract/${contract.id}`} style={{ color: '#A8702E' }}>
+                      继续处理 →
+                    </Link>
+                  </div>
+                  <button type="button" onClick={() => void handleDeleteContract(contract.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredDevis.map((devis) => (
+              <div key={devis.id} className="overflow-hidden rounded-[16px] border" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                  <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#1C1611' }} />
+                    报价单
+                  </span>
+                  <div className="text-[11px] font-mono" style={{ color: '#A8702E' }}>{devis.meta.number}</div>
+                </div>
+
+                <div className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-[28px] font-bold leading-tight" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                        {devis.customer.name || '未命名客户'}
+                      </div>
+                      <div className="mt-2 text-[12px]" style={{ color: '#5C5142' }}>
+                        {[devis.customer.postalCode, devis.customer.city, devis.customer.contactName].filter(Boolean).join(' · ') || '暂无客户资料'}
+                      </div>
+                    </div>
+                    <div className="text-[18px]">{FLAG_MAP[devis.lang]}</div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>日期</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.meta.date}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>服务项</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.items.length}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>状态</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>可生成合同</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
+                  <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
+                    <button type="button" onClick={() => setSelectedDevis(devis)} style={{ color: '#A8702E' }}>
+                      查看
+                    </button>
+                    <Link href={`/contract/new?fromDevis=${devis.id}`} style={{ color: '#A8702E' }}>
+                      制作合同 →
+                    </Link>
+                  </div>
+                  <button type="button" onClick={() => void handleDeleteDevis(devis.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
+      </div>
+
+      <div className="border-t px-8 py-5" style={{ borderColor: '#D9CFB8', backgroundColor: '#FBF5E4' }}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>
+              APERÇU · 2026
+            </div>
+            <div
+              className="mt-1 text-[16px] italic"
+              style={{ color: '#6B5A3D', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+            >
+              本月你已经完成 {contractList.filter((item) => item.status === 'completed').length} 份合同，发出 {devisList.length} 份报价单。
+            </div>
+          </div>
+
+          <div className="flex gap-6 text-[13px] font-semibold" style={{ color: '#1C1611' }}>
+            <div>已签约 {formatEuro(signedAmount)}</div>
+            <div>待确认 {formatEuro(pendingAmount)}</div>
+          </div>
+        </div>
       </div>
 
       {selectedDevis && (
         <MagazineModal
           readOnly={true}
-          onClose={handleCloseModal}
+          onClose={() => setSelectedDevis(null)}
           historyDevis={selectedDevis}
         />
       )}

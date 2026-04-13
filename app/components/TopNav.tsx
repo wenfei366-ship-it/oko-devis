@@ -47,6 +47,14 @@ export default function TopNav({ onCreateDevis }: TopNavProps) {
           ⟲  历史记录
         </Link>
 
+        <Link
+          href="/contract/new"
+          className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[12px] font-semibold transition-colors"
+          style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
+        >
+          +  新建合同
+        </Link>
+
         <button
           type="button"
           onClick={handleNewDevis}

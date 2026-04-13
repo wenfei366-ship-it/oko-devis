@@ -173,6 +173,62 @@ export interface Devis {
   savedAt?: string
 }
 
+// ---------- Contract ----------
+
+export type ContractStatus = 'draft' | 'generated' | 'sent' | 'confirmed' | 'completed' | 'cancelled'
+export type ContractSentChannel = 'email' | 'feishu' | 'wechat' | 'whatsapp' | 'in_person'
+
+export interface ContractEvidenceFile {
+  name: string
+  url?: string
+  path?: string
+}
+
+export interface ContractActivity {
+  at: string
+  actor: string
+  event: string
+  meta?: string
+}
+
+export interface ContractMeta {
+  number: string
+  devisNumber?: string
+  date: string
+  signingPlace: string
+  serviceStartDate?: string
+}
+
+export interface Contract {
+  kind: 'contract'
+  id: string
+  devisId?: string
+  meta: ContractMeta
+  customer: Customer
+  lang: Lang
+  selectedServices: DevisItem[]
+  paymentMode: 'monthly' | 'annual'
+  subtotalDisplay: number
+  finalTotal: number
+  totalUnit: 'monthly' | 'annual'
+  specialConditions: string
+  status: ContractStatus
+  sentAt?: string
+  sentChannel?: ContractSentChannel
+  confirmedAt?: string
+  confirmationMethod?: string
+  confirmationNote?: string
+  evidenceFiles: ContractEvidenceFile[]
+  internalNote?: string
+  pdfPath?: string
+  pdfUrl?: string
+  attachments: ContractEvidenceFile[]
+  activityLog: ContractActivity[]
+  createdAt: string
+  updatedAt: string
+  savedAt?: string
+}
+
 // ---------- Derived totals (never stored) ----------
 
 export interface DevisTotals {
