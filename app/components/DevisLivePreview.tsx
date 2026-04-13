@@ -508,7 +508,7 @@ export function DevisPreviewContent({
               {vm.labels.totalHT}
             </span>
             <span style={{ fontSize: 22, fontWeight: 700, color: '#F8F1E0', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-              {vm.isFrance ? `${vm.totalsFormatted.totalHT} HT` : vm.totalsFormatted.total}
+              {vm.isFrance ? vm.totalsFormatted.totalHT : vm.totalsFormatted.total}
             </span>
           </div>
         </div>
