@@ -18,6 +18,7 @@ import {
   saveContract,
   updateContractStatus,
 } from '@/app/lib/contractStorage'
+import { buildContractPdfPath } from '@/app/lib/fileStorage'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, ContractSentChannel, ContractStatus, Lang } from '@/app/lib/types'
@@ -47,6 +48,18 @@ function smallFieldClassName(disabled?: boolean) {
     disabled ? 'cursor-default bg-[#F6EFDC]' : 'bg-white'
   }`
 }
+
+const STATUS_FLOW: Array<{
+  key: ContractStatus
+  title: string
+  description: string
+}> = [
+  { key: 'draft', title: '草稿', description: '合同还在补信息和确认金额。' },
+  { key: 'generated', title: '已生成', description: '正式版 PDF 已生成，可随时发给客户。' },
+  { key: 'sent', title: '已发送', description: '已经发给客户，等待对方确认。' },
+  { key: 'confirmed', title: '已确认', description: '客户已经明确同意。' },
+  { key: 'completed', title: '已完成', description: '这份合同已经归档完成。' },
+]
 
 function ScaledContract({ contract, previewRef }: { contract: Contract; previewRef: React.RefObject<HTMLDivElement | null> }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -103,6 +116,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
@@ -209,29 +223,49 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   }, [contractId, router])
 
   const handleExport = useCallback(() => {
-    if (typeof window === 'undefined' || !previewRef.current || !contract) return
-    const printWindow = window.open('', '_blank', 'width=1200,height=900')
-    if (!printWindow) return
+    if (!contract || exporting) return
 
-    const html = previewRef.current.innerHTML
-    const headHtml = document.head.innerHTML
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${contract.meta.number}</title>
-          ${headHtml}
-          <style>
-            body { margin: 0; padding: 24px; background: #efe3c6; }
-            img { max-width: 100%; }
-          </style>
-        </head>
-        <body>${html}</body>
-      </html>
-    `)
-    printWindow.document.close()
-    printWindow.focus()
-    printWindow.print()
-  }, [contract])
+    void (async () => {
+      setExporting(true)
+      setSaveMessage(null)
+
+      try {
+        const [{ pdf }, { ContractPDF }, { registerPdfFonts }] = await Promise.all([
+          import('@react-pdf/renderer'),
+          import('@/app/lib/pdf/ContractPDF'),
+          import('@/app/lib/pdf/fonts'),
+        ])
+
+        registerPdfFonts()
+        const blob = await pdf(<ContractPDF contract={contract} />).toBlob()
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `Contract-${contract.meta.number}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        const nextContract = contract.status === 'draft'
+          ? updateContractStatus(contract, 'generated')
+          : {
+              ...contract,
+              updatedAt: new Date().toISOString(),
+            }
+
+        nextContract.pdfPath = buildContractPdfPath(nextContract.id, nextContract.meta.number)
+
+        await saveContract(nextContract)
+        setContract(nextContract)
+        setSaveMessage('PDF 已导出。')
+      } catch (exportError) {
+        setSaveMessage(exportError instanceof Error ? exportError.message : 'PDF 导出失败。')
+      } finally {
+        setExporting(false)
+      }
+    })()
+  }, [contract, exporting])
 
   const statusTone = useMemo(() => {
     if (!contract) return '#9B8550'
@@ -297,10 +331,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
           <button
             type="button"
             onClick={handleExport}
+            disabled={exporting}
             className="rounded-[10px] px-5 py-2 text-[13px] font-bold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}
+            style={{ backgroundColor: '#1C1611', color: '#F8EFDC', opacity: exporting ? 0.72 : 1 }}
           >
-            导出 PDF →
+            {exporting ? '导出中…' : '导出 PDF →'}
           </button>
         </div>
       </header>
@@ -446,280 +481,361 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         </main>
 
         <aside className="space-y-3 overflow-y-auto">
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>合同导出语言</InputLabel>
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {(Object.keys(CONTRACT_LANGUAGE_LABELS) as Lang[]).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  disabled={readOnly}
-                  onClick={() => updateContract((current) => ({ ...current, lang }))}
-                  className="rounded-[8px] border px-2 py-2 text-[11px] font-bold disabled:cursor-default"
-                  style={{
-                    borderColor: contract.lang === lang ? '#B8922F' : '#E4D9BE',
-                    backgroundColor: contract.lang === lang ? '#1C1611' : '#FBF5E4',
-                    color: contract.lang === lang ? '#F5D48A' : '#1C1611',
-                  }}
-                >
-                  {CONTRACT_LANGUAGE_LABELS[lang]}
-                </button>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] leading-[1.6]" style={{ color: '#5C5142' }}>
-              合同支持多语言，但法语版始终是法律依据版本。
-            </p>
-          </div>
+          {readOnly ? (
+            <>
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>合同概览</InputLabel>
+                <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
+                  <div>导出语言：{CONTRACT_LANGUAGE_LABELS[contract.lang]}</div>
+                  <div>付款方式：{contract.paymentMode === 'annual' ? '按年' : '按月'}</div>
+                  <div>最终总价：{formatEuroCompact(contract.finalTotal)}</div>
+                  <div>服务数量：{contract.selectedServices.length}</div>
+                  <div>签署日期：{contract.meta.date || '未填'}</div>
+                </div>
+              </div>
 
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>客户信息</InputLabel>
-            <div className="mt-3 space-y-3">
-              <div>
-                <InputLabel>公司 / 餐厅名</InputLabel>
-                <input
-                  value={contract.customer.name}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, name: event.target.value } }))}
-                  className={fieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-              <div>
-                <InputLabel>地址</InputLabel>
-                <input
-                  value={contract.customer.address}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, address: event.target.value } }))}
-                  className={fieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <InputLabel>邮编</InputLabel>
-                  <input
-                    value={contract.customer.postalCode}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, postalCode: event.target.value } }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                  />
-                </div>
-                <div>
-                  <InputLabel>城市</InputLabel>
-                  <input
-                    value={contract.customer.city}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, city: event.target.value } }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                  />
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>状态时间线</InputLabel>
+                <div className="mt-4 space-y-4">
+                  {STATUS_FLOW.map((step) => {
+                    const active = STATUS_FLOW.findIndex((item) => item.key === contract.status) >= STATUS_FLOW.findIndex((item) => item.key === step.key)
+                    const isCurrent = contract.status === step.key
+                    return (
+                      <div key={step.key} className="flex gap-3">
+                        <div className="flex flex-col items-center">
+                          <span className="mt-1 h-3 w-3 rounded-full" style={{ backgroundColor: active ? '#B8922F' : '#D9CFB8' }} />
+                          {step.key !== 'completed' && <span className="mt-1 h-8 w-px" style={{ backgroundColor: active ? '#B8922F' : '#E4D9BE' }} />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[12px] font-semibold" style={{ color: isCurrent ? '#1C1611' : '#5C5142' }}>
+                            {step.title}
+                          </div>
+                          <div className="mt-1 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
+                            {step.description}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
-              <div>
-                <InputLabel>联系人</InputLabel>
-                <input
-                  value={contract.customer.contactName}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, contactName: event.target.value } }))}
-                  className={fieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  value={contract.customer.email}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, email: event.target.value } }))}
-                  placeholder="邮箱"
-                  className={smallFieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-                <input
-                  value={contract.customer.phone}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, phone: event.target.value } }))}
-                  placeholder="电话"
-                  className={smallFieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>合同信息</InputLabel>
-            <div className="mt-3 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <InputLabel>签订日期</InputLabel>
-                  <input
-                    type="date"
-                    value={contract.meta.date}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, date: event.target.value } }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                  />
-                </div>
-                <div>
-                  <InputLabel>启动日期</InputLabel>
-                  <input
-                    type="date"
-                    value={contract.meta.serviceStartDate || ''}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, serviceStartDate: event.target.value } }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                  />
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>发送与确认</InputLabel>
+                <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
+                  <div>发送渠道：{contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '未记录'}</div>
+                  <div>发送时间：{contract.sentAt ? new Date(contract.sentAt).toLocaleString('zh-CN') : '未记录'}</div>
+                  <div>确认方式：{contract.confirmationMethod || '未记录'}</div>
+                  <div>确认时间：{contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '未记录'}</div>
+                  <div>确认备注：{contract.confirmationNote || '未记录'}</div>
+                  <div>内部备注：{contract.internalNote || '未记录'}</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <InputLabel>签署地点</InputLabel>
-                  <input
-                    value={contract.meta.signingPlace}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, signingPlace: event.target.value } }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                  />
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>活动记录</InputLabel>
+                <div className="mt-3 space-y-3">
+                  {contract.activityLog.length === 0 ? (
+                    <div className="text-[12px]" style={{ color: '#6B5A3D' }}>还没有活动记录。</div>
+                  ) : (
+                    [...contract.activityLog].reverse().map((item) => (
+                      <div key={`${item.at}-${item.event}`} className="rounded-[10px] border px-3 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                        <div className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{item.event}</div>
+                        {item.meta && <div className="mt-1 text-[11px]" style={{ color: '#5C5142' }}>{item.meta}</div>}
+                        <div className="mt-2 text-[10px] uppercase tracking-[1.4px]" style={{ color: '#8B7A3E' }}>
+                          {item.actor} · {new Date(item.at).toLocaleString('zh-CN')}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-                <div>
-                  <InputLabel>付款方式</InputLabel>
-                  <select
-                    value={contract.paymentMode}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({
-                      ...current,
-                      paymentMode: event.target.value as Contract['paymentMode'],
-                      totalUnit: event.target.value as Contract['totalUnit'],
-                    }))}
-                    className={smallFieldClassName(readOnly)}
-                    style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+              </div>
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>下一步</InputLabel>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link href={`/contract/${contract.id}`} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
+                    进入编辑页
+                  </Link>
+                  <button type="button" onClick={handleExport} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
+                    再导出一次
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>合同导出语言</InputLabel>
+                <div className="mt-3 grid grid-cols-5 gap-2">
+                  {(Object.keys(CONTRACT_LANGUAGE_LABELS) as Lang[]).map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      disabled={readOnly}
+                      onClick={() => updateContract((current) => ({ ...current, lang }))}
+                      className="rounded-[8px] border px-2 py-2 text-[11px] font-bold disabled:cursor-default"
+                      style={{
+                        borderColor: contract.lang === lang ? '#B8922F' : '#E4D9BE',
+                        backgroundColor: contract.lang === lang ? '#1C1611' : '#FBF5E4',
+                        color: contract.lang === lang ? '#F5D48A' : '#1C1611',
+                      }}
+                    >
+                      {CONTRACT_LANGUAGE_LABELS[lang]}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11px] leading-[1.6]" style={{ color: '#5C5142' }}>
+                  合同支持多语言，但法语版始终是法律依据版本。
+                </p>
+              </div>
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>客户信息</InputLabel>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <InputLabel>公司 / 餐厅名</InputLabel>
+                    <input
+                      value={contract.customer.name}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, name: event.target.value } }))}
+                      className={fieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                  <div>
+                    <InputLabel>地址</InputLabel>
+                    <input
+                      value={contract.customer.address}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, address: event.target.value } }))}
+                      className={fieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <InputLabel>邮编</InputLabel>
+                      <input
+                        value={contract.customer.postalCode}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, postalCode: event.target.value } }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      />
+                    </div>
+                    <div>
+                      <InputLabel>城市</InputLabel>
+                      <input
+                        value={contract.customer.city}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, city: event.target.value } }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <InputLabel>联系人</InputLabel>
+                    <input
+                      value={contract.customer.contactName}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, contactName: event.target.value } }))}
+                      className={fieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      value={contract.customer.email}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, email: event.target.value } }))}
+                      placeholder="邮箱"
+                      className={smallFieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                    <input
+                      value={contract.customer.phone}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, phone: event.target.value } }))}
+                      placeholder="电话"
+                      className={smallFieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>合同信息</InputLabel>
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <InputLabel>签订日期</InputLabel>
+                      <input
+                        type="date"
+                        value={contract.meta.date}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, date: event.target.value } }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      />
+                    </div>
+                    <div>
+                      <InputLabel>启动日期</InputLabel>
+                      <input
+                        type="date"
+                        value={contract.meta.serviceStartDate || ''}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, serviceStartDate: event.target.value } }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <InputLabel>签署地点</InputLabel>
+                      <input
+                        value={contract.meta.signingPlace}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, meta: { ...current.meta, signingPlace: event.target.value } }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      />
+                    </div>
+                    <div>
+                      <InputLabel>付款方式</InputLabel>
+                      <select
+                        value={contract.paymentMode}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({
+                          ...current,
+                          paymentMode: event.target.value as Contract['paymentMode'],
+                          totalUnit: event.target.value as Contract['totalUnit'],
+                        }))}
+                        className={smallFieldClassName(readOnly)}
+                        style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                      >
+                        <option value="annual">按年</option>
+                        <option value="monthly">按月</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div
+                    className="rounded-[10px] border px-4 py-4"
+                    style={{ borderColor: '#B8922F', backgroundColor: '#1C1611' }}
                   >
-                    <option value="annual">按年</option>
-                    <option value="monthly">按月</option>
-                  </select>
+                    <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
+                      最终成交价
+                    </div>
+                    <div className="mt-2 flex items-end gap-2">
+                      <input
+                        type="number"
+                        value={String(contract.finalTotal)}
+                        disabled={readOnly}
+                        onChange={(event) => updateContract((current) => ({ ...current, finalTotal: Number(event.target.value || 0) }))}
+                        className="w-full border-0 bg-transparent p-0 text-[28px] font-bold italic outline-none"
+                        style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+                      />
+                      <span className="pb-1 text-[11px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
+                        {contract.totalUnit === 'monthly' ? '€/mois' : '€/an'}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-[11px]" style={{ color: '#D9CFB8' }}>
+                      自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div
-                className="rounded-[10px] border px-4 py-4"
-                style={{ borderColor: '#B8922F', backgroundColor: '#1C1611' }}
-              >
-                <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
-                  最终成交价
-                </div>
-                <div className="mt-2 flex items-end gap-2">
-                  <input
-                    type="number"
-                    value={String(contract.finalTotal)}
-                    disabled={readOnly}
-                    onChange={(event) => updateContract((current) => ({ ...current, finalTotal: Number(event.target.value || 0) }))}
-                    className="w-full border-0 bg-transparent p-0 text-[28px] font-bold italic outline-none"
-                    style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
-                  />
-                  <span className="pb-1 text-[11px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
-                    {contract.totalUnit === 'monthly' ? '€/mois' : '€/an'}
-                  </span>
-                </div>
-                <div className="mt-2 text-[11px]" style={{ color: '#D9CFB8' }}>
-                  自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>特别备注</InputLabel>
-            <textarea
-              value={contract.specialConditions}
-              disabled={readOnly}
-              onChange={(event) => updateContract((current) => ({ ...current, specialConditions: event.target.value }))}
-              rows={5}
-              className={`${fieldClassName(readOnly)} resize-none`}
-              style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-            />
-          </div>
-
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>发送与确认记录</InputLabel>
-            <div className="mt-3 space-y-3">
-              <div>
-                <InputLabel>发送渠道</InputLabel>
-                <select
-                  value={contract.sentChannel || ''}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, sentChannel: (event.target.value || undefined) as ContractSentChannel | undefined }))}
-                  className={smallFieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                >
-                  <option value="">未记录</option>
-                  <option value="email">邮件</option>
-                  <option value="feishu">飞书</option>
-                  <option value="wechat">微信</option>
-                  <option value="whatsapp">WhatsApp</option>
-                  <option value="in_person">当面确认</option>
-                </select>
-              </div>
-              <div>
-                <InputLabel>客户确认方式</InputLabel>
-                <input
-                  value={contract.confirmationMethod || ''}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, confirmationMethod: event.target.value }))}
-                  className={fieldClassName(readOnly)}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-              <div>
-                <InputLabel>确认备注</InputLabel>
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>特别备注</InputLabel>
                 <textarea
-                  value={contract.confirmationNote || ''}
+                  value={contract.specialConditions}
                   disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, confirmationNote: event.target.value }))}
-                  rows={4}
+                  onChange={(event) => updateContract((current) => ({ ...current, specialConditions: event.target.value }))}
+                  rows={5}
                   className={`${fieldClassName(readOnly)} resize-none`}
                   style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
                 />
               </div>
-              <div>
-                <InputLabel>内部备注</InputLabel>
-                <textarea
-                  value={contract.internalNote || ''}
-                  disabled={readOnly}
-                  onChange={(event) => updateContract((current) => ({ ...current, internalNote: event.target.value }))}
-                  rows={3}
-                  className={`${fieldClassName(readOnly)} resize-none`}
-                  style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <InputLabel>下一步</InputLabel>
-            <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
-              先把客户信息、金额和备注补完，再点“导出 PDF”。如果客户已经回复，也在这里把确认方式记下来。
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {!readOnly && (
-                <button type="button" onClick={() => void handleSave()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                  再保存一次
-                </button>
-              )}
-              {contractId && !readOnly && (
-                <button type="button" onClick={() => void handleDuplicate()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                  复制成新合同
-                </button>
-              )}
-              {readOnly && (
-                <Link href={`/contract/${contract.id}`} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                  进入编辑页
-                </Link>
-              )}
-            </div>
-          </div>
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>发送与确认记录</InputLabel>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <InputLabel>发送渠道</InputLabel>
+                    <select
+                      value={contract.sentChannel || ''}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, sentChannel: (event.target.value || undefined) as ContractSentChannel | undefined }))}
+                      className={smallFieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    >
+                      <option value="">未记录</option>
+                      <option value="email">邮件</option>
+                      <option value="feishu">飞书</option>
+                      <option value="wechat">微信</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="in_person">当面确认</option>
+                    </select>
+                  </div>
+                  <div>
+                    <InputLabel>客户确认方式</InputLabel>
+                    <input
+                      value={contract.confirmationMethod || ''}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, confirmationMethod: event.target.value }))}
+                      className={fieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                  <div>
+                    <InputLabel>确认备注</InputLabel>
+                    <textarea
+                      value={contract.confirmationNote || ''}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, confirmationNote: event.target.value }))}
+                      rows={4}
+                      className={`${fieldClassName(readOnly)} resize-none`}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                  <div>
+                    <InputLabel>内部备注</InputLabel>
+                    <textarea
+                      value={contract.internalNote || ''}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, internalNote: event.target.value }))}
+                      rows={3}
+                      className={`${fieldClassName(readOnly)} resize-none`}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
+                <InputLabel>下一步</InputLabel>
+                <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
+                  先把客户信息、金额和备注补完，再点“导出 PDF”。如果客户已经回复，也在这里把确认方式记下来。
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {!readOnly && (
+                    <button type="button" onClick={() => void handleSave()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
+                      再保存一次
+                    </button>
+                  )}
+                  {contractId && !readOnly && (
+                    <button type="button" onClick={() => void handleDuplicate()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
+                      复制成新合同
+                    </button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </aside>
       </div>
     </div>
