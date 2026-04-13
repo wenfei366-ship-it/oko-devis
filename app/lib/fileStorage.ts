@@ -1,5 +1,12 @@
 const R2_BUCKET_NAME = 'oko-devis-files-dev'
 
+export type FileStorageKind =
+  | 'contract-pdf'
+  | 'contract-evidence'
+  | 'contract-attachment'
+  | 'devis-pdf'
+  | 'devis-screenshot'
+
 export const FILE_STORAGE = {
   provider: 'cloudflare-r2',
   bucket: R2_BUCKET_NAME,
@@ -33,4 +40,10 @@ export function buildContractAttachmentPath(contractId: string, fileName: string
 export function buildContractEvidencePath(contractId: string, fileName: string): string {
   const cleanName = sanitizeSegment(fileName) || 'evidence'
   return `${FILE_STORAGE.roots.contractEvidence}/${sanitizeSegment(contractId)}/${cleanName}`
+}
+
+export function getPublicFileUrl(path: string): string | undefined {
+  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL?.trim()
+  if (!base) return undefined
+  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }

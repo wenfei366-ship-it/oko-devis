@@ -255,10 +255,32 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             }
 
         nextContract.pdfPath = buildContractPdfPath(nextContract.id, nextContract.meta.number)
+        nextContract.pdfUrl = undefined
+
+        try {
+          const formData = new FormData()
+          formData.set('file', new File([blob], `Contract-${contract.meta.number}.pdf`, { type: 'application/pdf' }))
+          formData.set('kind', 'contract-pdf')
+          formData.set('entityId', nextContract.id)
+          formData.set('fileName', nextContract.meta.number)
+
+          const uploadResponse = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (uploadResponse.ok) {
+            const payload = await uploadResponse.json() as { path?: string; url?: string }
+            nextContract.pdfPath = payload.path || nextContract.pdfPath
+            nextContract.pdfUrl = payload.url
+          }
+        } catch {
+          // Keep local download working even if cloud upload is not ready.
+        }
 
         await saveContract(nextContract)
         setContract(nextContract)
-        setSaveMessage('PDF 已导出。')
+        setSaveMessage(nextContract.pdfUrl ? 'PDF 已导出并上传到云端。' : 'PDF 已导出。云端文件未上传。')
       } catch (exportError) {
         setSaveMessage(exportError instanceof Error ? exportError.message : 'PDF 导出失败。')
       } finally {
@@ -523,6 +545,15 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
                 <InputLabel>发送与确认</InputLabel>
                 <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
+                  <div>PDF 路径：{contract.pdfPath || '未上传'}</div>
+                  <div>
+                    PDF 地址：
+                    {contract.pdfUrl ? (
+                      <a href={contract.pdfUrl} target="_blank" rel="noreferrer" className="ml-1 font-semibold" style={{ color: '#A8702E' }}>
+                        打开云端文件
+                      </a>
+                    ) : ' 未上传'}
+                  </div>
                   <div>发送渠道：{contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '未记录'}</div>
                   <div>发送时间：{contract.sentAt ? new Date(contract.sentAt).toLocaleString('zh-CN') : '未记录'}</div>
                   <div>确认方式：{contract.confirmationMethod || '未记录'}</div>
