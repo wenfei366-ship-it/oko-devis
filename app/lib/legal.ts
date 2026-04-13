@@ -22,7 +22,7 @@ export const OKO_SENDER = {
   bankName: 'Revolut Bank UAB — SEPA / SWIFT',
 } as const
 
-// Conditions générales — 12 clauses, each in 5 languages
+// Conditions générales — active clauses translated in 5 languages
 // FR = legally binding; IT/ES/DE/ZH are operational translations
 
 export type CgvKey =
@@ -32,11 +32,7 @@ export type CgvKey =
   | 'paiement'
   | 'acompte'
   | 'delais'
-  | 'penalites'
-  | 'reserveProp'
   | 'resiliation'
-  | 'rgpd'
-  | 'droitJuridiction'
   | 'acceptation'
 
 export const CGV: Record<CgvKey, I18nString> = {
@@ -69,11 +65,11 @@ export const CGV: Record<CgvKey, I18nString> = {
     zh: '付款方式 — 年费套餐可一次性支付（含折扣）或分 12 月付款（不含折扣）。单点服务及硬件需下单时或收到发票时支付。',
   },
   acompte: {
-    fr: 'Acompte — Pour les frais de création et le matériel : 30 % à la signature du devis, solde à la mise en service. Les abonnements mensuels ou annuels ne requièrent pas d\'acompte. Aucun escompte en cas de paiement anticipé.',
-    it: 'Acconto — Per le spese di creazione e il materiale: 30 % alla firma del preventivo, saldo alla messa in servizio. Gli abbonamenti mensili o annuali non richiedono acconto. Nessuno sconto per pagamento anticipato.',
-    es: 'Anticipo — Para gastos de creación y material: 30 % a la firma del presupuesto, saldo a la puesta en servicio. Las suscripciones mensuales o anuales no requieren anticipo. Sin descuento por pago anticipado.',
-    de: 'Anzahlung — Für Einrichtungsgebühren und Hardware: 30 % bei Angebotsunterzeichnung, Rest bei Inbetriebnahme. Monats- oder Jahresabonnements erfordern keine Anzahlung. Kein Skonto bei Vorauszahlung.',
-    zh: '定金 — 建站费及硬件：签署报价单时支付 30%，启用时付清余款。月付/年付订阅无需定金。提前付款不享折扣。',
+    fr: 'Frais de création — Les frais de création du site sont facturés une seule fois, au moment de la présentation du site démo.',
+    it: 'Spese di creazione — Le spese di realizzazione del sito vengono fatturate una sola volta, al momento della presentazione del sito demo.',
+    es: 'Gastos de creación — Los gastos de creación del sitio se cobran una sola vez, en el momento de la presentación del sitio demo.',
+    de: 'Erstellungskosten — Die Kosten für die Website-Erstellung werden einmalig bei der Präsentation der Demo-Website berechnet.',
+    zh: '建站费 — 网站 demo 提交时收取一次性费用。',
   },
   delais: {
     fr: 'Délais d\'exécution — Mise en service sous 7 jours ouvrés après réception du bon pour accord et de l\'acompte.',
@@ -82,40 +78,12 @@ export const CGV: Record<CgvKey, I18nString> = {
     de: 'Ausführungsfristen — Inbetriebnahme innerhalb von 7 Werktagen nach Auftragserteilung und Anzahlungseingang.',
     zh: '交付时间 — 收到确认函和定金后 7 个工作日内完成上线。',
   },
-  penalites: {
-    fr: 'Pénalités de retard — En cas de retard de paiement, des pénalités seront appliquées au taux directeur de la BCE majoré de 10 points de pourcentage, plus une indemnité forfaitaire de recouvrement de 40 € (art. L441-10 du Code de commerce).',
-    it: 'Penali di mora — In caso di ritardo nel pagamento, saranno applicate penali al tasso di riferimento BCE maggiorato di 10 punti percentuali, più un\'indennità fissa di recupero di 40 €.',
-    es: 'Penalizaciones por retraso — En caso de retraso en el pago, se aplicarán penalizaciones al tipo de interés del BCE incrementado en 10 puntos porcentuales, más una indemnización fija de recuperación de 40 €.',
-    de: 'Verzugszinsen — Bei Zahlungsverzug werden Verzugszinsen in Höhe des EZB-Leitzinses zuzüglich 10 Prozentpunkten erhoben, plus eine Pauschalentschädigung von 40 €.',
-    zh: '逾期罚金 — 如逾期付款，将按欧央行基准利率加 10 个百分点收取罚息，另加 40 欧元固定追索费。',
-  },
-  reserveProp: {
-    fr: 'Réserve de propriété — Les services et matériels fournis restent la propriété d\'OKO jusqu\'au paiement intégral du prix convenu.',
-    it: 'Riserva di proprietà — I servizi e i materiali forniti restano di proprietà di OKO fino al pagamento integrale del prezzo concordato.',
-    es: 'Reserva de propiedad — Los servicios y materiales suministrados siguen siendo propiedad de OKO hasta el pago íntegro.',
-    de: 'Eigentumsvorbehalt — Die gelieferten Leistungen und Materialien bleiben bis zur vollständigen Bezahlung Eigentum von OKO.',
-    zh: '所有权保留 — 所交付服务及硬件在全额付款前均归 OKO 所有。',
-  },
   resiliation: {
-    fr: 'Résiliation — Préavis d\'un mois par écrit. Les sommes non consommées peuvent être converties en crédit sur d\'autres services OKO.',
-    it: 'Risoluzione — Preavviso di un mese per iscritto. Gli importi non utilizzati possono essere convertiti in credito su altri servizi OKO.',
-    es: 'Rescisión — Preaviso de un mes por escrito. Los importes no consumidos pueden convertirse en crédito para otros servicios OKO.',
-    de: 'Kündigung — Einmonatige schriftliche Kündigungsfrist. Nicht verbrauchte Beträge können in Guthaben für andere OKO-Dienste umgewandelt werden.',
-    zh: '终止 — 需提前一个月书面通知。未使用金额可转换为其他 OKO 服务的信用额度。',
-  },
-  rgpd: {
-    fr: 'Données personnelles — Les données clients sont traitées conformément au RGPD. Délégué à la protection : support@joinoko.com.',
-    it: 'Dati personali — I dati dei clienti sono trattati in conformità al GDPR. Responsabile: support@joinoko.com.',
-    es: 'Datos personales — Los datos de clientes se tratan conforme al RGPD. Delegado: support@joinoko.com.',
-    de: 'Personenbezogene Daten — Kundendaten werden DSGVO-konform verarbeitet. Datenschutzbeauftragter: support@joinoko.com.',
-    zh: '个人数据 — 客户数据依据 GDPR 处理。数据保护负责人：support@joinoko.com。',
-  },
-  droitJuridiction: {
-    fr: 'Droit applicable & juridiction — Droit français. Tribunal de commerce de Paris compétent en cas de litige. Le présent devis est établi en français.',
-    it: 'Legge applicabile e foro competente — Diritto francese. Tribunale commerciale di Parigi competente in caso di controversie.',
-    es: 'Derecho aplicable y jurisdicción — Derecho francés. Tribunal de comercio de París competente en caso de litigio.',
-    de: 'Anwendbares Recht & Gerichtsstand — Französisches Recht. Handelsgericht Paris zuständig bei Streitigkeiten.',
-    zh: '适用法律与管辖 — 适用法国法律。争议由巴黎商事法院管辖。',
+    fr: 'Résiliation — Préavis d\'un mois par écrit.',
+    it: 'Risoluzione — Preavviso di un mese per iscritto.',
+    es: 'Rescisión — Preaviso de un mes por escrito.',
+    de: 'Kündigung — Einmonatige schriftliche Kündigungsfrist.',
+    zh: '终止 — 需提前一个月书面通知。',
   },
   acceptation: {
     fr: 'Acceptation — À retourner daté, signé et précédé de la mention manuscrite « Bon pour accord » à support@joinoko.com.',
@@ -133,10 +101,6 @@ export const CGV_ORDER: CgvKey[] = [
   'paiement',
   'acompte',
   'delais',
-  'penalites',
-  'reserveProp',
   'resiliation',
-  'rgpd',
-  'droitJuridiction',
   'acceptation',
 ]

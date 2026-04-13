@@ -41,8 +41,8 @@ describe('i18n dictionary coverage', () => {
     }
   })
 
-  it('CGV has 12 clauses, each in 5 languages', () => {
-    expect(CGV_ORDER).toHaveLength(12)
+  it('CGV has 8 active clauses, each in 5 languages', () => {
+    expect(CGV_ORDER).toHaveLength(8)
     for (const key of CGV_ORDER) {
       const clause = CGV[key]
       for (const lang of ALL_LANGS) {

@@ -177,7 +177,7 @@ function HistoryContent() {
                       {formatEuro(totals.total)}
                     </p>
                     <p className="text-xs text-[var(--ink-muted)]">
-                      {totals.isFrance ? 'TTC' : 'Total'} &middot; {devis.items.length} article{devis.items.length !== 1 ? 's' : ''}
+                      {devis.items.length} article{devis.items.length !== 1 ? 's' : ''}
                     </p>
                   </div>
 

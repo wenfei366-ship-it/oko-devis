@@ -92,11 +92,11 @@ export const FREE_SERVICES: I18nString[] = [
   { fr: 'Optimisation SEO du site web', it: 'Ottimizzazione SEO del sito web', es: 'Optimización SEO del sitio web', de: 'SEO-Optimierung der Webseite', zh: 'SEO 网站优化' },
   { fr: 'Stockage illimité d\'images et médias', it: 'Archiviazione illimitata di immagini e media', es: 'Almacenamiento ilimitado de imágenes y medios', de: 'Unbegrenzter Bild- und Medienspeicher', zh: '无限图片和媒体存储' },
   { fr: 'Services d\'envoi d\'e-mails groupés', it: 'Servizi di invio e-mail di massa', es: 'Servicios de envío de correos masivos', de: 'Massen-E-Mail-Versand', zh: '群发邮件服务' },
-  { fr: 'Réponses intelligentes Google Maps', it: 'Risposte intelligenti Google Maps', es: 'Respuestas inteligentes Google Maps', de: 'Intelligente Google-Maps-Antworten', zh: 'Google Maps 智能回复' },
-  { fr: 'Réduction commission Uber / SB à 15 %', it: 'Riduzione commissione Uber / SB al 15 %', es: 'Reducción comisión Uber / SB al 15 %', de: 'Uber / SB Provision auf 15 % gesenkt', zh: 'Uber / SB 佣金降至 15%' },
-  { fr: 'Intégration multi-plateformes (UE, LB, TT)', it: 'Integrazione multi-piattaforma (UE, LB, TT)', es: 'Integración multi-plataforma (UE, LB, TT)', de: 'Multi-Plattform-Integration (UE, LB, TT)', zh: '多平台集成 (UE, LB, TT)' },
+  { fr: 'Filtrage des avis négatifs par email et valorisation des avis positifs', it: 'Filtro delle recensioni negative via email e valorizzazione di quelle positive', es: 'Filtrado de reseñas negativas por correo y valorización de las positivas', de: 'Filterung negativer Bewertungen per E-Mail und Aufwertung positiver Bewertungen', zh: '谷歌邮件差评拦截好评提升' },
+  { fr: 'Réduction de commission Uber via lien dédié jusqu\'à 10 %', it: 'Riduzione commissioni Uber tramite link dedicato fino al 10 %', es: 'Reducción de comisión Uber mediante enlace dedicado hasta el 10 %', de: 'Reduzierung der Uber-Provision über Speziallink auf bis zu 10 %', zh: 'Uber 链接降佣金至 10%' },
+  { fr: 'Intégration multi-plateformes (Instagram, TikTok, etc.)', it: 'Integrazione multi-piattaforma (Instagram, TikTok, ecc.)', es: 'Integración multiplataforma (Instagram, TikTok, etc.)', de: 'Multi-Plattform-Integration (Instagram, TikTok usw.)', zh: '多平台集成（Ins、TikTok 等）' },
   { fr: 'Support client en ligne 7/7', it: 'Supporto clienti online 7/7', es: 'Soporte al cliente online 7/7', de: 'Online-Kundensupport 7/7', zh: '7/7 在线客服支持' },
-  { fr: 'Guide de collecte d\'emails clients', it: 'Guida alla raccolta e-mail clienti', es: 'Guía de recopilación de emails de clientes', de: 'Leitfaden zur Kunden-E-Mail-Sammlung', zh: '客户邮箱收集指南' },
+  { fr: 'Collecte des informations clients', it: 'Raccolta delle informazioni clienti', es: 'Recopilación de información del cliente', de: 'Erfassung von Kundendaten', zh: '客户信息收集' },
 ]
 
 // ---------- Service dictionary (13 services × 5 languages) ----------
@@ -130,21 +130,21 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
   reservation: {
     name: { fr: 'Réservation', it: 'Prenotazione', es: 'Reservas', de: 'Reservierung', zh: '订位系统' },
     description: {
-      fr: 'Réservation en ligne + confirmation automatique par email',
-      it: 'Prenotazione online + conferma automatica via email',
-      es: 'Reserva en línea + confirmación automática por email',
-      de: 'Online-Reservierung + automatische E-Mail-Bestätigung',
-      zh: '在线预订 + 自动邮件确认',
+      fr: 'Réservation en ligne',
+      it: 'Prenotazione online',
+      es: 'Reserva en línea',
+      de: 'Online-Reservierung',
+      zh: '在线预订',
     },
   },
   'online-ordering': {
     name: { fr: 'Commande en ligne', it: 'Ordini online', es: 'Pedidos en línea', de: 'Online-Bestellung', zh: '线上点单' },
     description: {
-      fr: 'Commande à emporter / livraison · emballage & frais inclus',
-      it: 'Asporto / consegna · imballaggio e spedizione inclusi',
-      es: 'Para llevar / entrega · embalaje y envío incluidos',
-      de: 'Abholung / Lieferung · Verpackung & Versand inklusive',
-      zh: '外卖 / 自取 · 包装 + 配送费包含',
+      fr: 'Commande à emporter / livraison',
+      it: 'Asporto / consegna',
+      es: 'Para llevar / entrega',
+      de: 'Abholung / Lieferung',
+      zh: '外卖 / 自取',
     },
   },
   'in-store-ordering': {
@@ -160,11 +160,11 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
   'wheel-game': {
     name: { fr: 'Jeu de la roue', it: 'Ruota della fortuna', es: 'Ruleta', de: 'Glücksrad', zh: '大转盘游戏' },
     description: {
-      fr: 'Jeu de fidélisation · collecte emails + relance automatique',
-      it: 'Gioco fidelizzazione · raccolta email + recall automatico',
-      es: 'Juego de fidelización · captación de emails + seguimiento',
-      de: 'Treue-Gewinnspiel · E-Mail-Sammlung + automatische Nachfassaktion',
-      zh: '忠诚度游戏 · 收集邮箱 + 自动召回',
+      fr: 'Collecte d\'informations clients · stimule le réachat',
+      it: 'Raccolta di informazioni cliente · stimola il riacquisto',
+      es: 'Recopilación de datos del cliente · impulsa la recompra',
+      de: 'Erfassung von Kundendaten · fördert Wiederkäufe',
+      zh: '收集客户信息 · 刺激客户再次消费',
     },
   },
   'ai-google': {
@@ -178,13 +178,13 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
     },
   },
   'e-reputation': {
-    name: { fr: 'E-réputation', it: 'E-reputazione', es: 'E-reputación', de: 'Online-Reputation', zh: '口碑管理' },
+    name: { fr: 'E-réputation', it: 'E-reputazione', es: 'E-reputación', de: 'Online-Reputation', zh: '线上口碑' },
     description: {
-      fr: 'Gestion Google Business + veille des avis clients',
-      it: 'Gestione Google Business + monitoraggio recensioni',
-      es: 'Gestión Google Business + seguimiento de reseñas',
-      de: 'Google Business Management + Bewertungsüberwachung',
-      zh: 'Google 商家管理 + 客户评价监控',
+      fr: 'Gestion Google Business + optimisation de la réputation en ligne',
+      it: 'Gestione Google Business + ottimizzazione della reputazione online',
+      es: 'Gestión de Google Business + optimización de la reputación online',
+      de: 'Google-Business-Verwaltung + Optimierung der Online-Reputation',
+      zh: 'Google 商家管理 + 线上口碑优化',
     },
   },
   'ai-photo': {
@@ -240,11 +240,11 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
   'website-setup': {
     name: { fr: 'Frais de création', it: 'Spese di creazione', es: 'Gastos de creación', de: 'Einrichtungsgebühr', zh: '建站费' },
     description: {
-      fr: 'Mise en ligne du site · paramétrage initial · formation',
-      it: 'Messa online del sito · configurazione iniziale · formazione',
-      es: 'Puesta en línea · configuración inicial · formación',
-      de: 'Website-Veröffentlichung · Ersteinrichtung · Schulung',
-      zh: '网站上线 · 初始配置 · 培训',
+      fr: 'Construction du site web',
+      it: 'Realizzazione del sito web',
+      es: 'Construcción del sitio web',
+      de: 'Website-Erstellung',
+      zh: '网站建设',
     },
   },
 }
