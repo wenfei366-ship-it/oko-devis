@@ -94,8 +94,22 @@ function CreateDevisButton({ onClick }: { onClick: () => void }) {
 
 function BuilderContent() {
   const [showModal, setShowModal] = useState(false)
-  const { devis } = useDevis()
+  const { devis, dispatch } = useDevis()
   const languagePill = LANGUAGE_PILL[devis.lang]
+
+  useEffect(() => {
+    if (typeof sessionStorage === 'undefined') return
+
+    const pending = sessionStorage.getItem('oko-devis-pending')
+    if (!pending) return
+
+    try {
+      dispatch({ type: 'LOAD_DEVIS', devis: JSON.parse(pending) })
+      sessionStorage.removeItem('oko-devis-pending')
+    } catch {
+      sessionStorage.removeItem('oko-devis-pending')
+    }
+  }, [dispatch])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: '#F6EFDC' }}>

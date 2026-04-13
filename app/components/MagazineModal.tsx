@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useDevis } from './DevisContext'
 import { DevisPreviewContent } from './DevisLivePreview'
 import { computeTotals } from '@/app/lib/calculations'
@@ -38,6 +39,7 @@ const LANG_DISPLAY: Record<string, string> = {
 
 export default function MagazineModal({ readOnly, onClose, historyDevis }: MagazineModalProps) {
   const ctx = useDevis()
+  const router = useRouter()
   const sourceDevis = historyDevis ?? ctx.devis
   const dispatch = ctx.dispatch
 
@@ -164,6 +166,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         }
         dispatch({ type: 'LOAD_DEVIS', devis: cloned })
         onClose()
+        router.push('/')
       } catch {
         const fallback: Devis = {
           ...historyDevis,
@@ -177,9 +180,10 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         }
         dispatch({ type: 'LOAD_DEVIS', devis: fallback })
         onClose()
+        router.push('/')
       }
     })()
-  }, [historyDevis, dispatch, onClose])
+  }, [historyDevis, dispatch, onClose, router])
 
   // Language options for temp switch
   const langOptions: { lang: Lang; flag: string; label: string }[] = [

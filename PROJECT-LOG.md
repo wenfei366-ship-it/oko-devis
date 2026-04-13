@@ -51,3 +51,4 @@
 - [verify] `pnpm typecheck`、`pnpm test`、`pnpm build` 通过；本地 production 截图确认首页三栏和 `/history` 无登录拦截
 - [fix] 输出文案多语言修正：`DATE D'ÉMISSION` 改为走 i18n，预览与 PDF 同步；法律脚注改为各语言本地化说明，中文显示“如发生争议，以本报价单的法文版本为准。”
 - [fix] 非法国一次性报价总价条修正：预览底部总价不再额外硬编码 `HT`，意大利/西班牙/德国/中文场景统一显示本地化 `TOTALE/TOTAL/总计`
+- [fix] 历史记录“修改”恢复可用：历史弹窗点 `Dupliquer et éditer` 后会跳回首页，并自动载入待编辑草稿；本地 Playwright 实测通过
