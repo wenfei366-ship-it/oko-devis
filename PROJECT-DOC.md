@@ -38,6 +38,8 @@ Current status:
 - Existing buckets:
   - `hot-uploader`
   - `oko-sites-dev`
+- If contract/devis files use R2, create a new dedicated bucket for this project/module
+- Do not reuse the existing buckets for contract file storage
 
 ### Confirmed storage direction
 
@@ -78,6 +80,7 @@ Current user flow:
 - R2 should be used for generated PDFs
 - R2 should be used for confirmation screenshots and evidence files
 - R2 should be used for any future contract attachments
+- R2 usage should go into a newly created dedicated bucket for this project/module
 
 ## 3. Technical Stack
 
