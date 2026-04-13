@@ -4,6 +4,7 @@
 import type { Devis, DevisItem, DevisTotals, LineItem, PackageLine, Lang } from './types'
 import { tr, LABELS, FREE_SERVICES } from './i18n'
 import { OKO_SENDER, CGV, CGV_ORDER } from './legal'
+import { CATALOG } from './catalog'
 import { computeTotals, lineAmount, formatEuro, formatEuroCompact } from './calculations'
 
 // ---------- ViewModel shape ----------
@@ -166,6 +167,8 @@ const SECTION_LABELS: Record<ViewModelItemSection, { title: Record<Lang, string>
   },
 }
 
+const CATALOG_PRICE_MAP = new Map(CATALOG.map((service) => [service.id, service.defaultPrice]))
+
 function itemSection(item: DevisItem): ViewModelItemSection {
   if (item.kind === 'package') return 'recurring'
   if (item.recurringEligible) return 'recurring'
@@ -293,11 +296,26 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
   const items: ViewModelItem[] = devis.items.map((item) => {
     if (item.kind === 'package') {
       const pack = item as PackageLine
-      // Build per-service detail lines: "✦ Service — description"
+      const isMonthlyMode = pack.preferredMode === 'monthly'
+      const baseline = isMonthlyMode ? pack.baselineMonthly : pack.baselineAnnual
+      const packagePrice = isMonthlyMode ? pack.monthlyPrice : pack.annualPrice
+      const economy = Math.max(0, baseline - packagePrice)
+      const cadenceLabel = isMonthlyMode ? tr(LABELS.perMonth, lang) : tr(LABELS.perYear, lang)
+
       const serviceDetails = pack.childNamesSnapshot.map((n, i) => {
         const desc = pack.childDescsSnapshot[i]
-        return desc ? `✦  ${tr(n, lang)}  —  ${tr(desc, lang)}` : `✦  ${tr(n, lang)}`
+        const monthlyPrice = pack.childMonthlyPricesSnapshot?.[i] ?? CATALOG_PRICE_MAP.get(pack.childServiceIds[i]) ?? 0
+        const displayPrice = isMonthlyMode ? monthlyPrice : monthlyPrice * 12
+        const priceLabel = `${formatEuroCompact(displayPrice)} ${cadenceLabel}`
+        return desc
+          ? `✦  ${tr(n, lang)}  —  ${tr(desc, lang)}  ·  ${priceLabel}`
+          : `✦  ${tr(n, lang)}  ·  ${priceLabel}`
       })
+      serviceDetails.push(`${tr(LABELS.tarifNormal, lang)} : ${formatEuroCompact(baseline)} ${cadenceLabel}`)
+      serviceDetails.push(`${tr(LABELS.packagePrice, lang)} : ${formatEuroCompact(packagePrice)} ${cadenceLabel}`)
+      if (economy > 0) {
+        serviceDetails.push(`${tr(LABELS.economie, lang)} : ${formatEuroCompact(economy)} ${cadenceLabel}`)
+      }
       return {
         kind: 'package' as const,
         section: itemSection(item),

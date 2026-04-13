@@ -66,6 +66,7 @@ export default function PackageGenerator({ onClose }: PackageGeneratorProps) {
       childServiceIds: selectedServices.map((s) => s.id),
       childNamesSnapshot: selectedServices.map((s) => ({ ...s.name })),
       childDescsSnapshot: selectedServices.map((s) => ({ ...s.description })),
+      childMonthlyPricesSnapshot: selectedServices.map((s) => s.defaultPrice),
       monthlyPrice: effectiveMonthly,
       annualPrice: effectiveAnnual,
       baselineMonthly,

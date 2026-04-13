@@ -115,6 +115,21 @@ describe('buildViewModel dual cards', () => {
     expect(vm.dualCards?.annual.final).toBe(1000)
     expect(vm.dualCards?.annual.economy).toBe(2600)
   })
+
+  it('shows child service original prices and package savings in package description', () => {
+    const devis = mkDevis([mkPackage({
+      childMonthlyPricesSnapshot: [30, 50],
+      baselineMonthly: 80,
+      monthlyPrice: 60,
+    })])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.items[0].description).toContain('Site web')
+    expect(vm.items[0].description).toContain('30')
+    expect(vm.items[0].description).toContain('Tarif normal : 80')
+    expect(vm.items[0].description).toContain('Prix du pack : 60')
+    expect(vm.items[0].description).toContain('Économie : 20')
+  })
 })
 
 describe('buildViewModel tax labels', () => {

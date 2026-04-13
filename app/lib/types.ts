@@ -79,6 +79,7 @@ export interface PackageLine {
   childServiceIds: string[]
   childNamesSnapshot: I18nString[]
   childDescsSnapshot: I18nString[]
+  childMonthlyPricesSnapshot?: number[]
   /** editable by sales, EUR HT / month */
   monthlyPrice: number
   /** editable by sales, EUR HT / year — not necessarily 12× monthly */

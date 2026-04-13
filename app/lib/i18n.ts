@@ -35,6 +35,7 @@ export const LABELS = {
 
   // Tariff comparison card
   tarifNormal: { fr: 'Tarif normal', it: 'Prezzo normale', es: 'Precio normal', de: 'Normalpreis', zh: '原价' } as I18nString,
+  packagePrice: { fr: 'Prix du pack', it: 'Prezzo del pacchetto', es: 'Precio del paquete', de: 'Paketpreis', zh: '套餐价' } as I18nString,
   economie: { fr: 'Économie', it: 'Risparmio', es: 'Ahorro', de: 'Ersparnis', zh: '节省' } as I18nString,
   mensuel: { fr: 'MENSUEL', it: 'MENSILE', es: 'MENSUAL', de: 'MONATLICH', zh: '月付' } as I18nString,
   annuel: { fr: 'ANNUEL', it: 'ANNUALE', es: 'ANUAL', de: 'JÄHRLICH', zh: '年付' } as I18nString,
