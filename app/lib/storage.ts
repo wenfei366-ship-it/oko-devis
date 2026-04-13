@@ -1,51 +1,27 @@
-// OKO Devis Generator — localStorage history (v3)
-// Immutable snapshots: saveToHistory throws on id collision — caller must fork.
-// Legacy key migration from 'oko-devis-local-history-v1' → 'oko-devis-history-v1'.
+'use client'
 
 import type { Devis } from './types'
 import { generateDraftNumber, uuid } from './numbering'
+import { getSupabaseBrowserClient } from './supabase/client'
 
-const HISTORY_KEY = 'oko-devis-history-v1'
-const LEGACY_HISTORY_KEY = 'oko-devis-local-history-v1'
+const TABLE_NAME = 'devis_history'
 const MAX_HISTORY = 100
 
-function migrateLegacy(): void {
-  if (typeof window === 'undefined') return
-  try {
-    const legacy = localStorage.getItem(LEGACY_HISTORY_KEY)
-    const current = localStorage.getItem(HISTORY_KEY)
-    if (legacy && !current) {
-      localStorage.setItem(HISTORY_KEY, legacy)
-      localStorage.removeItem(LEGACY_HISTORY_KEY)
-    }
-  } catch {
-    // ignore
-  }
+interface DevisHistoryRow {
+  devis: Devis
 }
 
-function readAll(): Devis[] {
-  if (typeof window === 'undefined') return []
-  migrateLegacy()
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY)
-    if (!raw) return []
-    return JSON.parse(raw) as Devis[]
-  } catch {
-    return []
-  }
-}
+async function requireUserId(): Promise<string> {
+  const supabase = getSupabaseBrowserClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-function writeAll(list: Devis[]): void {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, MAX_HISTORY)))
-  } catch {
-    // quota exceeded — silently drop
+  if (!session?.user?.id) {
+    throw new AuthRequiredError()
   }
-}
 
-export function listHistory(): Devis[] {
-  return readAll()
+  return session.user.id
 }
 
 export class HistoryConflictError extends Error {
@@ -55,42 +31,79 @@ export class HistoryConflictError extends Error {
   }
 }
 
-/**
- * Insert a devis into the local history. Throws HistoryConflictError if an
- * entry with the same id already exists. Caller is responsible for forking
- * (new id) when they want to persist edits on an already-saved devis.
- *
- * History entries are IMMUTABLE. There is no update / upsert — only insert.
- */
-export function saveToHistory(devis: Devis): void {
-  const all = readAll()
-  if (all.some((d) => d.id === devis.id)) {
-    throw new HistoryConflictError(devis.id)
+export class AuthRequiredError extends Error {
+  constructor() {
+    super('You must sign in before using shared history.')
+    this.name = 'AuthRequiredError'
   }
+}
+
+export async function listHistory(): Promise<Devis[]> {
+  const userId = await requireUserId()
+  const supabase = getSupabaseBrowserClient()
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select('devis')
+    .eq('user_id', userId)
+    .order('saved_at', { ascending: false })
+    .limit(MAX_HISTORY)
+
+  if (error) throw error
+
+  return ((data ?? []) as DevisHistoryRow[]).map((row) => row.devis)
+}
+
+export async function saveToHistory(devis: Devis): Promise<void> {
+  const userId = await requireUserId()
+  const supabase = getSupabaseBrowserClient()
   const stamped: Devis = {
     ...devis,
     savedAt: devis.savedAt || new Date().toISOString(),
   }
-  writeAll([stamped, ...all])
+
+  const { error } = await supabase.from(TABLE_NAME).insert({
+    user_id: userId,
+    devis_id: stamped.id,
+    devis: stamped,
+    saved_at: stamped.savedAt,
+  })
+
+  if (!error) return
+  if (error.code === '23505') throw new HistoryConflictError(devis.id)
+  throw error
 }
 
-export function deleteFromHistory(id: string): void {
-  writeAll(readAll().filter((d) => d.id !== id))
+export async function deleteFromHistory(id: string): Promise<void> {
+  const userId = await requireUserId()
+  const supabase = getSupabaseBrowserClient()
+  const { error } = await supabase
+    .from(TABLE_NAME)
+    .delete()
+    .match({ user_id: userId, devis_id: id })
+
+  if (error) throw error
 }
 
-export function loadFromHistory(id: string): Devis | null {
-  return readAll().find((d) => d.id === id) ?? null
+export async function loadFromHistory(id: string): Promise<Devis | null> {
+  const userId = await requireUserId()
+  const supabase = getSupabaseBrowserClient()
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select('devis')
+    .eq('user_id', userId)
+    .eq('devis_id', id)
+    .maybeSingle()
+
+  if (error) throw error
+
+  return data ? (data as DevisHistoryRow).devis : null
 }
 
-/**
- * Clone an existing history entry for editing.
- * Generates a new id + new draft number, clears savedAt so the clone
- * is treated as an unsaved draft. Throws if the source id is not found.
- */
-export function cloneForEdit(id: string): Devis {
-  const source = loadFromHistory(id)
+export async function cloneForEdit(id: string): Promise<Devis> {
+  const source = await loadFromHistory(id)
   if (!source) throw new Error(`Devis id "${id}" not found in history.`)
-  const clone: Devis = {
+
+  return {
     ...source,
     id: uuid(),
     meta: {
@@ -100,16 +113,11 @@ export function cloneForEdit(id: string): Devis {
     savedAt: undefined,
     updatedAt: new Date().toISOString(),
   }
-  return clone
 }
 
-export function clearHistory(): void {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(HISTORY_KEY)
-    } catch {
-      // fallback: write empty array
-      writeAll([])
-    }
-  }
+export async function clearHistory(): Promise<void> {
+  const userId = await requireUserId()
+  const supabase = getSupabaseBrowserClient()
+  const { error } = await supabase.from(TABLE_NAME).delete().match({ user_id: userId })
+  if (error) throw error
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display, Poppins } from 'next/font/google'
+import AppProviders from './components/AppProviders'
 import './globals.css'
 
 const inter = Inter({
@@ -40,7 +41,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--ink)] font-sans">
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   )

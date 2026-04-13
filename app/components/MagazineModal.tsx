@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import { useDevis } from './DevisContext'
+import { useAuth } from './AuthContext'
 import { DevisPreviewContent } from './DevisLivePreview'
 import { computeTotals } from '@/app/lib/calculations'
 import { buildViewModel } from '@/app/lib/viewModel'
-import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
+import { saveToHistory, HistoryConflictError, cloneForEdit, AuthRequiredError } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
 import type { Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
@@ -38,6 +39,7 @@ const LANG_DISPLAY: Record<string, string> = {
 
 export default function MagazineModal({ readOnly, onClose, historyDevis }: MagazineModalProps) {
   const ctx = useDevis()
+  const { user } = useAuth()
   const sourceDevis = historyDevis ?? ctx.devis
   const dispatch = ctx.dispatch
 
@@ -55,35 +57,35 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   const vm = useMemo(() => buildViewModel(displayDevis, totals), [displayDevis, totals])
 
   const previewRef = useRef<HTMLDivElement>(null)
+  const didPersistRef = useRef(false)
+  const [saveNotice, setSaveNotice] = useState<string | null>(null)
 
   // Save to history on first open (non-read-only)
   useEffect(() => {
     if (readOnly) return
-
-    const devisToSave = { ...sourceDevis }
-    try {
-      if (!devisToSave.savedAt) {
-        devisToSave.savedAt = new Date().toISOString()
-        saveToHistory(devisToSave)
-        // Update the builder state to reflect savedAt
-        dispatch({ type: 'LOAD_DEVIS', devis: devisToSave })
-      } else {
-        // Already saved — fork with new id
-        const forked: Devis = {
-          ...devisToSave,
-          id: uuid(),
-          meta: {
-            ...devisToSave.meta,
-            number: generateDraftNumber(),
-          },
-          savedAt: new Date().toISOString(),
-        }
-        saveToHistory(forked)
-        dispatch({ type: 'LOAD_DEVIS', devis: forked })
+    if (!user || didPersistRef.current) {
+      if (!user) {
+        setSaveNotice('未登录：当前预览不会进入云端历史。请先回首页登录。')
       }
-    } catch (err) {
-      if (err instanceof HistoryConflictError) {
-        // Fork and retry
+      return
+    }
+
+    let cancelled = false
+
+    const persist = async () => {
+      const devisToSave = { ...sourceDevis }
+      try {
+        if (!devisToSave.savedAt) {
+          devisToSave.savedAt = new Date().toISOString()
+          await saveToHistory(devisToSave)
+          if (!cancelled) {
+            didPersistRef.current = true
+            setSaveNotice('已保存到云端历史。')
+            dispatch({ type: 'LOAD_DEVIS', devis: devisToSave })
+          }
+          return
+        }
+
         const forked: Devis = {
           ...devisToSave,
           id: uuid(),
@@ -93,16 +95,54 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
           },
           savedAt: new Date().toISOString(),
         }
-        try {
-          saveToHistory(forked)
+        await saveToHistory(forked)
+        if (!cancelled) {
+          didPersistRef.current = true
+          setSaveNotice('已另存为新的云端历史版本。')
           dispatch({ type: 'LOAD_DEVIS', devis: forked })
-        } catch {
-          // storage full or other error — continue without saving
+        }
+      } catch (err) {
+        if (err instanceof HistoryConflictError) {
+          const forked: Devis = {
+            ...devisToSave,
+            id: uuid(),
+            meta: {
+              ...devisToSave.meta,
+              number: generateDraftNumber(),
+            },
+            savedAt: new Date().toISOString(),
+          }
+          try {
+            await saveToHistory(forked)
+            if (!cancelled) {
+              didPersistRef.current = true
+              setSaveNotice('原编号已存在，已自动另存为新版本。')
+              dispatch({ type: 'LOAD_DEVIS', devis: forked })
+            }
+          } catch (nestedErr) {
+            if (!cancelled) {
+              setSaveNotice(nestedErr instanceof Error ? nestedErr.message : '保存到云端历史失败。')
+            }
+          }
+          return
+        }
+
+        if (!cancelled) {
+          if (err instanceof AuthRequiredError) {
+            setSaveNotice('未登录：当前预览不会进入云端历史。请先回首页登录。')
+          } else {
+            setSaveNotice(err instanceof Error ? err.message : '保存到云端历史失败。')
+          }
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+
+    void persist()
+
+    return () => {
+      cancelled = true
+    }
+  }, [dispatch, readOnly, sourceDevis, user])
 
   // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {
@@ -124,29 +164,30 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   // Duplicate for edit (history mode) — uses cloneForEdit from storage
   const handleDuplicate = useCallback(() => {
     if (!historyDevis) return
-    try {
-      const cloned = cloneForEdit(historyDevis.id)
-      // Store in sessionStorage so the builder picks it up on navigate
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem('oko-devis-pending', JSON.stringify(cloned))
+    void (async () => {
+      try {
+        const cloned = await cloneForEdit(historyDevis.id)
+        // Store in sessionStorage so the builder picks it up on navigate
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('oko-devis-pending', JSON.stringify(cloned))
+        }
+        dispatch({ type: 'LOAD_DEVIS', devis: cloned })
+        onClose()
+      } catch {
+        const fallback: Devis = {
+          ...historyDevis,
+          id: uuid(),
+          meta: {
+            ...historyDevis.meta,
+            number: generateDraftNumber(),
+          },
+          savedAt: undefined,
+          updatedAt: new Date().toISOString(),
+        }
+        dispatch({ type: 'LOAD_DEVIS', devis: fallback })
+        onClose()
       }
-      dispatch({ type: 'LOAD_DEVIS', devis: cloned })
-      onClose()
-    } catch {
-      // Fallback: inline clone if history lookup fails (e.g. id mismatch)
-      const fallback: Devis = {
-        ...historyDevis,
-        id: uuid(),
-        meta: {
-          ...historyDevis.meta,
-          number: generateDraftNumber(),
-        },
-        savedAt: undefined,
-        updatedAt: new Date().toISOString(),
-      }
-      dispatch({ type: 'LOAD_DEVIS', devis: fallback })
-      onClose()
-    }
+    })()
   }, [historyDevis, dispatch, onClose])
 
   // Language options for temp switch
@@ -203,48 +244,63 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
 
           {/* Eyebrow + Close button header */}
           <div className="relative flex items-center justify-between px-10 pt-8 pb-2">
-            <div className="flex items-center gap-3">
-              <span
-                style={{
-                  color: '#9B8550',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 2.6,
-                  textTransform: 'uppercase',
-                }}
-              >
-                PRÉVISUALISATION · PRÊT À L&apos;ENVOI
-              </span>
-              {/* Read-only language switch */}
-              {readOnly && (
-                <div className="flex gap-1 ml-4">
-                  {langOptions.map((opt) => (
-                    <button
-                      key={opt.lang}
-                      type="button"
-                      onClick={() => setTempLang(opt.lang)}
-                      className="transition-colors"
-                      style={{
-                        padding: '2px 8px',
-                        fontSize: 11,
-                        fontFamily: 'Inter, sans-serif',
-                        fontWeight: 500,
-                        borderRadius: 4,
-                        backgroundColor:
-                          (tempLang ?? sourceDevis.lang) === opt.lang
-                            ? '#1C1611'
-                            : 'transparent',
-                        color:
-                          (tempLang ?? sourceDevis.lang) === opt.lang
-                            ? '#F4EBD4'
-                            : '#9B8550',
-                      }}
-                    >
-                      {opt.flag} {opt.label}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <span
+                  style={{
+                    color: '#9B8550',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: 2.6,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  PRÉVISUALISATION · PRÊT À L&apos;ENVOI
+                </span>
+                {/* Read-only language switch */}
+                {readOnly && (
+                  <div className="flex gap-1 ml-4">
+                    {langOptions.map((opt) => (
+                      <button
+                        key={opt.lang}
+                        type="button"
+                        onClick={() => setTempLang(opt.lang)}
+                        className="transition-colors"
+                        style={{
+                          padding: '2px 8px',
+                          fontSize: 11,
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 500,
+                          borderRadius: 4,
+                          backgroundColor:
+                            (tempLang ?? sourceDevis.lang) === opt.lang
+                              ? '#1C1611'
+                              : 'transparent',
+                          color:
+                            (tempLang ?? sourceDevis.lang) === opt.lang
+                              ? '#F4EBD4'
+                              : '#9B8550',
+                        }}
+                      >
+                        {opt.flag} {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {saveNotice && !readOnly && (
+                <p
+                  className="mt-2"
+                  style={{
+                    color: saveNotice.startsWith('已') ? '#6B7C34' : '#9B8550',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 500,
+                  }}
+                >
+                  {saveNotice}
+                </p>
               )}
             </div>
 
