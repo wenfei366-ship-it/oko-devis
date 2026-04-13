@@ -25,6 +25,15 @@ export function registerPdfFonts() {
     ],
   })
 
+  Font.register({
+    family: 'Noto Sans SC',
+    fonts: [
+      { src: '/fonts/NotoSansSC.ttf', fontWeight: 400 },
+      { src: '/fonts/NotoSansSC.ttf', fontWeight: 500 },
+      { src: '/fonts/NotoSansSC.ttf', fontWeight: 700 },
+    ],
+  })
+
   // Disable hyphenation (French text shouldn't auto-hyphenate)
   Font.registerHyphenationCallback((word) => [word])
 }

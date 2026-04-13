@@ -4,6 +4,7 @@ import Image from 'next/image'
 import type { Contract } from '@/app/lib/types'
 import { formatEuroCompact } from '@/app/lib/calculations'
 import {
+  getArticle7ReferenceRows,
   buildProviderLines,
   formatContractDate,
   getContractCopy,
@@ -21,7 +22,7 @@ interface ContractPreviewProps {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="text-[9px] font-bold uppercase tracking-[2px]"
+      className="text-[9px] font-bold uppercase tracking-[1.8px]"
       style={{ color: '#9B8550' }}
     >
       {children}
@@ -39,12 +40,12 @@ function ArticleBlock({
   return (
     <section className="space-y-2">
       <h3
-        className="text-[18px] font-bold italic leading-tight"
+        className="text-[20px] font-bold italic leading-tight"
         style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
       >
         {title}
       </h3>
-      <div className="space-y-2 text-[11px] leading-[1.72]" style={{ color: '#2A2620' }}>
+      <div className="space-y-2 text-[11px] leading-[1.76]" style={{ color: '#2A2620', fontFamily: 'var(--font-inter), Inter, sans-serif' }}>
         {children}
       </div>
     </section>
@@ -60,7 +61,7 @@ function Paper({
 }) {
   return (
     <div
-      className="rounded-[2px] border px-[54px] py-[52px]"
+      className="rounded-[2px] border px-[58px] py-[56px]"
       style={{
         width: 800,
         minHeight: 1132,
@@ -85,6 +86,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
   const copy = getContractCopy(contract.lang)
   const providerLines = buildProviderLines()
   const serviceLines = getStandardServiceLines(contract.lang)
+  const article7Rows = getArticle7ReferenceRows(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
 
   return (
@@ -101,10 +103,10 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                 className="max-w-[430px] text-[50px] font-bold leading-[0.96] tracking-[-1.2px]"
                 style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
               >
-                {copy.title}
-              </h1>
+              {copy.title}
+            </h1>
               <p
-                className="text-[15px] italic"
+                className="text-[14px] italic"
                 style={{ color: '#6B5A3D', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
               >
                 {copy.subtitlePrefix} — Paris, {formatContractDate(contract.meta.date, contract.lang)}
@@ -155,7 +157,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
         </section>
 
         <p
-          className="mt-6 text-[12px] italic"
+          className="mt-6 text-[11px] italic leading-[1.75]"
           style={{ color: '#5C5142', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
         >
           {copy.intro}
@@ -222,16 +224,35 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
 
           <ArticleBlock title={copy.article7Title}>
             <p>{copy.article7Intro}</p>
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
-              <SectionLabel>{copy.article7CatalogLabel}</SectionLabel>
-              <p className="mt-3 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
-                {copy.article7CatalogNote}
-              </p>
+            <div className="overflow-hidden rounded-[2px] border" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
+              <div className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-3 text-[8px] font-bold uppercase tracking-[1.2px]" style={{ backgroundColor: '#F4ECD6', color: '#6B5A3D' }}>
+                <div />
+                <div>Désignation</div>
+                <div className="text-right">Mensuel</div>
+                <div className="text-right">Annuel</div>
+              </div>
+              {article7Rows.map((row) => (
+                <div
+                  key={row.numeral}
+                  className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-3"
+                  style={{
+                    backgroundColor: row.emphasized ? '#1C1611' : row.muted ? 'rgba(246,239,220,0.5)' : '#FEFBF2',
+                  }}
+                >
+                  <div className="text-[13px] font-bold italic" style={{ color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>{row.numeral}</div>
+                  <div>
+                    <div className="text-[11px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.title}</div>
+                    <div className="mt-1 text-[9px] italic leading-[1.5]" style={{ color: row.emphasized ? '#D9CFB8' : '#6B5A3D' }}>{row.description}</div>
+                  </div>
+                  <div className="text-right text-[10px]" style={{ color: row.emphasized ? '#D9CFB8' : '#1C1611' }}>{row.monthly}</div>
+                  <div className="text-right text-[11px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.annual}</div>
+                </div>
+              ))}
             </div>
 
             <p>{copy.article7Note}</p>
 
-            <div className="grid grid-cols-[1.45fr_0.95fr] gap-4">
+            <div className="grid grid-cols-[1.45fr_0.95fr] items-start gap-4">
               <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
                 <SectionLabel>
                   {copy.article7ClientChoice} · {contract.selectedServices.length} SERVICES
@@ -239,7 +260,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                 <div className="mt-3 space-y-2 text-[11px] leading-[1.65]" style={{ color: '#2A2620' }}>
                   {contract.selectedServices.length === 0 ? (
                     <div className="rounded-[2px] border px-3 py-2" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
-                      <div className="font-semibold">{selectedServices[0]}</div>
+                      <div className="font-semibold">{copy.noServices}</div>
                     </div>
                   ) : (
                     contract.selectedServices.map((item, index) => (
@@ -255,7 +276,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
               </div>
 
               <div
-                className="rounded-[2px] border p-4"
+                className="self-start rounded-[2px] border p-4"
                 style={{ borderColor: '#B8922F', backgroundColor: '#1C1611' }}
               >
                 <SectionLabel>{copy.article7FinalPrice}</SectionLabel>

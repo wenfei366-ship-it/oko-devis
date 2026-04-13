@@ -53,6 +53,16 @@ type ContractCopy = {
   totalAnnual: string
 }
 
+export type Article7ReferenceRow = {
+  numeral: string
+  title: string
+  description: string
+  monthly: string
+  annual: string
+  emphasized?: boolean
+  muted?: boolean
+}
+
 export const CONTRACT_LANGUAGE_LABELS: Record<Lang, string> = {
   fr: 'FR',
   zh: '中',
@@ -422,6 +432,58 @@ export function getSelectedServiceSummaries(contract: Contract): string[] {
     const amount = formatEuroCompact(getContractServicePrice(item, contract.paymentMode))
     return `${name} · ${amount}`
   })
+}
+
+export function getArticle7ReferenceRows(lang: Lang): Article7ReferenceRow[] {
+  const rows: Record<Lang, Article7ReferenceRow[]> = {
+    fr: [
+      { numeral: 'I', title: 'Frais de création du site web', description: 'Paiement unique à la commande, avant lancement du projet', monthly: '—', annual: '100 € une fois', emphasized: true },
+      { numeral: 'II', title: 'Site web vitrine', description: 'Site multilingue, hébergement et mises à jour illimitées', monthly: '30 € / mois', annual: '300 € / an', muted: true },
+      { numeral: 'III', title: 'Géolocalisation', description: 'Fiches restaurant sur Google, TripAdvisor, Yelp, Facebook', monthly: '50 € / mois', annual: '500 € / an' },
+      { numeral: 'IV', title: 'Commande en ligne', description: 'À emporter et livraison, emballage et frais inclus', monthly: '50 € / mois', annual: '500 € / an', muted: true },
+      { numeral: 'V', title: 'Commande à table', description: 'QR code personnalisé par table, menu digital intégré', monthly: '50 € / mois', annual: '500 € / an' },
+      { numeral: 'VI', title: 'E-réputation', description: 'Gestion Google Business et réponses IA aux avis', monthly: '50 € / mois', annual: '500 € / an', muted: true },
+      { numeral: 'VII', title: 'Jeu de la roue', description: "Jeu de fidélisation client avec collecte d'emails", monthly: '50 € / mois', annual: '500 € / an' },
+    ],
+    zh: [
+      { numeral: 'I', title: '网站创建费', description: '项目启动前一次性支付', monthly: '—', annual: '100 € 一次', emphasized: true },
+      { numeral: 'II', title: '展示型网站', description: '多语言网站、托管与不限次更新', monthly: '30 € / 月', annual: '300 € / 年', muted: true },
+      { numeral: 'III', title: '地理定位', description: 'Google、TripAdvisor、Yelp、Facebook 餐厅资料', monthly: '50 € / 月', annual: '500 € / 年' },
+      { numeral: 'IV', title: '在线点单', description: '外卖与配送，含包装和配送费用', monthly: '50 € / 月', annual: '500 € / 年', muted: true },
+      { numeral: 'V', title: '桌边点餐', description: '每桌专属二维码，内置电子菜单', monthly: '50 € / 月', annual: '500 € / 年' },
+      { numeral: 'VI', title: '口碑管理', description: 'Google Business 管理与 AI 评论回复', monthly: '50 € / 月', annual: '500 € / 年', muted: true },
+      { numeral: 'VII', title: '转盘游戏', description: '带邮箱收集的客户留存游戏', monthly: '50 € / 月', annual: '500 € / 年' },
+    ],
+    it: [
+      { numeral: 'I', title: 'Spese di creazione del sito web', description: "Pagamento unico all'ordine, prima dell'avvio del progetto", monthly: '—', annual: '100 € una volta', emphasized: true },
+      { numeral: 'II', title: 'Sito web vetrina', description: 'Sito multilingue, hosting e aggiornamenti illimitati', monthly: '30 € / mese', annual: '300 € / anno', muted: true },
+      { numeral: 'III', title: 'Geolocalizzazione', description: 'Schede ristorante su Google, TripAdvisor, Yelp, Facebook', monthly: '50 € / mese', annual: '500 € / anno' },
+      { numeral: 'IV', title: 'Ordini online', description: 'Asporto e consegna, imballaggi e costi inclusi', monthly: '50 € / mese', annual: '500 € / anno', muted: true },
+      { numeral: 'V', title: 'Ordini al tavolo', description: 'QR code personalizzato per tavolo, menu digitale integrato', monthly: '50 € / mese', annual: '500 € / anno' },
+      { numeral: 'VI', title: 'E-reputation', description: 'Gestione Google Business e risposte IA alle recensioni', monthly: '50 € / mese', annual: '500 € / anno', muted: true },
+      { numeral: 'VII', title: 'Gioco della ruota', description: 'Gioco fedeltà clienti con raccolta email', monthly: '50 € / mese', annual: '500 € / anno' },
+    ],
+    de: [
+      { numeral: 'I', title: 'Einrichtungsgebühr Website', description: 'Einmalige Zahlung bei Auftrag vor Projektstart', monthly: '—', annual: '100 € einmalig', emphasized: true },
+      { numeral: 'II', title: 'Webseite', description: 'Mehrsprachige Website, Hosting und unbegrenzte Updates', monthly: '30 € / Monat', annual: '300 € / Jahr', muted: true },
+      { numeral: 'III', title: 'Geolokalisierung', description: 'Restaurantprofile auf Google, TripAdvisor, Yelp, Facebook', monthly: '50 € / Monat', annual: '500 € / Jahr' },
+      { numeral: 'IV', title: 'Online-Bestellung', description: 'Abholung und Lieferung inklusive Verpackung und Gebühren', monthly: '50 € / Monat', annual: '500 € / Jahr', muted: true },
+      { numeral: 'V', title: 'Bestellung am Tisch', description: 'Personalisierter QR-Code pro Tisch mit digitaler Speisekarte', monthly: '50 € / Monat', annual: '500 € / Jahr' },
+      { numeral: 'VI', title: 'E-Reputation', description: 'Google Business Verwaltung und KI-Antworten auf Bewertungen', monthly: '50 € / Monat', annual: '500 € / Jahr', muted: true },
+      { numeral: 'VII', title: 'Glücksrad', description: 'Kundengewinnspiel mit E-Mail-Erfassung', monthly: '50 € / Monat', annual: '500 € / Jahr' },
+    ],
+    es: [
+      { numeral: 'I', title: 'Gastos de creación del sitio web', description: 'Pago único al pedido, antes del inicio del proyecto', monthly: '—', annual: '100 € una vez', emphasized: true },
+      { numeral: 'II', title: 'Sitio web vitrina', description: 'Sitio multilingüe, alojamiento y actualizaciones ilimitadas', monthly: '30 € / mes', annual: '300 € / año', muted: true },
+      { numeral: 'III', title: 'Geolocalización', description: 'Fichas del restaurante en Google, TripAdvisor, Yelp, Facebook', monthly: '50 € / mes', annual: '500 € / año' },
+      { numeral: 'IV', title: 'Pedidos en línea', description: 'Para llevar y entrega, embalaje y gastos incluidos', monthly: '50 € / mes', annual: '500 € / año', muted: true },
+      { numeral: 'V', title: 'Pedidos en mesa', description: 'QR personalizado por mesa con menú digital integrado', monthly: '50 € / mes', annual: '500 € / año' },
+      { numeral: 'VI', title: 'E-reputación', description: 'Gestión de Google Business y respuestas IA a reseñas', monthly: '50 € / mes', annual: '500 € / año', muted: true },
+      { numeral: 'VII', title: 'Juego de la ruleta', description: 'Juego de fidelización con captación de correos', monthly: '50 € / mes', annual: '500 € / año' },
+    ],
+  }
+
+  return rows[lang]
 }
 
 export function getContractReferenceTotal(items: DevisItem[], paymentMode: Contract['paymentMode']): number {

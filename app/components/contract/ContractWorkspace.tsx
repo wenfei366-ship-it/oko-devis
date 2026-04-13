@@ -6,15 +6,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ContractPreview from './ContractPreview'
 import { CATALOG } from '@/app/lib/catalog'
 import { formatEuroCompact } from '@/app/lib/calculations'
+import { packNameWithCount } from '@/app/lib/i18n'
 import {
   CONTRACT_LANGUAGE_LABELS,
   CONTRACT_SENT_CHANNEL_LABELS,
   CONTRACT_STATUS_LABELS,
   getContractReferenceTotal,
-  getSelectedServiceSummaries,
 } from '@/app/lib/contractContent'
 import {
-  cloneContractForEdit,
   createContractLineItemFromService,
   createContractFromDevis,
   createEmptyContract,
@@ -23,9 +22,10 @@ import {
   updateContractStatus,
 } from '@/app/lib/contractStorage'
 import { buildContractPdfPath } from '@/app/lib/fileStorage'
+import { uuid } from '@/app/lib/numbering'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
-import type { Contract, ContractSentChannel, ContractStatus, Lang } from '@/app/lib/types'
+import type { Contract, ContractSentChannel, ContractStatus, Lang, PackageLine, Service } from '@/app/lib/types'
 
 interface ContractWorkspaceProps {
   contractId?: string
@@ -64,6 +64,33 @@ const STATUS_FLOW: Array<{
   { key: 'confirmed', title: '已确认', description: '客户已经明确同意。' },
   { key: 'completed', title: '已完成', description: '这份合同已经归档完成。' },
 ]
+
+function createPackageFromServices(services: Service[]): PackageLine {
+  const baselineMonthly = services.reduce((sum, service) => sum + service.defaultPrice, 0)
+  const baselineAnnual = baselineMonthly * 12
+
+  return {
+    kind: 'package',
+    id: uuid(),
+    nameSnapshot: {
+      fr: packNameWithCount(services.length, 'fr'),
+      zh: packNameWithCount(services.length, 'zh'),
+      it: packNameWithCount(services.length, 'it'),
+      de: packNameWithCount(services.length, 'de'),
+      es: packNameWithCount(services.length, 'es'),
+    },
+    childServiceIds: services.map((service) => service.id),
+    childNamesSnapshot: services.map((service) => ({ ...service.name })),
+    childDescsSnapshot: services.map((service) => ({ ...service.description })),
+    childMonthlyPricesSnapshot: services.map((service) => service.defaultPrice),
+    monthlyPrice: baselineMonthly,
+    annualPrice: baselineAnnual,
+    baselineMonthly,
+    baselineAnnual,
+    preferredMode: 'annual',
+    recurringEligible: true,
+  }
+}
 
 function ScaledContract({ contract, previewRef }: { contract: Contract; previewRef: React.RefObject<HTMLDivElement | null> }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -122,6 +149,8 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [showCatalog, setShowCatalog] = useState(false)
+  const [packDraft, setPackDraft] = useState<Set<string>>(new Set())
 
   const loadData = useCallback(async () => {
     if (!mounted) return
@@ -228,17 +257,6 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     }
   }, [contract])
 
-  const handleDuplicate = useCallback(async () => {
-    if (!contractId) return
-    try {
-      const cloned = await cloneContractForEdit(contractId)
-      await saveContract(cloned)
-      router.push(`/contract/${cloned.id}`)
-    } catch (duplicateError) {
-      setSaveMessage(duplicateError instanceof Error ? duplicateError.message : '复制失败。')
-    }
-  }, [contractId, router])
-
   const handleExport = useCallback(() => {
     if (!contract || exporting) return
 
@@ -330,10 +348,34 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     return '#9B8550'
   }, [contract])
 
-  const selectedServiceSummaries = useMemo(
-    () => (contract ? getSelectedServiceSummaries(contract) : []),
-    [contract],
+  const recurringCatalog = useMemo(
+    () => CATALOG.filter((service) => service.recurringEligible),
+    [],
   )
+  const draftPackServices = useMemo(
+    () => recurringCatalog.filter((service) => packDraft.has(service.id)),
+    [packDraft, recurringCatalog],
+  )
+
+  const togglePackDraft = useCallback((serviceId: string) => {
+    setPackDraft((current) => {
+      const next = new Set(current)
+      if (next.has(serviceId)) next.delete(serviceId)
+      else next.add(serviceId)
+      return next
+    })
+  }, [])
+
+  const addDraftPackage = useCallback(() => {
+    if (!contract || draftPackServices.length === 0) return
+
+    const nextServices = [
+      ...contract.selectedServices,
+      createPackageFromServices(draftPackServices),
+    ]
+    applyServiceSelection(nextServices)
+    setPackDraft(new Set())
+  }, [applyServiceSelection, contract, draftPackServices])
 
   if (!mounted || loading) {
     return (
@@ -357,108 +399,214 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F6EFDC' }}>
-      <header className="flex items-center justify-between border-b px-8 py-4" style={{ borderColor: 'rgba(212, 197, 142, 0.6)', backgroundColor: '#F8EFDC' }}>
-        <div>
-          <div className="text-[16px] font-bold tracking-[0.4px]" style={{ color: '#1C1611' }}>
-            OKO Contract 工作台
+    <div className="min-h-screen" style={{ backgroundColor: readOnly ? '#F8F1E0' : '#F4EBD1' }}>
+      <header className="flex items-center justify-between border-b px-12 py-[22px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#F4ECD6' }}>
+        <div className="flex items-center gap-[18px]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: '#1C1611' }}>
+            <span className="text-[18px] font-bold" style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>O</span>
           </div>
-          <div className="text-[11px] font-medium" style={{ color: '#8B7A3E' }}>
-            合同编辑 · 共享历史 · 固定模板
+          <div className="text-[20px] font-bold tracking-[1px]" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>OKO</div>
+          <div className="h-5 w-px" style={{ backgroundColor: '#C8B987' }} />
+          <div className="text-[11px] font-medium tracking-[1.2px]" style={{ color: '#6B5A3D' }}>
+            {readOnly ? '合同详情  ·  归档与跟进' : '合同编辑  ·  草稿'}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/history"
-            className="rounded-[10px] px-4 py-2 text-[12px] font-semibold"
-            style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
-          >
-            ← 历史记录
-          </Link>
-          {!readOnly && (
-            <button
-              type="button"
-              onClick={() => void handleSave()}
-              disabled={saving}
-              className="rounded-[10px] px-4 py-2 text-[12px] font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
-            >
-              {saving ? '保存中…' : '保存草稿'}
-            </button>
-          )}
-          {contract?.id && (
-            <Link
-              href={`/contract/${contract.id}/detail`}
-              className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold"
-              style={{ borderColor: '#1C1611', color: '#1C1611' }}
-            >
-              查看跟进页
+        <div className="flex items-center gap-[14px]">
+          {readOnly ? (
+            <Link href="/history" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
+              全部合同 →
+            </Link>
+          ) : (
+            <Link href="/history" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
+              全部合同 →
             </Link>
           )}
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exporting}
-            className="rounded-[10px] px-5 py-2 text-[13px] font-bold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#1C1611', color: '#F8EFDC', opacity: exporting ? 0.72 : 1 }}
-          >
-            {exporting ? '导出中…' : '导出 PDF →'}
-          </button>
         </div>
       </header>
 
-      <div className="flex items-center justify-between border-b px-8 py-3 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
-        <div className="flex items-center gap-3">
-          <span style={{ color: '#8B7A3E' }}>合同编号</span>
-          <span className="font-semibold" style={{ color: '#1C1611' }}>{contract.meta.number}</span>
-          {contract.meta.devisNumber && (
+      <div className="flex items-center justify-between border-b px-12 py-5 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: readOnly ? '#F4ECD6' : '#F8F1E0' }}>
+        <div className="flex items-center gap-[14px]">
+          <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 历史记录</span>
+          <span style={{ color: '#C8B987' }}>/</span>
+          <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
+          <span style={{ color: '#C8B987' }}>/</span>
+          <span className="font-bold" style={{ color: '#1C1611' }}>{contract.meta.number}</span>
+        </div>
+        <div className="flex items-center gap-[10px]">
+          {saveMessage && <span className="text-[11px]" style={{ color: saveMessage.includes('失败') ? '#9B2A2A' : '#6B8E4E' }}>{saveMessage}</span>}
+          {readOnly ? (
+            <button
+              type="button"
+              onClick={() => void handleStatusChange('completed')}
+              className="rounded-[2px] border px-5 py-2 text-[10px] font-bold tracking-[1.4px]"
+              style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}
+            >
+              标记完成 →
+            </button>
+          ) : (
             <>
-              <span style={{ color: '#C8B987' }}>·</span>
-              <span style={{ color: '#8B7A3E' }}>关联报价单</span>
-              <span className="font-semibold" style={{ color: '#1C1611' }}>{contract.meta.devisNumber}</span>
+              <button
+                type="button"
+                onClick={() => void handleSave()}
+                disabled={saving}
+                className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+                style={{ borderColor: '#1C1611', color: '#1C1611' }}
+              >
+                {saving ? '保存中…' : '保存草稿'}
+              </button>
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={exporting}
+                className="rounded-[2px] px-5 py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity"
+                style={{ backgroundColor: '#1C1611', color: '#F5D48A', opacity: exporting ? 0.72 : 1 }}
+              >
+                {exporting ? '导出中…' : '导出 PDF →'}
+              </button>
             </>
           )}
-        </div>
-        <div className="flex items-center gap-3">
-          {saveMessage && <span style={{ color: saveMessage.includes('失败') ? '#9B2A2A' : '#6B8E4E' }}>{saveMessage}</span>}
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold"
-            style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}
-          >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusTone }} />
-            {CONTRACT_STATUS_LABELS[contract.status]}
-          </span>
         </div>
       </div>
 
       <div
         className="grid min-h-[calc(100vh-134px)]"
         style={{
-          padding: '24px 20px',
-          gap: 12,
-          gridTemplateColumns: 'clamp(270px, 20vw, 310px) minmax(0, 1fr) clamp(340px, 25vw, 388px)',
+          padding: readOnly ? '48px 64px 56px 64px' : '40px 48px',
+          gap: readOnly ? 28 : 28,
+          gridTemplateColumns: readOnly ? 'minmax(0, 1fr)' : '300px minmax(0, 780px) 368px',
         }}
       >
-        <aside className="space-y-3 overflow-y-auto">
+        {!readOnly && (
+        <aside className="space-y-5 overflow-y-auto">
           <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
             <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>来源</div>
-            <div className="mt-3 rounded-[10px] border px-4 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="mt-3 rounded-[2px] border px-4 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <div className="text-[11px] font-semibold" style={{ color: '#8B7A3E' }}>
                 {contract.meta.devisNumber ? '从报价单生成' : '独立创建'}
               </div>
               <div className="mt-2 text-[22px] font-bold leading-tight" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
                 {contract.customer.name || '未填写客户'}
               </div>
-              <div className="mt-2 text-[12px]" style={{ color: '#5C5142' }}>
-                {contract.meta.devisNumber || '无关联报价单'}
+              <div className="mt-2 text-[12px]" style={{ color: '#5C5142' }}>{contract.meta.devisNumber || '无关联报价单'}</div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]" style={{ color: '#5C5142' }}>
+                <div>
+                  <div style={{ color: '#9B8550' }}>日期</div>
+                  <div className="mt-1 font-semibold" style={{ color: '#1C1611' }}>{contract.meta.date || '—'}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#9B8550' }}>金额</div>
+                  <div className="mt-1 font-semibold" style={{ color: '#1C1611' }}>{formatEuroCompact(contract.finalTotal)}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#9B8550' }}>服务数</div>
+                  <div className="mt-1 font-semibold" style={{ color: '#1C1611' }}>{contract.selectedServices.length}</div>
+                </div>
               </div>
               {contract.devisId && (
                 <Link href="/history" className="mt-3 inline-block text-[12px] font-semibold" style={{ color: '#A8702E' }}>
                   返回历史记录查看原始报价单 →
                 </Link>
               )}
+              {!contract.devisId && (
+                <button
+                  type="button"
+                  onClick={() => setShowCatalog((current) => !current)}
+                  className="mt-3 text-[12px] font-semibold"
+                  style={{ color: '#A8702E' }}
+                >
+                  {showCatalog ? '收起产品目录 ↑' : '选择服务内容 →'}
+                </button>
+              )}
             </div>
+            {!contract.devisId && showCatalog && (
+              <div className="mt-3 space-y-4">
+                <div className="space-y-2">
+                  {CATALOG.map((service) => {
+                    const isAdded = contract.selectedServices.some(
+                      (item) => item.kind === 'line' && item.serviceId === service.id,
+                    )
+                    return (
+                      <button
+                        key={service.id}
+                        type="button"
+                        onClick={() => {
+                          if (isAdded) {
+                            applyServiceSelection(
+                              contract.selectedServices.filter(
+                                (item) => !(item.kind === 'line' && item.serviceId === service.id),
+                              ),
+                            )
+                            return
+                          }
+
+                          applyServiceSelection([
+                            ...contract.selectedServices,
+                            createContractLineItemFromService(service),
+                          ])
+                        }}
+                        className="flex w-full items-start justify-between rounded-[2px] border px-3 py-3 text-left"
+                        style={{
+                          borderColor: isAdded ? '#B8922F' : '#E4D9BE',
+                          backgroundColor: isAdded ? '#F8EFDC' : '#FEFBF2',
+                          color: '#1C1611',
+                        }}
+                      >
+                        <div>
+                          <div className="text-[12px] font-semibold">{service.name.fr}</div>
+                          <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>{service.name.zh}</div>
+                        </div>
+                        <div className="text-[11px] font-bold" style={{ color: isAdded ? '#A8702E' : '#9B8550' }}>{isAdded ? '已选' : '添加'}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="rounded-[2px] border px-3 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>打包服务</div>
+                      <div className="mt-1 text-[11px]" style={{ color: '#5C5142' }}>把月费服务打成一个套餐，再带进合同。</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addDraftPackage}
+                      disabled={draftPackServices.length === 0}
+                      className="shrink-0 rounded-[2px] border px-3 py-2 text-[10px] font-bold tracking-[1.2px] disabled:opacity-50"
+                      style={{ borderColor: '#1C1611', color: '#1C1611' }}
+                    >
+                      添加套餐
+                    </button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {recurringCatalog.map((service) => {
+                      const active = packDraft.has(service.id)
+                      return (
+                        <button
+                          key={`pack-${service.id}`}
+                          type="button"
+                          onClick={() => togglePackDraft(service.id)}
+                          className="rounded-[2px] border px-3 py-3 text-left"
+                          style={{
+                            borderColor: active ? '#B8922F' : '#E4D9BE',
+                            backgroundColor: active ? '#1C1611' : '#FEFBF2',
+                            color: active ? '#F5D48A' : '#1C1611',
+                          }}
+                        >
+                          <div className="text-[11px] font-semibold">{service.name.zh}</div>
+                          <div className="mt-1 text-[9px]" style={{ color: active ? '#D9CFB8' : '#6B5A3D' }}>{service.name.fr}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-3 text-[11px]" style={{ color: '#5C5142' }}>
+                    {draftPackServices.length > 0
+                      ? `${packNameWithCount(draftPackServices.length, contract.lang)} · ${formatEuroCompact(draftPackServices.reduce((sum, service) => sum + service.defaultPrice * 12, 0))} / an`
+                      : '先勾选要打包的月费服务。'}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
@@ -479,22 +627,6 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 {contract.status === 'completed' && '这份合同已经归档完成。'}
                 {contract.status === 'cancelled' && '这份合同已取消。'}
               </p>
-              {!readOnly && (
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => void handleStatusChange('generated')} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    标记已生成
-                  </button>
-                  <button type="button" onClick={() => void handleStatusChange('sent', 'email')} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    标记已发送
-                  </button>
-                  <button type="button" onClick={() => void handleStatusChange('confirmed')} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    标记已确认
-                  </button>
-                  <button type="button" onClick={() => void handleStatusChange('completed')} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    标记完成
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -513,145 +645,266 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             </div>
           </div>
 
-          {readOnly && (
-            <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-              <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>跟进记录</div>
-              <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
-                <div>发送渠道：{contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '未记录'}</div>
-                <div>发送时间：{contract.sentAt ? new Date(contract.sentAt).toLocaleString('zh-CN') : '未记录'}</div>
-                <div>确认方式：{contract.confirmationMethod || '未记录'}</div>
-                <div>确认时间：{contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '未记录'}</div>
-                <div>附件数：{contract.attachments.length}</div>
-              </div>
-            </div>
-          )}
-        </aside>
-
-        <main className="overflow-hidden rounded-[14px]" style={{ backgroundColor: '#EFE3C6', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-          <div className="flex items-center justify-between px-5 pt-6 pb-3">
-            <div>
-              <div className="text-[14px] font-bold" style={{ color: '#1C1611' }}>
-                正式合同预览
-              </div>
-              <div className="mt-1 text-[9px] font-semibold tracking-[1.4px]" style={{ color: '#9B8550' }}>
-                APERÇU A4 · 2 PAGES · 模板固定
-              </div>
-            </div>
-            <div
-              className="rounded-full px-3 py-1 text-[11px] font-bold"
-              style={{ backgroundColor: '#FEFBF2', color: '#1C1611' }}
-            >
-              {CONTRACT_LANGUAGE_LABELS[contract.lang]}
+          <div className="rounded-[2px] border border-dashed px-[18px] py-4" style={{ borderColor: '#C8B987', backgroundColor: '#F4ECD6' }}>
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>下一步</div>
+            <div className="mt-2 text-[12px] leading-[1.65]" style={{ color: '#5C5142' }}>
+              完成客户信息后点击「导出 PDF」，状态会自动变成「已生成」。
             </div>
           </div>
+        </aside>
+        )}
 
-          <ScaledContract contract={contract} previewRef={previewRef} />
-        </main>
-
-        <aside className="space-y-3 overflow-y-auto">
-          {readOnly ? (
-            <>
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>合同概览</InputLabel>
-                <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
-                  <div>导出语言：{CONTRACT_LANGUAGE_LABELS[contract.lang]}</div>
-                  <div>付款方式：{contract.paymentMode === 'annual' ? '按年' : '按月'}</div>
-                  <div>最终总价：{formatEuroCompact(contract.finalTotal)}</div>
-                  <div>服务数量：{contract.selectedServices.length}</div>
-                  <div>签署日期：{contract.meta.date || '未填'}</div>
+        {readOnly ? (
+          <div className="space-y-7">
+            <section className="flex items-start justify-between">
+              <div className="space-y-4">
+                <div className="text-[10px] font-bold tracking-[2px]" style={{ color: '#A8702E' }}>
+                  合同 {contract.meta.number} · 来源报价单 {contract.meta.devisNumber || '—'}
+                </div>
+                <div className="text-[72px] font-bold leading-[0.92] tracking-[-1.8px]" style={{ color: '#2A2620', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                  {contract.customer.name || '未填写客户'}
+                </div>
+                <div className="text-[13px]" style={{ color: '#6B5A3D' }}>
+                  {[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')} · {contract.customer.contactName || '—'} · {contract.customer.email || '—'}
+                </div>
+                <div className="flex items-center gap-3 text-[10px] font-semibold tracking-[2px]" style={{ color: '#9B8550' }}>
+                  <span className="h-px w-8" style={{ backgroundColor: '#B8922F' }} />
+                  <span>ARCHIVE · AVRIL 2026</span>
+                  <span className="h-px w-8" style={{ backgroundColor: '#B8922F' }} />
                 </div>
               </div>
 
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>状态时间线</InputLabel>
-                <div className="mt-4 space-y-4">
-                  {STATUS_FLOW.map((step) => {
-                    const active = STATUS_FLOW.findIndex((item) => item.key === contract.status) >= STATUS_FLOW.findIndex((item) => item.key === step.key)
-                    const isCurrent = contract.status === step.key
-                    return (
-                      <div key={step.key} className="flex gap-3">
-                        <div className="flex flex-col items-center">
-                          <span className="mt-1 h-3 w-3 rounded-full" style={{ backgroundColor: active ? '#B8922F' : '#D9CFB8' }} />
-                          {step.key !== 'completed' && <span className="mt-1 h-8 w-px" style={{ backgroundColor: active ? '#B8922F' : '#E4D9BE' }} />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-[12px] font-semibold" style={{ color: isCurrent ? '#1C1611' : '#5C5142' }}>
-                            {step.title}
-                          </div>
-                          <div className="mt-1 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
-                            {step.description}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+              <div className="flex flex-col items-end gap-3">
+                <div className="inline-flex items-center gap-2 rounded-[2px] border px-5 py-3 text-[10px] font-bold tracking-[1.4px]" style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}>
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusTone }} />
+                  {CONTRACT_STATUS_LABELS[contract.status]}
                 </div>
-              </div>
-
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>发送与确认</InputLabel>
-                <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
-                  <div>PDF 路径：{contract.pdfPath || '未上传'}</div>
-                  <div>
-                    PDF 地址：
-                    {contract.pdfUrl ? (
-                      <a href={contract.pdfUrl} target="_blank" rel="noreferrer" className="ml-1 font-semibold" style={{ color: '#A8702E' }}>
-                        打开云端文件
-                      </a>
-                    ) : ' 未上传'}
+                <div className="text-right text-[10px] italic leading-[1.5]" style={{ color: '#9B8550' }}>
+                  {contract.sentAt ? `${new Date(contract.sentAt).toLocaleDateString('zh-CN')} 已发送` : '尚未发送'}
+                  <br />
+                  {contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '待记录'}
+                </div>
+                <div className="pt-2 text-right">
+                  <div className="text-[34px] font-bold italic leading-none" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                    {formatEuroCompact(contract.finalTotal)}
                   </div>
-                  <div>发送渠道：{contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '未记录'}</div>
-                  <div>发送时间：{contract.sentAt ? new Date(contract.sentAt).toLocaleString('zh-CN') : '未记录'}</div>
-                  <div>确认方式：{contract.confirmationMethod || '未记录'}</div>
-                  <div>确认时间：{contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '未记录'}</div>
-                  <div>确认备注：{contract.confirmationNote || '未记录'}</div>
-                  <div>内部备注：{contract.internalNote || '未记录'}</div>
+                  <div className="mt-1 text-[10px]" style={{ color: '#9B8550' }}>年度总额</div>
                 </div>
+                <Link href={`/contract/${contract.id}`} className="pt-2 text-[11px] font-medium" style={{ color: '#A8702E' }}>
+                  编辑合同 ↗
+                </Link>
               </div>
+            </section>
 
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>活动记录</InputLabel>
-                <div className="mt-3 space-y-3">
-                  {contract.activityLog.length === 0 ? (
-                    <div className="text-[12px]" style={{ color: '#6B5A3D' }}>还没有活动记录。</div>
-                  ) : (
-                    [...contract.activityLog].reverse().map((item) => (
-                      <div key={`${item.at}-${item.event}`} className="rounded-[10px] border px-3 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
-                        <div className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{item.event}</div>
-                        {item.meta && <div className="mt-1 text-[11px]" style={{ color: '#5C5142' }}>{item.meta}</div>}
-                        <div className="mt-2 text-[10px] uppercase tracking-[1.4px]" style={{ color: '#8B7A3E' }}>
-                          {item.actor} · {new Date(item.at).toLocaleString('zh-CN')}
+            <section className="border-t pt-6" style={{ borderColor: 'rgba(184,146,47,0.5)' }}>
+              <div className="text-[10px] font-bold tracking-[2px]" style={{ color: '#A8702E' }}>流程进度</div>
+              <div className="mt-6 grid grid-cols-5 gap-4">
+                {STATUS_FLOW.map((step, index) => {
+                  const currentIndex = STATUS_FLOW.findIndex((item) => item.key === contract.status)
+                  const active = index <= currentIndex
+                  return (
+                    <div key={step.key} className="relative">
+                      {index < STATUS_FLOW.length - 1 && (
+                        <div className="absolute left-[18px] top-[12px] h-px w-[calc(100%-8px)]" style={{ backgroundColor: active ? '#B8922F' : '#D9CFB8' }} />
+                      )}
+                      <div className="relative z-10 flex items-start gap-3">
+                        <div className="mt-1 h-4 w-4 rounded-full border-2" style={{ borderColor: active ? '#1C1611' : '#D9CFB8', backgroundColor: active ? '#1C1611' : '#FEFBF2' }} />
+                        <div>
+                          <div className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{step.title}</div>
+                          <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>
+                            {index === 0 ? contract.createdAt.slice(0, 10) : index === 1 ? (contract.pdfPath ? contract.updatedAt.slice(0, 10) : '—') : step.key === 'sent' ? (contract.sentAt?.slice(0, 10) || '—') : step.key === 'confirmed' ? (contract.confirmedAt?.slice(0, 10) || '—') : (contract.status === 'completed' ? contract.updatedAt.slice(0, 10) : '—')}
+                          </div>
                         </div>
                       </div>
-                    ))
-                  )}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="grid grid-cols-[minmax(0,1fr)_400px] gap-7">
+              <div className="space-y-5">
+                <div className="rounded-[2px] border px-7 py-6" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                  <div className="flex items-start justify-between">
+                    <div className="text-[28px] font-bold italic" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>确认留痕</div>
+                    <div className="rounded-full px-3 py-1 text-[10px] font-semibold" style={{ backgroundColor: '#F4ECD6', color: '#9B8550' }}>
+                      {contract.confirmedAt ? '已确认' : '待客户确认'}
+                    </div>
+                  </div>
+                  <div className="mt-5 grid grid-cols-2 gap-8">
+                    <div>
+                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>发送方式</div>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        {[
+                          ['email', '邮件'],
+                          ['social', '微信 / WhatsApp'],
+                          ['in_person', '当面'],
+                        ].map(([value, label]) => {
+                          const active = value === 'social'
+                            ? contract.sentChannel === 'wechat' || contract.sentChannel === 'whatsapp'
+                            : contract.sentChannel === value
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => {
+                                if (value === 'social') {
+                                  updateContract((current) => ({
+                                    ...current,
+                                    sentChannel: current.sentChannel === 'wechat' || current.sentChannel === 'whatsapp' ? undefined : 'whatsapp',
+                                    confirmationMethod: current.sentChannel === 'wechat' || current.sentChannel === 'whatsapp' ? undefined : '微信 / WhatsApp',
+                                  }))
+                                  return
+                                }
+
+                                updateContract((current) => ({
+                                  ...current,
+                                  sentChannel: current.sentChannel === value ? undefined : value as ContractSentChannel,
+                                  confirmationMethod: current.sentChannel === value ? undefined : label,
+                                }))
+                              }}
+                              className="rounded-[2px] border px-6 py-3 text-[11px] font-semibold"
+                              style={{
+                                borderColor: active ? '#B8922F' : '#D9CFB8',
+                                backgroundColor: active ? '#1C1611' : '#FEFBF2',
+                                color: active ? '#F5D48A' : '#3A3228',
+                              }}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>确认时间</div>
+                      <div className="mt-2 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '— 尚未确认'}</div>
+                      <div className="mt-2 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>{contract.sentAt ? `最近一次联系：${new Date(contract.sentAt).toLocaleString('zh-CN')}` : '最近一次联系尚未记录。'}</div>
+                    </div>
+                  </div>
+                  <div className="mt-5">
+                    <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>确认备注 / 截图说明</div>
+                    <textarea
+                      value={[contract.confirmationNote, contract.internalNote].filter(Boolean).join('\n\n')}
+                      onChange={(event) => {
+                        updateContract((current) => ({
+                          ...current,
+                          confirmationNote: event.target.value,
+                          internalNote: event.target.value,
+                        }))
+                      }}
+                      rows={5}
+                      className="mt-3 w-full resize-none rounded-[2px] border px-4 py-4 text-[12px] leading-[1.7] outline-none"
+                      style={{ borderColor: '#D9CFB8', backgroundColor: '#FBF5E4', color: '#5C5142' }}
+                      placeholder="待合同发送后填写。"
+                    />
+                  </div>
+                  <div className="mt-5 rounded-[2px] border border-dashed px-4 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#FBF5E4' }}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] font-semibold" style={{ color: '#1C1611' }}>证据与备注</div>
+                        <div className="mt-1 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
+                          添加截图、邮件复制或文件链接。
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleSave()}
+                        className="rounded-[2px] border px-4 py-2 text-[10px] font-bold tracking-[1.2px]"
+                        style={{ borderColor: '#1C1611', color: '#1C1611' }}
+                      >
+                        保存记录
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[2px] border px-7 py-6" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-[28px] font-bold italic" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>活动记录</div>
+                    <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>{contract.activityLog.length} 条</div>
+                  </div>
+                  <div className="mt-5 space-y-4">
+                    {[...contract.activityLog].reverse().map((item) => (
+                      <div key={`${item.at}-${item.event}`} className="flex gap-4">
+                        <div className="w-16 shrink-0 text-right">
+                          <div className="text-[20px] font-bold italic leading-none" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                            {new Date(item.at).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace('/', ' — ')}
+                          </div>
+                        </div>
+                        <div className="flex-1 border-t pt-1" style={{ borderColor: '#E4D9BE' }}>
+                          <div className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{item.event}</div>
+                          {item.meta && <div className="mt-1 text-[11px]" style={{ color: '#6B5A3D' }}>{item.meta}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>下一步</InputLabel>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link href={`/contract/${contract.id}`} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    进入编辑页
-                  </Link>
-                  <button type="button" onClick={handleExport} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                    再导出一次
+              <div className="space-y-5">
+                <div className="rounded-[2px] border px-5 py-5" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>合同预览</div>
+                    <div className="text-[10px]" style={{ color: '#9B8550' }}>{CONTRACT_LANGUAGE_LABELS[contract.lang]} · 第 1 / 2 页</div>
+                  </div>
+                  <div className="mt-4 overflow-hidden rounded-[2px] border" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                    <div style={{ transform: 'scale(0.43)', transformOrigin: 'top left', width: 800, height: 486 }}>
+                      <ContractPreview contract={contract} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={handleExport} className="mt-4 w-full rounded-[2px] px-5 py-3 text-[10px] font-bold tracking-[1.4px]" style={{ backgroundColor: '#1C1611', color: '#F5D48A' }}>
+                    导出 PDF →
                   </button>
                 </div>
+
+                <div className="rounded-[2px] border px-5 py-5" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                  <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>关联单据</div>
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-[2px] border px-4 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                      <div className="text-[11px] font-semibold" style={{ color: '#1C1611' }}>报价单 · {contract.meta.devisNumber || '无'}</div>
+                      <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>创建日期 / 金额 / 服务数</div>
+                    </div>
+                    <div className="rounded-[2px] border px-4 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+                      <div className="text-[11px] font-semibold" style={{ color: '#1C1611' }}>合同 · {contract.meta.number}</div>
+                      <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>当前合同 · {CONTRACT_STATUS_LABELS[contract.status]}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </>
-          ) : (
-            <>
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>合同导出语言</InputLabel>
-                <div className="mt-3 grid grid-cols-5 gap-2">
+            </section>
+          </div>
+        ) : (
+          <>
+            <main className="overflow-hidden rounded-[2px] border" style={{ borderColor: '#D9CFB8', backgroundColor: '#EFE3C6' }}>
+              <div className="flex items-center justify-between px-5 pt-6 pb-3">
+                <div>
+                  <div className="text-[14px] font-bold" style={{ color: '#1C1611' }}>
+                    正式合同预览
+                  </div>
+                  <div className="mt-1 text-[9px] font-semibold tracking-[1.4px]" style={{ color: '#9B8550' }}>
+                    APERÇU A4 · 2 PAGES · 模板固定
+                  </div>
+                </div>
+                <div className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ backgroundColor: '#FEFBF2', color: '#1C1611' }}>
+                  {CONTRACT_LANGUAGE_LABELS[contract.lang]}
+                </div>
+              </div>
+
+              <ScaledContract contract={contract} previewRef={previewRef} />
+            </main>
+
+            <aside className="space-y-[18px] overflow-y-auto">
+              <div className="rounded-[2px] border px-5 py-5" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+                <div className="text-[10px] font-bold uppercase tracking-[1.7px]" style={{ color: '#8B7A3E' }}>合同导出语言 · 法语版作为法律依据</div>
+                <div className="mt-3 grid grid-cols-5 gap-[6px] rounded-[2px] border p-[6px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
                   {(Object.keys(CONTRACT_LANGUAGE_LABELS) as Lang[]).map((lang) => (
                     <button
                       key={lang}
                       type="button"
                       disabled={readOnly}
                       onClick={() => updateContract((current) => ({ ...current, lang }))}
-                      className="rounded-[8px] border px-2 py-2 text-[11px] font-bold disabled:cursor-default"
+                      className="rounded-[2px] border px-2 py-[10px] text-[10px] font-bold tracking-[1.2px] disabled:cursor-default"
                       style={{
                         borderColor: contract.lang === lang ? '#B8922F' : '#E4D9BE',
                         backgroundColor: contract.lang === lang ? '#1C1611' : '#FBF5E4',
@@ -662,9 +915,6 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] leading-[1.6]" style={{ color: '#5C5142' }}>
-                  合同支持多语言，但法语版始终是法律依据版本。
-                </p>
               </div>
 
               <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
@@ -807,26 +1057,31 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                     </div>
                   </div>
                   <div
-                    className="rounded-[10px] border px-4 py-4"
+                    className="rounded-[2px] border px-4 py-4"
                     style={{ borderColor: '#B8922F', backgroundColor: '#1C1611' }}
                   >
-                    <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
-                      最终成交价
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
+                        总金额（年）
+                      </div>
+                      <div className="text-[9px] tracking-[1.1px]" style={{ color: '#D9CFB8' }}>
+                        自动带入
+                      </div>
                     </div>
-                    <div className="mt-2 flex items-end gap-2">
+                    <div className="mt-3 flex items-end gap-2">
                       <input
                         type="number"
                         value={String(contract.finalTotal)}
                         disabled={readOnly}
                         onChange={(event) => updateContract((current) => ({ ...current, finalTotal: Number(event.target.value || 0) }))}
-                        className="w-full border-0 bg-transparent p-0 text-[28px] font-bold italic outline-none"
+                        className="w-full border-0 bg-transparent p-0 text-[38px] font-bold italic leading-none outline-none"
                         style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
                       />
-                      <span className="pb-1 text-[11px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
+                      <span className="pb-1 text-[10px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
                         {contract.totalUnit === 'monthly' ? '€/mois' : '€/an'}
                       </span>
                     </div>
-                    <div className="mt-2 text-[11px]" style={{ color: '#D9CFB8' }}>
+                    <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
                       自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}
                     </div>
                   </div>
@@ -834,169 +1089,20 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               </div>
 
               <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>{contract.devisId ? '服务内容（来自报价单）' : '服务目录（同 devis）'}</InputLabel>
-                {contract.devisId ? (
-                  <>
-                    <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
-                      这份合同直接引用原报价单里的服务内容，不再单独维护一份合同价格表。
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {selectedServiceSummaries.map((line) => (
-                        <div key={line} className="rounded-[10px] border px-3 py-3 text-[12px] font-semibold" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4', color: '#1C1611' }}>
-                          {line}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
-                      新建合同也用和 devis 一样的产品目录。点一下添加，再点一次移除。
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {CATALOG.map((service) => {
-                        const isAdded = contract.selectedServices.some(
-                          (item) => item.kind === 'line' && item.serviceId === service.id,
-                        )
-                        return (
-                          <button
-                            key={service.id}
-                            type="button"
-                            onClick={() => {
-                              if (isAdded) {
-                                applyServiceSelection(
-                                  contract.selectedServices.filter(
-                                    (item) => !(item.kind === 'line' && item.serviceId === service.id),
-                                  ),
-                                )
-                                return
-                              }
-
-                              applyServiceSelection([
-                                ...contract.selectedServices,
-                                createContractLineItemFromService(service),
-                              ])
-                            }}
-                            className="flex w-full items-start justify-between rounded-[10px] border px-3 py-3 text-left transition-opacity hover:opacity-90"
-                            style={{
-                              borderColor: isAdded ? '#B8922F' : '#E4D9BE',
-                              backgroundColor: isAdded ? '#F8EFDC' : '#FBF5E4',
-                              color: '#1C1611',
-                            }}
-                          >
-                            <div>
-                              <div className="text-[12px] font-semibold">{service.name.zh}</div>
-                              <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>
-                                {service.name.fr}
-                              </div>
-                            </div>
-                            <div className="text-[11px] font-bold" style={{ color: isAdded ? '#A8702E' : '#9B8550' }}>
-                              {isAdded ? '已选' : '添加'}
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>特别备注</InputLabel>
+                <InputLabel>特别备注（可选）</InputLabel>
                 <textarea
                   value={contract.specialConditions}
                   disabled={readOnly}
                   onChange={(event) => updateContract((current) => ({ ...current, specialConditions: event.target.value }))}
-                  rows={5}
+                  rows={6}
                   className={`${fieldClassName(readOnly)} resize-none`}
                   style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
+                  placeholder="例如：赠送内容、特殊付款方式、上线时间备注。"
                 />
               </div>
-
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>跟进与确认</InputLabel>
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <InputLabel>发送方式</InputLabel>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {[
-                        ['email', '邮件'],
-                        ['wechat', '微信'],
-                        ['whatsapp', 'WhatsApp'],
-                        ['in_person', '当面'],
-                      ].map(([value, label]) => {
-                        const active = contract.sentChannel === value
-                        return (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => updateContract((current) => ({
-                              ...current,
-                              sentChannel: (current.sentChannel === value ? undefined : value) as ContractSentChannel | undefined,
-                            }))}
-                            className="rounded-full border px-3 py-1.5 text-[11px] font-semibold"
-                            style={{
-                              borderColor: active ? '#B8922F' : '#E4D9BE',
-                              backgroundColor: active ? '#1C1611' : '#FBF5E4',
-                              color: active ? '#F5D48A' : '#1C1611',
-                            }}
-                          >
-                            {label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <InputLabel>确认备注</InputLabel>
-                    <textarea
-                      value={contract.confirmationNote || ''}
-                      disabled={readOnly}
-                      onChange={(event) => updateContract((current) => ({
-                        ...current,
-                        confirmationMethod: current.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[current.sentChannel] : current.confirmationMethod,
-                        confirmationNote: event.target.value,
-                      }))}
-                      rows={4}
-                      className={`${fieldClassName(readOnly)} resize-none`}
-                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                    />
-                  </div>
-                  <div>
-                    <InputLabel>截图说明</InputLabel>
-                    <textarea
-                      value={contract.internalNote || ''}
-                      disabled={readOnly}
-                      onChange={(event) => updateContract((current) => ({ ...current, internalNote: event.target.value }))}
-                      rows={4}
-                      className={`${fieldClassName(readOnly)} resize-none`}
-                      style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-                <InputLabel>下一步</InputLabel>
-                <p className="mt-3 text-[12px] leading-[1.7]" style={{ color: '#5C5142' }}>
-                  先把客户信息、金额和备注补完，再点“导出 PDF”。如果客户已经回复，也在这里把确认方式记下来。
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {!readOnly && (
-                    <button type="button" onClick={() => void handleSave()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                      再保存一次
-                    </button>
-                  )}
-                  {contractId && !readOnly && (
-                    <button type="button" onClick={() => void handleDuplicate()} className="rounded-[8px] border px-3 py-2 text-[11px] font-semibold" style={{ borderColor: '#E4D9BE', color: '#1C1611' }}>
-                      复制成新合同
-                    </button>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </aside>
+            </aside>
+          </>
+        )}
       </div>
     </div>
   )

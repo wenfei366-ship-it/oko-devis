@@ -17,13 +17,13 @@ const COLORS = {
 export const cs = StyleSheet.create({
   page: {
     backgroundColor: COLORS.paper,
-    paddingTop: 28,
-    paddingBottom: 22,
-    paddingHorizontal: 40,
+    paddingTop: 32,
+    paddingBottom: 24,
+    paddingHorizontal: 44,
     fontFamily: 'Inter',
-    fontSize: 9.5,
+    fontSize: 9.4,
     color: COLORS.ink,
-    lineHeight: 1.42,
+    lineHeight: 1.48,
   },
   topRow: {
     flexDirection: 'row',
@@ -40,7 +40,7 @@ export const cs = StyleSheet.create({
   title: {
     marginTop: 10,
     fontFamily: 'Playfair Display',
-    fontSize: 28,
+    fontSize: 31,
     fontWeight: 700,
     color: COLORS.ink,
     lineHeight: 1.02,
@@ -48,7 +48,7 @@ export const cs = StyleSheet.create({
   subtitle: {
     marginTop: 6,
     fontFamily: 'Playfair Display',
-    fontSize: 12,
+    fontSize: 11.5,
     fontStyle: 'italic',
     color: COLORS.inkSoft,
   },
@@ -79,7 +79,7 @@ export const cs = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Playfair Display',
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: 700,
     fontStyle: 'italic',
     color: COLORS.ink,
@@ -104,7 +104,7 @@ export const cs = StyleSheet.create({
   intro: {
     marginTop: 12,
     fontFamily: 'Playfair Display',
-    fontSize: 10.5,
+    fontSize: 10,
     fontStyle: 'italic',
     color: COLORS.inkSoft,
   },
@@ -112,10 +112,10 @@ export const cs = StyleSheet.create({
     marginTop: 10,
   },
   paragraph: {
-    fontSize: 9.3,
+    fontSize: 9.2,
     color: COLORS.ink,
     marginBottom: 3,
-    lineHeight: 1.45,
+    lineHeight: 1.5,
   },
   bulletList: {
     marginTop: 2,
@@ -141,13 +141,62 @@ export const cs = StyleSheet.create({
     marginTop: 6,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.paperSoft,
-    padding: 10,
+    backgroundColor: COLORS.paper,
+    padding: 0,
+  },
+  priceHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4ECD6',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  priceNumeral: {
+    width: 30,
+    fontFamily: 'Playfair Display',
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: 700,
+    color: COLORS.gold,
+  },
+  priceDesignation: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  priceTitle: {
+    fontSize: 9.3,
+    fontWeight: 700,
+    color: COLORS.ink,
+  },
+  priceDescription: {
+    marginTop: 2,
+    fontSize: 8.2,
+    fontStyle: 'italic',
+    color: COLORS.inkSoft,
+  },
+  priceMonth: {
+    width: 74,
+    fontSize: 8.7,
+    textAlign: 'right',
+    color: COLORS.ink,
+  },
+  priceYear: {
+    width: 74,
+    fontSize: 9.3,
+    fontWeight: 700,
+    textAlign: 'right',
+    color: COLORS.ink,
   },
   choiceRow: {
     marginTop: 8,
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'flex-start',
   },
   choiceBox: {
     flex: 1.45,
@@ -162,6 +211,7 @@ export const cs = StyleSheet.create({
     borderColor: COLORS.goldAccent,
     backgroundColor: COLORS.dark,
     padding: 10,
+    alignSelf: 'flex-start',
   },
   finalPrice: {
     marginTop: 10,
