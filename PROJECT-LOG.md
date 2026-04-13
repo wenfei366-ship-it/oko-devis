@@ -42,3 +42,6 @@
 - 修完部署 + 再截图对比
 - CGV 法语文本需要 Stephan 最终确认
 - 建 GitHub remote + CI/CD
+
+## 2026-04-13
+- [docs] 新增 `PROJECT-DOC.md`，整理当前 devis 模块状态、Supabase/Vercel 信息、合同模块规划、统一搜索/命名规则、以及已确认开发 SOP
