@@ -214,7 +214,7 @@ export const SERVICE_DICT: Record<ServiceKey, { name: I18nString; description: I
       it: 'Riscossione annuale · riversata al fornitore del dominio',
       es: 'Cobro anual · transferido al proveedor del dominio',
       de: 'Jährlich erhoben · an den Domainanbieter weitergeleitet',
-      zh: '按年收取 · 代收代缴给域名服务商',
+      zh: '管理配置域名，代收代缴域名费',
     },
   },
   'sunmi-terminal': {
