@@ -249,7 +249,7 @@ export function DevisPreviewContent({
           <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.objet}</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>DATE D&apos;ÉMISSION</p>
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: '#A8702E' }}>{vm.labels.issueDate}</p>
           <p style={{ fontSize: 13, fontWeight: 500, color: '#2A2620' }}>{vm.meta.date}</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

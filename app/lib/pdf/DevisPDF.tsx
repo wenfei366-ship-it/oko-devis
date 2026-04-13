@@ -61,7 +61,7 @@ export function DevisPDF({ vm }: DevisPDFProps) {
             <Text style={s.metaGridValue}>{vm.meta.objet}</Text>
           </View>
           <View style={s.metaGridCol}>
-            <Text style={s.metaGridLabel}>{vm.labels.date}</Text>
+            <Text style={s.metaGridLabel}>{vm.labels.issueDate}</Text>
             <Text style={s.metaGridValue}>{vm.meta.date}</Text>
           </View>
           <View style={s.metaGridCol}>

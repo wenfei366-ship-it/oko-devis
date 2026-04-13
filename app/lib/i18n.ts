@@ -49,6 +49,7 @@ export const LABELS = {
   // Meta
   devisNumber: { fr: 'N°', it: 'N°', es: 'N°', de: 'Nr.', zh: '编号' } as I18nString,
   date: { fr: 'DATE', it: 'DATA', es: 'FECHA', de: 'DATUM', zh: '日期' } as I18nString,
+  issueDate: { fr: 'DATE D\'ÉMISSION', it: 'DATA DI EMISSIONE', es: 'FECHA DE EMISIÓN', de: 'AUSSTELLUNGSDATUM', zh: '签发日期' } as I18nString,
   validity: { fr: 'VALIDITÉ', it: 'VALIDITÀ', es: 'VALIDEZ', de: 'GÜLTIGKEIT', zh: '有效期' } as I18nString,
   objet: { fr: 'OBJET', it: 'OGGETTO', es: 'ASUNTO', de: 'GEGENSTAND', zh: '主题' } as I18nString,
   debutPrestation: { fr: 'DÉBUT PRESTATION', it: 'INIZIO SERVIZIO', es: 'INICIO SERVICIO', de: 'LEISTUNGSBEGINN', zh: '服务起始' } as I18nString,
@@ -73,13 +74,13 @@ export const LABELS = {
   unitUnique: { fr: 'unité', it: 'unità', es: 'unidad', de: 'Einheit', zh: '次' } as I18nString,
 
   // Legal footnote — shown on non-FR versions in FRENCH (not translated)
-  // because the French version is the legally binding one
+  // Localized explanation that the French version remains legally binding
   legalFootnote: {
     fr: '',
-    it: 'Version française du devis fait foi en cas de litige.',
-    es: 'Version française du devis fait foi en cas de litige.',
-    de: 'Version française du devis fait foi en cas de litige.',
-    zh: 'Version française du devis fait foi en cas de litige.',
+    it: 'In caso di controversia, fa fede la versione francese del preventivo.',
+    es: 'En caso de litigio, prevalece la versión francesa del presupuesto.',
+    de: 'Im Streitfall ist die französische Fassung des Angebots maßgeblich.',
+    zh: '如发生争议，以本报价单的法文版本为准。',
   } as I18nString,
 } as const
 

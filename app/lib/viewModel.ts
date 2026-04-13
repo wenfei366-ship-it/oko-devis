@@ -73,6 +73,7 @@ export interface DevisViewModel {
     dateSignature: string
     number: string
     date: string
+    issueDate: string
     validity: string
     objet: string
     debutPrestation: string
@@ -373,6 +374,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
       dateSignature: tr(LABELS.dateSignature, lang),
       number: tr(LABELS.devisNumber, lang),
       date: tr(LABELS.date, lang),
+      issueDate: tr(LABELS.issueDate, lang),
       validity: tr(LABELS.validity, lang),
       objet: tr(LABELS.objet, lang),
       debutPrestation: tr(LABELS.debutPrestation, lang),
