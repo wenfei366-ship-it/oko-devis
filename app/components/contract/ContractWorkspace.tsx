@@ -691,58 +691,47 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         </div>
       </header>
 
-      <div className="flex items-center justify-between border-b px-12 py-5 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: readOnly ? '#F4ECD6' : '#F8F1E0' }}>
-        <div className="flex items-center gap-[14px]">
-          <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 历史记录</span>
-          <span style={{ color: '#C8B987' }}>/</span>
-          <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
-          <span style={{ color: '#C8B987' }}>/</span>
-          <span className="font-bold" style={{ color: '#1C1611' }}>{contract.meta.number}</span>
-        </div>
-        <div className="flex items-center gap-[10px]">
-          {saveMessage && <span className="text-[11px]" style={{ color: saveMessage.includes('失败') ? '#9B2A2A' : '#6B8E4E' }}>{saveMessage}</span>}
-          {readOnly ? (
+      {!readOnly && (
+        <div className="flex items-center justify-between border-b px-12 py-5 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
+          <div className="flex items-center gap-[14px]">
+            <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 历史记录</span>
+            <span style={{ color: '#C8B987' }}>/</span>
+            <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
+            <span style={{ color: '#C8B987' }}>/</span>
+            <span className="font-bold" style={{ color: '#1C1611' }}>{contract.meta.number}</span>
+          </div>
+          <div className="flex items-center gap-[10px]">
+            {saveMessage && <span className="text-[11px]" style={{ color: saveMessage.includes('失败') ? '#9B2A2A' : '#6B8E4E' }}>{saveMessage}</span>}
             <button
               type="button"
-              onClick={() => void handleStatusChange('completed')}
-              className="rounded-[2px] border px-5 py-2 text-[10px] font-bold tracking-[1.4px]"
-              style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}
+              onClick={() => void handleSave()}
+              disabled={saving}
+              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+              style={{ borderColor: '#1C1611', color: '#1C1611' }}
             >
-              标记完成 →
+              {saving ? '保存中…' : '保存草稿'}
             </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => void handleSave()}
-                disabled={saving}
-                className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
-                style={{ borderColor: '#1C1611', color: '#1C1611' }}
-              >
-                {saving ? '保存中…' : '保存草稿'}
-              </button>
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={exporting}
-                className="rounded-[2px] px-5 py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity"
-                style={{ backgroundColor: '#1C1611', color: '#F5D48A', opacity: exporting ? 0.72 : 1 }}
-              >
-                {exporting ? '导出中…' : '导出 PDF →'}
-              </button>
-              <button
-                type="button"
-                onClick={handleSendEmail}
-                disabled={sendingEmail}
-                className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
-                style={{ borderColor: '#B8922F', color: '#A8702E' }}
-              >
-                {sendingEmail ? '发送中…' : '发送合同邮件'}
-              </button>
-            </>
-          )}
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting}
+              className="rounded-[2px] px-5 py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity"
+              style={{ backgroundColor: '#1C1611', color: '#F5D48A', opacity: exporting ? 0.72 : 1 }}
+            >
+              {exporting ? '导出中…' : '导出 PDF →'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+              style={{ borderColor: '#B8922F', color: '#A8702E' }}
+            >
+              {sendingEmail ? '发送中…' : '发送合同邮件'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         className="grid min-h-[calc(100vh-134px)]"
@@ -1082,6 +1071,18 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                         <div className="mt-1 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
                           上传客户确认截图后，流程会自动进入“已完成”。普通附件只做留档。
                         </div>
+                        {contract.sentAt && (
+                          <div className="mt-4 rounded-[2px] border px-3 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
+                            <div className="text-[10px] font-bold uppercase tracking-[1.3px]" style={{ color: '#8B7A3E' }}>
+                              系统发送记录
+                            </div>
+                            <div className="mt-2 text-[11px] leading-[1.7]" style={{ color: '#3A3228' }}>
+                              <div>发送时间：{new Date(contract.sentAt).toLocaleString('zh-CN')}</div>
+                              <div>发送方式：{contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '邮件'}</div>
+                              <div>收件邮箱：{contract.customer.email || '未记录'}</div>
+                            </div>
+                          </div>
+                        )}
                         <div className="mt-4 flex flex-wrap gap-2">
                           <button
                             type="button"
