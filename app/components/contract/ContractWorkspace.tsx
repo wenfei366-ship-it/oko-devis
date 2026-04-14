@@ -1340,6 +1340,25 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                     </div>
                   </div>
                   <div>
+                    <InputLabel>国家</InputLabel>
+                    <select
+                      value={contract.customer.country}
+                      disabled={readOnly}
+                      onChange={(event) => updateContract((current) => ({ ...current, customer: { ...current.customer, country: event.target.value as Country } }))}
+                      className={smallFieldClassName(readOnly)}
+                      style={{ borderColor: '#E4D9BE', color: '#1C1611', appearance: 'none', cursor: readOnly ? 'default' : 'pointer' }}
+                    >
+                      <option value="FR">France</option>
+                      <option value="IT">Italie</option>
+                      <option value="ES">Espagne</option>
+                      <option value="DE">Allemagne</option>
+                      <option value="BE">Belgique</option>
+                      <option value="CH">Suisse</option>
+                      <option value="LU">Luxembourg</option>
+                      <option value="OTHER">Autre</option>
+                    </select>
+                  </div>
+                  <div>
                     <InputLabel>联系人</InputLabel>
                     <input
                       value={contract.customer.contactName}
