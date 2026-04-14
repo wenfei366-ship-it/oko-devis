@@ -7,7 +7,7 @@ import { toPng } from 'html-to-image'
 const MAX_SINGLE_HEIGHT = 30000
 const EXPORT_BACKGROUND = '#F8F1E0'
 const EXPORT_WIDTH = 800
-const PIXEL_RATIO = 2
+const DEFAULT_PIXEL_RATIO = 2
 
 export interface ExportImage {
   dataUrl: string
@@ -24,34 +24,11 @@ export async function exportLongPng(
 }
 
 export async function createExportImage(element: HTMLElement): Promise<ExportImage> {
-  // Wait for fonts, images, and a render frame
-  await waitForExportReady(element)
-
-  const width = Math.ceil(element.getBoundingClientRect().width || element.scrollWidth || EXPORT_WIDTH)
-  const height = Math.ceil(element.scrollHeight || element.getBoundingClientRect().height || element.clientHeight || 1)
-  const effectiveHeight = height * PIXEL_RATIO
-
-  if (width <= 1 || height <= 1) {
-    throw new Error('Export impossible: la zone du devis est vide.')
-  }
-
-  if (effectiveHeight > MAX_SINGLE_HEIGHT) {
-    throw new Error('Export impossible: le devis est trop long pour une image unique.')
-  }
-
-  const dataUrl = await toPng(element, {
-    width,
-    height,
-    pixelRatio: PIXEL_RATIO,
-    cacheBust: true,
-    backgroundColor: EXPORT_BACKGROUND,
-  })
-
-  return { dataUrl, width, height }
+  return createNodeExportImage(element)
 }
 
 /** Wait for render frame, fonts, and all images inside element */
-async function waitForExportReady(element: HTMLElement): Promise<void> {
+export async function waitForExportReady(element: HTMLElement): Promise<void> {
   // Wait one animation frame for layout to settle
   if (typeof requestAnimationFrame === 'function') {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
@@ -72,6 +49,47 @@ async function waitForExportReady(element: HTMLElement): Promise<void> {
       })
     })
   )
+}
+
+export async function createNodeExportImage(
+  element: HTMLElement,
+  options?: {
+    pixelRatio?: number
+    backgroundColor?: string
+    width?: number
+    height?: number
+    maxSingleHeight?: number
+  }
+): Promise<ExportImage> {
+  const pixelRatio = options?.pixelRatio ?? DEFAULT_PIXEL_RATIO
+  const backgroundColor = options?.backgroundColor ?? EXPORT_BACKGROUND
+  const maxSingleHeight = options?.maxSingleHeight ?? MAX_SINGLE_HEIGHT
+
+  await waitForExportReady(element)
+
+  const rawWidth = options?.width ?? element.getBoundingClientRect().width ?? element.scrollWidth ?? EXPORT_WIDTH
+  const rawHeight = options?.height ?? element.scrollHeight ?? element.getBoundingClientRect().height ?? element.clientHeight ?? 1
+  const width = Math.ceil(rawWidth)
+  const height = Math.ceil(rawHeight)
+  const effectiveHeight = height * pixelRatio
+
+  if (width <= 1 || height <= 1) {
+    throw new Error('Export impossible: la zone du devis est vide.')
+  }
+
+  if (effectiveHeight > maxSingleHeight) {
+    throw new Error('Export impossible: le devis est trop long pour une image unique.')
+  }
+
+  const dataUrl = await toPng(element, {
+    width,
+    height,
+    pixelRatio,
+    cacheBust: true,
+    backgroundColor,
+  })
+
+  return { dataUrl, width, height }
 }
 
 function downloadDataUrl(dataUrl: string, filename: string): void {

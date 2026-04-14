@@ -7,6 +7,7 @@ import ContractPreview from './ContractPreview'
 import { CATALOG } from '@/app/lib/catalog'
 import { formatEuroCompact } from '@/app/lib/calculations'
 import { packNameWithCount } from '@/app/lib/i18n'
+import { createNodeExportImage } from '@/app/lib/png/exportLong'
 import {
   CONTRACT_LANGUAGE_LABELS,
   CONTRACT_SENT_CHANNEL_LABELS,
@@ -142,6 +143,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const mounted = useMounted()
   const router = useRouter()
   const previewRef = useRef<HTMLDivElement>(null)
+  const exportRef = useRef<HTMLDivElement>(null)
 
   const [contract, setContract] = useState<Contract | null>(null)
   const [loading, setLoading] = useState(true)
@@ -261,17 +263,19 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     if (!contract || exporting) return
 
     void (async () => {
-      if (!contract.customer.name.trim()) {
+      const contractSnapshot = contract
+
+      if (!contractSnapshot.customer.name.trim()) {
         setSaveMessage('先把客户名称填好，再导出合同。')
         return
       }
 
-      if (contract.selectedServices.length === 0) {
+      if (contractSnapshot.selectedServices.length === 0) {
         setSaveMessage('先从报价单或产品目录里选好服务，再导出合同。')
         return
       }
 
-      if (contract.finalTotal <= 0) {
+      if (contractSnapshot.finalTotal <= 0) {
         setSaveMessage('先填好最终成交价，再导出合同。')
         return
       }
@@ -280,27 +284,65 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       setSaveMessage(null)
 
       try {
-        const [{ pdf }, { ContractPDF }, { registerPdfFonts }] = await Promise.all([
+        const pageElements = Array.from(exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
+        if (pageElements.length !== 2) {
+          throw new Error('合同预览页还没准备好，请稍后再试。')
+        }
+
+        const exportImages = await Promise.all(
+          pageElements.map((pageElement) =>
+            createNodeExportImage(pageElement, {
+              pixelRatio: 3,
+              backgroundColor: '#FEFBF2',
+              width: 800,
+              height: 1132,
+            })
+          )
+        )
+
+        const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
           import('@react-pdf/renderer'),
-          import('@/app/lib/pdf/ContractPDF'),
-          import('@/app/lib/pdf/fonts'),
         ])
 
-        registerPdfFonts()
-        const blob = await pdf(<ContractPDF contract={contract} />).toBlob()
+        const styles = StyleSheet.create({
+          page: {
+            padding: 0,
+            margin: 0,
+            backgroundColor: '#FEFBF2',
+          },
+          image: {
+            width: '100%',
+            height: '100%',
+          },
+        })
+
+        function ContractImagePdf() {
+          return (
+            <Document>
+              {exportImages.map((image, index) => (
+                <Page key={`${contractSnapshot.id}-${index}`} size="A4" style={styles.page}>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                  <Image src={image.dataUrl} style={styles.image} />
+                </Page>
+              ))}
+            </Document>
+          )
+        }
+
+        const blob = await pdf(<ContractImagePdf />).toBlob()
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = `Contract-${contract.meta.number}.pdf`
+        link.download = `Contract-${contractSnapshot.meta.number}.pdf`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
-        const nextContract = contract.status === 'draft'
-          ? updateContractStatus(contract, 'generated')
+        const nextContract = contractSnapshot.status === 'draft'
+          ? updateContractStatus(contractSnapshot, 'generated')
           : {
-              ...contract,
+              ...contractSnapshot,
               updatedAt: new Date().toISOString(),
             }
 
@@ -1103,6 +1145,21 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             </aside>
           </>
         )}
+      </div>
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-10000px',
+          top: 0,
+          width: 800,
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      >
+        <div ref={exportRef}>
+          <ContractPreview contract={contract} />
+        </div>
       </div>
     </div>
   )

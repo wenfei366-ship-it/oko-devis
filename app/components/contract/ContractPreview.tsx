@@ -73,6 +73,7 @@ function Paper({
 }) {
   return (
     <div
+      data-contract-page
       className="rounded-[2px] border px-[52px] py-[46px]"
       style={{
         width: 800,
