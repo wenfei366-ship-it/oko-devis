@@ -9,6 +9,11 @@ function getRequiredEnv(name: string) {
   return value
 }
 
+function getOptionalEnv(name: string) {
+  const value = process.env[name]?.trim()
+  return value || undefined
+}
+
 export async function POST(request: Request) {
   try {
     const { to, subject, html, pdfUrl, pdfFileName, pdfBase64 } = await request.json() as {
@@ -33,11 +38,13 @@ export async function POST(request: Request) {
     const user = getRequiredEnv('LARK_SMTP_USER')
     const pass = getRequiredEnv('LARK_SMTP_PASS')
     const from = getRequiredEnv('LARK_SMTP_FROM')
+    const replyTo = getOptionalEnv('LARK_SMTP_REPLY_TO')
 
     const transporter = nodemailer.createTransport({
       host,
       port,
       secure: port === 465,
+      requireTLS: port !== 465,
       auth: { user, pass },
     })
 
@@ -64,6 +71,7 @@ export async function POST(request: Request) {
 
     await transporter.sendMail({
       from,
+      replyTo,
       to: to.trim(),
       subject: subject.trim(),
       html,
