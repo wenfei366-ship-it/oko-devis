@@ -51,26 +51,19 @@ function Footer() {
   )
 }
 
-function PartyInfoRow({
-  label,
+function PartyLine({
   value,
   bodyFont,
   muted = false,
 }: {
-  label: string
   value: string
   bodyFont: string
   muted?: boolean
 }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
-      <Text style={{ width: 72, color: '#9B8550', fontSize: 8.2, letterSpacing: 1.1, fontFamily: bodyFont, fontWeight: 700 }}>
-        {label.toUpperCase()}
-      </Text>
-      <Text style={{ flex: 1, color: muted ? '#8B7A3E' : '#2A2620', fontSize: 9.2, lineHeight: 1.5, fontFamily: bodyFont }}>
-        {value}
-      </Text>
-    </View>
+    <Text style={{ color: muted ? '#8B7A3E' : '#2A2620', fontSize: 9.4, lineHeight: 1.6, fontFamily: bodyFont, marginBottom: 2 }}>
+      {value}
+    </Text>
   )
 }
 
@@ -122,10 +115,10 @@ export function ContractPDF({ contract }: ContractPDFProps) {
                 SOCIÉTÉ PAR ACTIONS SIMPLIFIÉE
               </Text>
               <View style={{ height: 1, backgroundColor: '#E4D9BE', marginTop: 10, marginBottom: 10 }} />
-              <PartyInfoRow label="Adresse" value={providerLines[1]} bodyFont={bodyFont} />
-              <PartyInfoRow label="R.C.S." value="Paris 881 648 323 00015" bodyFont={bodyFont} />
-              <PartyInfoRow label="Représenté par" value="M. Shengmao KE, Président" bodyFont={bodyFont} />
-              <PartyInfoRow label="Contact" value="support@joinoko.com" bodyFont={bodyFont} />
+              <PartyLine value={providerLines[1]} bodyFont={bodyFont} />
+              <PartyLine value="R.C.S. Paris 881 648 323 00015" bodyFont={bodyFont} />
+              <PartyLine value="Représentée par M. Shengmao KE, Président" bodyFont={bodyFont} />
+              <PartyLine value="support@joinoko.com" bodyFont={bodyFont} />
             </View>
           </View>
 
@@ -136,36 +129,21 @@ export function ContractPDF({ contract }: ContractPDFProps) {
                 {contract.customer.name || 'Client à compléter'}
               </Text>
               <View style={{ height: 1, backgroundColor: '#E4D9BE', marginTop: 10, marginBottom: 10 }} />
-              <PartyInfoRow
-                label="Adresse"
-                value={contract.customer.address || 'Adresse à compléter'}
-                bodyFont={bodyFont}
-                muted={!contract.customer.address}
-              />
-              <PartyInfoRow
-                label="Ville"
-                value={[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ') || 'Ville à compléter'}
-                bodyFont={bodyFont}
-                muted={!contract.customer.postalCode && !contract.customer.city}
-              />
-              <PartyInfoRow
-                label="Contact"
-                value={contract.customer.contactName || 'Nom du contact à compléter'}
-                bodyFont={bodyFont}
-                muted={!contract.customer.contactName}
-              />
-              <PartyInfoRow
-                label="Email"
-                value={contract.customer.email || 'Email à compléter'}
-                bodyFont={bodyFont}
-                muted={!contract.customer.email}
-              />
-              <PartyInfoRow
-                label="Téléphone"
-                value={contract.customer.phone || 'Téléphone à compléter'}
-                bodyFont={bodyFont}
-                muted={!contract.customer.phone}
-              />
+              {contract.customer.address ? <PartyLine value={contract.customer.address} bodyFont={bodyFont} /> : null}
+              {[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')
+                ? <PartyLine value={[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')} bodyFont={bodyFont} />
+                : null}
+              {contract.customer.contactName ? <PartyLine value={contract.customer.contactName} bodyFont={bodyFont} /> : null}
+              {contract.customer.email ? <PartyLine value={contract.customer.email} bodyFont={bodyFont} /> : null}
+              {contract.customer.phone ? <PartyLine value={contract.customer.phone} bodyFont={bodyFont} /> : null}
+              {!contract.customer.address
+                && !contract.customer.postalCode
+                && !contract.customer.city
+                && !contract.customer.contactName
+                && !contract.customer.email
+                && !contract.customer.phone
+                ? <PartyLine value="Informations client à compléter" bodyFont={bodyFont} muted />
+                : null}
             </View>
           </View>
         </View>

@@ -68,21 +68,16 @@ function displayCustomerField(value?: string) {
   return value?.trim() || ''
 }
 
-function InfoRow({
-  label,
+function PartyLine({
   value,
   muted = false,
 }: {
-  label: string
   value: string
   muted?: boolean
 }) {
   return (
-    <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 text-[10px] leading-[1.65]">
-      <div className="font-bold uppercase tracking-[1.4px]" style={{ color: '#9B8550' }}>
-        {label}
-      </div>
-      <div style={{ color: muted ? '#8B7A3E' : '#2A2620' }}>{value}</div>
+    <div className="text-[11px] leading-[1.7]" style={{ color: muted ? '#8B7A3E' : '#2A2620' }}>
+      {value}
     </div>
   )
 }
@@ -198,11 +193,11 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                   Société par actions simplifiée
                 </div>
                 <div className="my-4 h-px" style={{ backgroundColor: '#E4D9BE' }} />
-                <div className="space-y-2.5">
-                  <InfoRow label="Adresse" value={`${providerLines[1]}`} />
-                  <InfoRow label="R.C.S." value="Paris 881 648 323 00015" />
-                  <InfoRow label="Représenté par" value="M. Shengmao KE, Président" />
-                  <InfoRow label="Contact" value="support@joinoko.com" />
+                <div className="space-y-1.5">
+                  <PartyLine value={providerLines[1]} />
+                  <PartyLine value="R.C.S. Paris 881 648 323 00015" />
+                  <PartyLine value="Représentée par M. Shengmao KE, Président" />
+                  <PartyLine value="support@joinoko.com" />
                 </div>
               </div>
             </div>
@@ -217,32 +212,29 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                   {displayCustomerField(contract.customer.name) || 'Client à compléter'}
                 </div>
                 <div className="my-4 h-px" style={{ backgroundColor: '#E4D9BE' }} />
-                <div className="space-y-2.5">
-                  <InfoRow
-                    label="Adresse"
-                    value={displayCustomerField(contract.customer.address) || 'Adresse à compléter'}
-                    muted={!displayCustomerField(contract.customer.address)}
-                  />
-                  <InfoRow
-                    label="Ville"
-                    value={displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')) || 'Ville à compléter'}
-                    muted={!displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' '))}
-                  />
-                  <InfoRow
-                    label="Contact"
-                    value={displayCustomerField(contract.customer.contactName) || 'Nom du contact à compléter'}
-                    muted={!displayCustomerField(contract.customer.contactName)}
-                  />
-                  <InfoRow
-                    label="Email"
-                    value={displayCustomerField(contract.customer.email) || 'Email à compléter'}
-                    muted={!displayCustomerField(contract.customer.email)}
-                  />
-                  <InfoRow
-                    label="Téléphone"
-                    value={displayCustomerField(contract.customer.phone) || 'Téléphone à compléter'}
-                    muted={!displayCustomerField(contract.customer.phone)}
-                  />
+                <div className="space-y-1.5">
+                  {displayCustomerField(contract.customer.address) && (
+                    <PartyLine value={displayCustomerField(contract.customer.address)} />
+                  )}
+                  {displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')) && (
+                    <PartyLine value={displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' '))} />
+                  )}
+                  {displayCustomerField(contract.customer.contactName) && (
+                    <PartyLine value={displayCustomerField(contract.customer.contactName)} />
+                  )}
+                  {displayCustomerField(contract.customer.email) && (
+                    <PartyLine value={displayCustomerField(contract.customer.email)} />
+                  )}
+                  {displayCustomerField(contract.customer.phone) && (
+                    <PartyLine value={displayCustomerField(contract.customer.phone)} />
+                  )}
+                  {!displayCustomerField(contract.customer.address)
+                    && !displayCustomerField(contract.customer.contactName)
+                    && !displayCustomerField(contract.customer.email)
+                    && !displayCustomerField(contract.customer.phone)
+                    && !displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')) && (
+                    <PartyLine value="Informations client à compléter" muted />
+                  )}
                 </div>
               </div>
             </div>
