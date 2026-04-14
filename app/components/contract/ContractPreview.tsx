@@ -68,6 +68,25 @@ function displayCustomerField(value?: string) {
   return value?.trim() || ''
 }
 
+function InfoRow({
+  label,
+  value,
+  muted = false,
+}: {
+  label: string
+  value: string
+  muted?: boolean
+}) {
+  return (
+    <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 text-[10px] leading-[1.65]">
+      <div className="font-bold uppercase tracking-[1.4px]" style={{ color: '#9B8550' }}>
+        {label}
+      </div>
+      <div style={{ color: muted ? '#8B7A3E' : '#2A2620' }}>{value}</div>
+    </div>
+  )
+}
+
 function getServiceDetails(item: DevisItem, lang: Contract['lang']) {
   if (item.kind !== 'package') return []
   return item.childNamesSnapshot
@@ -166,24 +185,65 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           </h2>
 
           <div className="grid grid-cols-2 gap-6">
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="rounded-[2px] border p-5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.providerLabel}</SectionLabel>
-              <div className="mt-3 space-y-1 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
-                {providerLines.map((line) => (
-                  <div key={line}>{line}</div>
-                ))}
+              <div className="mt-4">
+                <div
+                  className="text-[26px] font-bold leading-none"
+                  style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+                >
+                  SAS OKO
+                </div>
+                <div className="mt-1 text-[10px] uppercase tracking-[1.8px]" style={{ color: '#8B7A3E' }}>
+                  Société par actions simplifiée
+                </div>
+                <div className="my-4 h-px" style={{ backgroundColor: '#E4D9BE' }} />
+                <div className="space-y-2.5">
+                  <InfoRow label="Adresse" value={`${providerLines[1]}`} />
+                  <InfoRow label="R.C.S." value="Paris 881 648 323 00015" />
+                  <InfoRow label="Représenté par" value="M. Shengmao KE, Président" />
+                  <InfoRow label="Contact" value="support@joinoko.com" />
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+            <div className="rounded-[2px] border p-5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.clientLabel}</SectionLabel>
-              <div className="mt-3 space-y-1 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
-                <div>{displayCustomerField(contract.customer.name)}</div>
-                <div>{displayCustomerField(contract.customer.address)}</div>
-                <div>{displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' '))}</div>
-                <div>{displayCustomerField(contract.customer.contactName)}</div>
-                <div>{displayCustomerField(contract.customer.email)}</div>
-                <div>{displayCustomerField(contract.customer.phone)}</div>
+              <div className="mt-4">
+                <div
+                  className="text-[24px] font-bold leading-[1.05]"
+                  style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+                >
+                  {displayCustomerField(contract.customer.name) || 'Client à compléter'}
+                </div>
+                <div className="my-4 h-px" style={{ backgroundColor: '#E4D9BE' }} />
+                <div className="space-y-2.5">
+                  <InfoRow
+                    label="Adresse"
+                    value={displayCustomerField(contract.customer.address) || 'Adresse à compléter'}
+                    muted={!displayCustomerField(contract.customer.address)}
+                  />
+                  <InfoRow
+                    label="Ville"
+                    value={displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ')) || 'Ville à compléter'}
+                    muted={!displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' '))}
+                  />
+                  <InfoRow
+                    label="Contact"
+                    value={displayCustomerField(contract.customer.contactName) || 'Nom du contact à compléter'}
+                    muted={!displayCustomerField(contract.customer.contactName)}
+                  />
+                  <InfoRow
+                    label="Email"
+                    value={displayCustomerField(contract.customer.email) || 'Email à compléter'}
+                    muted={!displayCustomerField(contract.customer.email)}
+                  />
+                  <InfoRow
+                    label="Téléphone"
+                    value={displayCustomerField(contract.customer.phone) || 'Téléphone à compléter'}
+                    muted={!displayCustomerField(contract.customer.phone)}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -354,7 +414,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           </ArticleBlock>
         </div>
 
-        <div className="absolute left-[52px] right-[52px] bottom-[6px] space-y-3">
+        <div className="mt-5 space-y-3">
           <ArticleBlock title={copy.article8Title}>
             <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <p>{contract.specialConditions || copy.article8Placeholder}</p>

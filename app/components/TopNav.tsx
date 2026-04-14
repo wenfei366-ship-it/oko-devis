@@ -70,7 +70,7 @@ export default function TopNav({ onCreateDevis }: TopNavProps) {
           className="flex items-center justify-center h-[40px] px-5 rounded-[10px] text-[13px] font-bold transition-opacity hover:opacity-90"
           style={{ backgroundColor: '#1C1611', color: '#F8EFDC', minWidth: '140px' }}
         >
-          创建 devis  →
+          新建 devis  →
         </button>
       </div>
     </header>

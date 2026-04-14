@@ -26,7 +26,7 @@ import { buildContractPdfPath } from '@/app/lib/fileStorage'
 import { uuid } from '@/app/lib/numbering'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
-import type { Contract, ContractSentChannel, ContractStatus, Lang, PackageLine, Service } from '@/app/lib/types'
+import type { Contract, ContractEvidenceFile, ContractSentChannel, ContractStatus, Lang, PackageLine, Service } from '@/app/lib/types'
 
 interface ContractWorkspaceProps {
   contractId?: string
@@ -214,6 +214,8 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const router = useRouter()
   const previewRef = useRef<HTMLDivElement>(null)
   const exportRef = useRef<HTMLDivElement>(null)
+  const evidenceInputRef = useRef<HTMLInputElement>(null)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
 
   const [contract, setContract] = useState<Contract | null>(null)
   const [loading, setLoading] = useState(true)
@@ -221,8 +223,9 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
+  const [uploadingEvidence, setUploadingEvidence] = useState(false)
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
-  const [showCatalog, setShowCatalog] = useState(false)
   const [packDraft, setPackDraft] = useState<Set<string>>(new Set())
 
   const loadData = useCallback(async () => {
@@ -438,6 +441,15 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             <p>Cordialement,<br/>OKO</p>
           </div>
         `
+        const text = [
+          'Bonjour,',
+          '',
+          `Veuillez trouver ci-joint votre contrat ${contractSnapshot.meta.number}.`,
+          'Si tout est bon pour vous, vous pouvez nous repondre directement par email.',
+          '',
+          'Cordialement,',
+          'OKO',
+        ].join('\n')
 
         const response = await fetch('/api/contract/send', {
           method: 'POST',
@@ -446,21 +458,34 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             to: contractSnapshot.customer.email.trim(),
             subject,
             html,
+            text,
             pdfBase64,
             pdfUrl: contractSnapshot.pdfUrl,
             pdfFileName: `Contract-${contractSnapshot.meta.number}.pdf`,
           }),
         })
 
-        const payload = await response.json() as { error?: string }
+        const payload = await response.json() as {
+          error?: string
+          accepted?: string[]
+          rejected?: string[]
+          response?: string
+        }
         if (!response.ok) {
           throw new Error(payload.error || '邮件发送失败。')
+        }
+        if (payload.rejected?.length) {
+          throw new Error(`收件服务器拒收：${payload.rejected.join(', ')}`)
         }
 
         const nextContract = updateContractStatus(contractSnapshot, 'sent', 'email')
         await saveContract(nextContract)
         setContract(nextContract)
-        setSaveMessage(`合同已发送到 ${contractSnapshot.customer.email}。`)
+        setSaveMessage(
+          payload.accepted?.length
+            ? `邮件服务器已接收：${payload.accepted.join(', ')}`
+            : `合同已发送到 ${contractSnapshot.customer.email}。`,
+        )
       } catch (sendError) {
         setSaveMessage(sendError instanceof Error ? sendError.message : '邮件发送失败。')
       } finally {
@@ -468,6 +493,117 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       }
     })()
   }, [contract, sendingEmail])
+
+  const uploadContractFile = useCallback(async (
+    file: File,
+    kind: 'contract-evidence' | 'contract-attachment',
+  ): Promise<ContractEvidenceFile> => {
+    const formData = new FormData()
+    formData.set('file', file)
+    formData.set('kind', kind)
+    formData.set('entityId', contract!.id)
+    formData.set('fileName', file.name)
+
+    const response = await fetch('/api/files/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const payload = await response.json() as { error?: string; path?: string; url?: string }
+    if (!response.ok) {
+      throw new Error(payload.error || '文件上传失败。')
+    }
+
+    return {
+      name: file.name,
+      path: payload.path,
+      url: payload.url,
+    }
+  }, [contract])
+
+  const handleEvidenceUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !contract || uploadingEvidence) return
+
+    void (async () => {
+      setUploadingEvidence(true)
+      setSaveMessage(null)
+
+      try {
+        const uploaded = await uploadContractFile(file, 'contract-evidence')
+        const now = new Date().toISOString()
+        const nextContract: Contract = {
+          ...contract,
+          status: 'completed',
+          confirmedAt: contract.confirmedAt || now,
+          confirmationMethod: contract.confirmationMethod || '已上传确认凭证',
+          evidenceFiles: [...contract.evidenceFiles, uploaded],
+          updatedAt: now,
+          activityLog: [
+            ...contract.activityLog,
+            {
+              at: now,
+              actor: 'OKO',
+              event: 'Uploaded confirmation evidence',
+              meta: uploaded.name,
+            },
+            {
+              at: now,
+              actor: 'OKO',
+              event: 'Status changed to completed',
+            },
+          ],
+        }
+
+        await saveContract(nextContract)
+        setContract(nextContract)
+        setSaveMessage('确认凭证已上传，合同已自动标记完成。')
+      } catch (uploadError) {
+        setSaveMessage(uploadError instanceof Error ? uploadError.message : '凭证上传失败。')
+      } finally {
+        event.target.value = ''
+        setUploadingEvidence(false)
+      }
+    })()
+  }, [contract, uploadContractFile, uploadingEvidence])
+
+  const handleAttachmentUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !contract || uploadingAttachment) return
+
+    void (async () => {
+      setUploadingAttachment(true)
+      setSaveMessage(null)
+
+      try {
+        const uploaded = await uploadContractFile(file, 'contract-attachment')
+        const now = new Date().toISOString()
+        const nextContract: Contract = {
+          ...contract,
+          attachments: [...contract.attachments, uploaded],
+          updatedAt: now,
+          activityLog: [
+            ...contract.activityLog,
+            {
+              at: now,
+              actor: 'OKO',
+              event: 'Uploaded attachment',
+              meta: uploaded.name,
+            },
+          ],
+        }
+
+        await saveContract(nextContract)
+        setContract(nextContract)
+        setSaveMessage('附件已上传并保存到合同记录。')
+      } catch (uploadError) {
+        setSaveMessage(uploadError instanceof Error ? uploadError.message : '附件上传失败。')
+      } finally {
+        event.target.value = ''
+        setUploadingAttachment(false)
+      }
+    })()
+  }, [contract, uploadContractFile, uploadingAttachment])
 
   const statusTone = useMemo(() => {
     if (!contract) return '#9B8550'
@@ -647,18 +783,8 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                   返回历史记录查看原始报价单 →
                 </Link>
               )}
-              {!contract.devisId && (
-                <button
-                  type="button"
-                  onClick={() => setShowCatalog((current) => !current)}
-                  className="mt-3 text-[12px] font-semibold"
-                  style={{ color: '#A8702E' }}
-                >
-                  {showCatalog ? '收起产品目录 ↑' : '选择服务内容 →'}
-                </button>
-              )}
             </div>
-            {!contract.devisId && showCatalog && (
+            {!contract.devisId && (
               <div className="mt-3 space-y-4">
                 <div className="space-y-2">
                   {CATALOG.map((service) => {
@@ -769,21 +895,6 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             </div>
           </div>
 
-          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', boxShadow: '4px 0 16px rgba(28,22,17,0.08)' }}>
-            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>目录</div>
-            <div className="mt-3 space-y-2 text-[12px]" style={{ color: '#3A3228' }}>
-              <div>Parties contractantes</div>
-              <div>1 · Objet du contrat</div>
-              <div>2 · Durée</div>
-              <div>3 · Exécution</div>
-              <div>4 · Résiliation</div>
-              <div>5 · Restitution des données</div>
-              <div>6 · Référencement</div>
-              <div>7 · Facturation et prix</div>
-              <div>8 · Conditions spécifiques</div>
-            </div>
-          </div>
-
           <div className="rounded-[2px] border border-dashed px-[18px] py-4" style={{ borderColor: '#C8B987', backgroundColor: '#F4ECD6' }}>
             <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>下一步</div>
             <div className="mt-2 text-[12px] leading-[1.65]" style={{ color: '#5C5142' }}>
@@ -872,7 +983,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                   </div>
                   <div className="mt-5 grid grid-cols-2 gap-8">
                     <div>
-                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>发送方式</div>
+                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>确认方式</div>
                       <div className="mt-3 flex flex-wrap gap-3">
                         {[
                           ['email', '邮件'],
@@ -916,9 +1027,22 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>确认时间</div>
-                      <div className="mt-2 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '— 尚未确认'}</div>
-                      <div className="mt-2 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>{contract.sentAt ? `最近一次联系：${new Date(contract.sentAt).toLocaleString('zh-CN')}` : '最近一次联系尚未记录。'}</div>
+                      <div className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>确认方式与时间</div>
+                      <div className="mt-2 text-[12px] font-semibold" style={{ color: '#1C1611' }}>
+                        {contract.confirmationMethod || contract.sentChannel
+                          ? `${contract.confirmationMethod || CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel as ContractSentChannel]}`
+                          : '— 尚未记录确认方式'}
+                      </div>
+                      <div className="mt-2 text-[12px] font-semibold" style={{ color: '#1C1611' }}>
+                        {contract.confirmedAt ? new Date(contract.confirmedAt).toLocaleString('zh-CN') : '— 尚未确认'}
+                      </div>
+                      <div className="mt-2 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
+                        {contract.confirmedAt
+                          ? '这里记录的是手动标记为“已确认”时的时间。'
+                          : contract.sentAt
+                            ? `最近一次联系：${new Date(contract.sentAt).toLocaleString('zh-CN')}`
+                            : '最近一次联系尚未记录。'}
+                      </div>
                     </div>
                   </div>
                   <div className="mt-5">
@@ -939,21 +1063,58 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                     />
                   </div>
                   <div className="mt-5 rounded-[2px] border border-dashed px-4 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#FBF5E4' }}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
+                    <input
+                      ref={evidenceInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={handleEvidenceUpload}
+                    />
+                    <input
+                      ref={attachmentInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={handleAttachmentUpload}
+                    />
+                    <div className="flex items-start justify-between gap-6">
+                      <div className="flex-1">
                         <div className="text-[11px] font-semibold" style={{ color: '#1C1611' }}>证据与备注</div>
                         <div className="mt-1 text-[11px] leading-[1.6]" style={{ color: '#6B5A3D' }}>
-                          添加截图、邮件复制或文件链接。
+                          上传客户确认截图后，流程会自动进入“已完成”。普通附件只做留档。
                         </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => evidenceInputRef.current?.click()}
+                            className="rounded-[2px] border px-4 py-2 text-[10px] font-bold tracking-[1.2px]"
+                            style={{ borderColor: '#1C1611', color: '#1C1611' }}
+                          >
+                            {uploadingEvidence ? '上传凭证中…' : '上传确认凭证'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => attachmentInputRef.current?.click()}
+                            className="rounded-[2px] border px-4 py-2 text-[10px] font-bold tracking-[1.2px]"
+                            style={{ borderColor: '#B8922F', color: '#A8702E' }}
+                          >
+                            {uploadingAttachment ? '上传附件中…' : '上传补充附件'}
+                          </button>
+                        </div>
+                        {(contract.evidenceFiles.length > 0 || contract.attachments.length > 0) && (
+                          <div className="mt-4 space-y-2 text-[11px]" style={{ color: '#5C5142' }}>
+                            {contract.evidenceFiles.map((file, index) => (
+                              <div key={`${file.path || file.url || file.name}-e-${index}`}>
+                                凭证 · <a href={file.url} target="_blank" rel="noreferrer" style={{ color: '#A8702E' }}>{file.name}</a>
+                              </div>
+                            ))}
+                            {contract.attachments.map((file, index) => (
+                              <div key={`${file.path || file.url || file.name}-a-${index}`}>
+                                附件 · <a href={file.url} target="_blank" rel="noreferrer" style={{ color: '#A8702E' }}>{file.name}</a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void handleSave()}
-                        className="rounded-[2px] border px-4 py-2 text-[10px] font-bold tracking-[1.2px]"
-                        style={{ borderColor: '#1C1611', color: '#1C1611' }}
-                      >
-                        保存记录
-                      </button>
                     </div>
                   </div>
                 </div>

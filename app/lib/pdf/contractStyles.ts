@@ -126,10 +126,7 @@ export const cs = StyleSheet.create({
     marginTop: 4,
   },
   pageBottomBlock: {
-    position: 'absolute',
-    left: 38,
-    right: 38,
-    bottom: 0,
+    marginTop: 8,
   },
   paragraph: {
     fontSize: 8.8,

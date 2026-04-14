@@ -51,6 +51,29 @@ function Footer() {
   )
 }
 
+function PartyInfoRow({
+  label,
+  value,
+  bodyFont,
+  muted = false,
+}: {
+  label: string
+  value: string
+  bodyFont: string
+  muted?: boolean
+}) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
+      <Text style={{ width: 72, color: '#9B8550', fontSize: 8.2, letterSpacing: 1.1, fontFamily: bodyFont, fontWeight: 700 }}>
+        {label.toUpperCase()}
+      </Text>
+      <Text style={{ flex: 1, color: muted ? '#8B7A3E' : '#2A2620', fontSize: 9.2, lineHeight: 1.5, fontFamily: bodyFont }}>
+        {value}
+      </Text>
+    </View>
+  )
+}
+
 export function ContractPDF({ contract }: ContractPDFProps) {
   const copy = getContractCopy(contract.lang)
   const providerLines = buildProviderLines()
@@ -91,24 +114,58 @@ export function ContractPDF({ contract }: ContractPDFProps) {
         <View style={cs.partiesRow}>
           <View style={cs.partyCard}>
             <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.providerLabel}</Text>
-            <View style={{ marginTop: 8 }}>
-              {providerLines.map((line) => (
-                <Text key={line} style={{ ...cs.partyLine, fontFamily: bodyFont }}>{line}</Text>
-              ))}
+            <View style={{ marginTop: 10 }}>
+              <Text style={{ color: '#1C1611', fontSize: 22, fontFamily: displayFont, fontWeight: 700 }}>
+                SAS OKO
+              </Text>
+              <Text style={{ color: '#8B7A3E', fontSize: 8.2, letterSpacing: 1.5, marginTop: 3, fontFamily: bodyFont }}>
+                SOCIÉTÉ PAR ACTIONS SIMPLIFIÉE
+              </Text>
+              <View style={{ height: 1, backgroundColor: '#E4D9BE', marginTop: 10, marginBottom: 10 }} />
+              <PartyInfoRow label="Adresse" value={providerLines[1]} bodyFont={bodyFont} />
+              <PartyInfoRow label="R.C.S." value="Paris 881 648 323 00015" bodyFont={bodyFont} />
+              <PartyInfoRow label="Représenté par" value="M. Shengmao KE, Président" bodyFont={bodyFont} />
+              <PartyInfoRow label="Contact" value="support@joinoko.com" bodyFont={bodyFont} />
             </View>
           </View>
 
           <View style={cs.partyCard}>
             <Text style={{ ...cs.sectionLabel, fontFamily: bodyFont }}>{copy.clientLabel}</Text>
-            <View style={{ marginTop: 8 }}>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>{contract.customer.name || '—'}</Text>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>{contract.customer.address || '—'}</Text>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>
-                {[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ') || '—'}
+            <View style={{ marginTop: 10 }}>
+              <Text style={{ color: '#1C1611', fontSize: 20, fontFamily: displayFont, fontWeight: 700 }}>
+                {contract.customer.name || 'Client à compléter'}
               </Text>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>{contract.customer.contactName || '—'}</Text>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>{contract.customer.email || '—'}</Text>
-              <Text style={{ ...cs.partyLine, fontFamily: bodyFont }}>{contract.customer.phone || '—'}</Text>
+              <View style={{ height: 1, backgroundColor: '#E4D9BE', marginTop: 10, marginBottom: 10 }} />
+              <PartyInfoRow
+                label="Adresse"
+                value={contract.customer.address || 'Adresse à compléter'}
+                bodyFont={bodyFont}
+                muted={!contract.customer.address}
+              />
+              <PartyInfoRow
+                label="Ville"
+                value={[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ') || 'Ville à compléter'}
+                bodyFont={bodyFont}
+                muted={!contract.customer.postalCode && !contract.customer.city}
+              />
+              <PartyInfoRow
+                label="Contact"
+                value={contract.customer.contactName || 'Nom du contact à compléter'}
+                bodyFont={bodyFont}
+                muted={!contract.customer.contactName}
+              />
+              <PartyInfoRow
+                label="Email"
+                value={contract.customer.email || 'Email à compléter'}
+                bodyFont={bodyFont}
+                muted={!contract.customer.email}
+              />
+              <PartyInfoRow
+                label="Téléphone"
+                value={contract.customer.phone || 'Téléphone à compléter'}
+                bodyFont={bodyFont}
+                muted={!contract.customer.phone}
+              />
             </View>
           </View>
         </View>

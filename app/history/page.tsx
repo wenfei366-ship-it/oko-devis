@@ -22,7 +22,7 @@ const FLAG_MAP: Record<Lang, string> = {
   zh: '🇨🇳',
 }
 
-type HistoryFilter = 'all' | 'devis' | 'contract'
+type HistoryFilter = 'all' | 'devis' | 'contract' | 'pending'
 
 function HistoryContent() {
   const mounted = useMounted()
@@ -86,6 +86,9 @@ function HistoryContent() {
     const keyword = query.trim().toLowerCase()
     return contractList.filter((item) => {
       if (filter === 'devis') return false
+      if (filter === 'pending' && item.status !== 'draft' && item.status !== 'generated' && item.status !== 'sent') {
+        return false
+      }
       if (!keyword) return true
       const haystack = [
         item.meta.number,
@@ -114,7 +117,9 @@ function HistoryContent() {
     await refresh()
   }, [refresh])
 
-  const waitingCount = contractList.filter((item) => item.status === 'sent' || item.status === 'draft').length
+  const waitingCount = contractList.filter((item) => (
+    item.status === 'draft' || item.status === 'generated' || item.status === 'sent'
+  )).length
   const signedAmount = contractList
     .filter((item) => item.status === 'confirmed' || item.status === 'completed')
     .reduce((sum, item) => sum + item.finalTotal, 0)
@@ -175,12 +180,20 @@ function HistoryContent() {
               {contractList.length}
             </div>
           </div>
-          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
-            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>待处理</div>
+          <button
+            type="button"
+            onClick={() => setFilter('pending')}
+            className="rounded-[14px] border px-5 py-4 text-left transition-colors"
+            style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}
+          >
+            <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>待跟进合同</div>
             <div className="mt-2 text-[34px] font-bold" style={{ color: '#9B2A2A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
               {waitingCount}
             </div>
-          </div>
+            <div className="mt-2 text-[11px]" style={{ color: '#6B5A3D' }}>
+              草稿、已生成、已发送
+            </div>
+          </button>
         </div>
       </header>
 
@@ -201,6 +214,7 @@ function HistoryContent() {
               ['all', `全部 ${devisList.length + contractList.length}`],
               ['devis', `报价单 ${devisList.length}`],
               ['contract', `合同 ${contractList.length}`],
+              ['pending', `待跟进 ${waitingCount}`],
             ] as const).map(([key, label]) => (
               <button
                 key={key}

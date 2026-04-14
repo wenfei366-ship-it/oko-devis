@@ -16,10 +16,11 @@ function getOptionalEnv(name: string) {
 
 export async function POST(request: Request) {
   try {
-    const { to, subject, html, pdfUrl, pdfFileName, pdfBase64 } = await request.json() as {
+    const { to, subject, html, text, pdfUrl, pdfFileName, pdfBase64 } = await request.json() as {
       to?: string
       subject?: string
       html?: string
+      text?: string
       pdfUrl?: string
       pdfFileName?: string
       pdfBase64?: string
@@ -69,16 +70,31 @@ export async function POST(request: Request) {
       })
     }
 
-    await transporter.sendMail({
-      from,
+    const info = await transporter.sendMail({
+      from: `OKO <${from}>`,
       replyTo,
       to: to.trim(),
       subject: subject.trim(),
       html,
+      text: text?.trim() || undefined,
       attachments,
     })
 
-    return NextResponse.json({ ok: true })
+    console.info('contract email sent', {
+      to: to.trim(),
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response,
+      messageId: info.messageId,
+    })
+
+    return NextResponse.json({
+      ok: true,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response,
+      messageId: info.messageId,
+    })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '邮件发送失败。' },
