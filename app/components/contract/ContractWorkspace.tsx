@@ -66,6 +66,44 @@ const STATUS_FLOW: Array<{
   { key: 'completed', title: '已完成', description: '这份合同已经归档完成。' },
 ]
 
+const CONTRACT_EMAIL_COPY = {
+  fr: {
+    subject: (number: string, customer: string) => `Contrat OKO ${number} · ${customer}`,
+    greeting: 'Bonjour,',
+    body: (number: string) => `Veuillez trouver ci-joint votre contrat ${number}.`,
+    confirm: 'Si tout est bon pour vous, il vous suffit de répondre à cet email pour confirmer le contrat.',
+    closing: 'Cordialement,',
+  },
+  it: {
+    subject: (number: string, customer: string) => `Contratto OKO ${number} · ${customer}`,
+    greeting: 'Buongiorno,',
+    body: (number: string) => `In allegato trova il contratto ${number}.`,
+    confirm: 'Se per lei è tutto corretto, le basta rispondere a questa email per confermare il contratto.',
+    closing: 'Cordiali saluti,',
+  },
+  es: {
+    subject: (number: string, customer: string) => `Contrato OKO ${number} · ${customer}`,
+    greeting: 'Hola,',
+    body: (number: string) => `Adjuntamos su contrato ${number}.`,
+    confirm: 'Si todo le parece correcto, solo tiene que responder a este correo para confirmar el contrato.',
+    closing: 'Un saludo,',
+  },
+  de: {
+    subject: (number: string, customer: string) => `OKO Vertrag ${number} · ${customer}`,
+    greeting: 'Guten Tag,',
+    body: (number: string) => `Im Anhang finden Sie Ihren Vertrag ${number}.`,
+    confirm: 'Wenn alles für Sie passt, antworten Sie einfach auf diese E-Mail, um den Vertrag zu bestätigen.',
+    closing: 'Freundliche Grüße,',
+  },
+  zh: {
+    subject: (number: string, customer: string) => `OKO 合同 ${number} · ${customer}`,
+    greeting: '您好，',
+    body: (number: string) => `附件是您的合同 ${number}。`,
+    confirm: '如果内容确认无误，直接回复这封邮件即可确认合同。',
+    closing: '此致，',
+  },
+} as const
+
 function createPackageFromServices(services: Service[]): PackageLine {
   const baselineMonthly = services.reduce((sum, service) => sum + service.defaultPrice, 0)
   const baselineAnnual = baselineMonthly * 12
@@ -432,22 +470,24 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       try {
         const pdfBlob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
         const pdfBase64 = await blobToBase64(pdfBlob)
-        const subject = `Contrat ${contractSnapshot.meta.number} · OKO`
+        const emailCopy = CONTRACT_EMAIL_COPY[contractSnapshot.lang] || CONTRACT_EMAIL_COPY.fr
+        const customerName = contractSnapshot.customer.name.trim() || 'Client'
+        const subject = emailCopy.subject(contractSnapshot.meta.number, customerName)
         const html = `
           <div style="font-family: Arial, sans-serif; color: #1C1611; line-height: 1.7;">
-            <p>Bonjour,</p>
-            <p>Veuillez trouver ci-joint votre contrat ${contractSnapshot.meta.number}.</p>
-            <p>Si tout est bon pour vous, vous pouvez nous répondre directement par email.</p>
-            <p>Cordialement,<br/>OKO</p>
+            <p>${emailCopy.greeting}</p>
+            <p>${emailCopy.body(contractSnapshot.meta.number)}</p>
+            <p>${emailCopy.confirm}</p>
+            <p>${emailCopy.closing}<br/>OKO</p>
           </div>
         `
         const text = [
-          'Bonjour,',
+          emailCopy.greeting,
           '',
-          `Veuillez trouver ci-joint votre contrat ${contractSnapshot.meta.number}.`,
-          'Si tout est bon pour vous, vous pouvez nous repondre directement par email.',
+          emailCopy.body(contractSnapshot.meta.number),
+          emailCopy.confirm,
           '',
-          'Cordialement,',
+          emailCopy.closing,
           'OKO',
         ].join('\n')
 
