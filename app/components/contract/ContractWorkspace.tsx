@@ -26,7 +26,7 @@ import { buildContractPdfPath } from '@/app/lib/fileStorage'
 import { uuid } from '@/app/lib/numbering'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
-import type { Contract, ContractEvidenceFile, ContractSentChannel, ContractStatus, Lang, PackageLine, Service } from '@/app/lib/types'
+import type { Contract, ContractEvidenceFile, ContractSentChannel, ContractStatus, Country, Lang, PackageLine, Service } from '@/app/lib/types'
 
 interface ContractWorkspaceProps {
   contractId?: string
@@ -103,6 +103,14 @@ const CONTRACT_EMAIL_COPY = {
     closing: '此致，',
   },
 } as const
+
+function getContractEmailLang(country: Country, fallback: Lang): Lang {
+  if (country === 'IT') return 'it'
+  if (country === 'ES') return 'es'
+  if (country === 'DE') return 'de'
+  if (country === 'FR' || country === 'BE' || country === 'CH' || country === 'LU') return 'fr'
+  return fallback
+}
 
 function createPackageFromServices(services: Service[]): PackageLine {
   const baselineMonthly = services.reduce((sum, service) => sum + service.defaultPrice, 0)
@@ -470,7 +478,8 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       try {
         const pdfBlob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
         const pdfBase64 = await blobToBase64(pdfBlob)
-        const emailCopy = CONTRACT_EMAIL_COPY[contractSnapshot.lang] || CONTRACT_EMAIL_COPY.fr
+        const emailLang = getContractEmailLang(contractSnapshot.customer.country, contractSnapshot.lang)
+        const emailCopy = CONTRACT_EMAIL_COPY[emailLang] || CONTRACT_EMAIL_COPY.fr
         const customerName = contractSnapshot.customer.name.trim() || 'Client'
         const subject = emailCopy.subject(contractSnapshot.meta.number, customerName)
         const html = `
