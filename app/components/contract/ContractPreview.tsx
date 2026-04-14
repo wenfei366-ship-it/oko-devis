@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import type { Contract } from '@/app/lib/types'
+import type { Contract, DevisItem } from '@/app/lib/types'
 import { formatEuroCompact } from '@/app/lib/calculations'
 import {
   buildProviderLines,
@@ -66,6 +66,13 @@ function ArticleBlock({
 
 function displayCustomerField(value?: string) {
   return value?.trim() || ''
+}
+
+function getServiceDetails(item: DevisItem, lang: Contract['lang']) {
+  if (item.kind !== 'package') return []
+  return item.childNamesSnapshot
+    .map((name) => name[lang] || name.fr)
+    .filter(Boolean)
 }
 
 function Paper({
@@ -275,6 +282,11 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                     </div>
                     <div>
                       <div className="text-[9px] font-bold" style={{ color: '#1C1611' }}>{selectedServices[index]}</div>
+                      {item.kind === 'package' && getServiceDetails(item, contract.lang).length > 0 && (
+                        <div className="mt-0.5 text-[6px] leading-[1.3]" style={{ color: '#6B5A3D' }}>
+                          包含：{getServiceDetails(item, contract.lang).join(' · ')}
+                        </div>
+                      )}
                       <div className="mt-0.5 text-[6px] italic leading-[1.25]" style={{ color: '#6B5A3D' }}>
                         {getContractPriceHint(item, contract.lang, contract.paymentMode)}
                       </div>
@@ -306,6 +318,11 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                     contract.selectedServices.map((item, index) => (
                       <div key={`${item.id}-${index}`} className="rounded-[2px] border px-2.5 py-1" style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}>
                         <div className="font-semibold">{selectedServices[index]}</div>
+                        {item.kind === 'package' && getServiceDetails(item, contract.lang).length > 0 && (
+                          <div className="mt-0.5 text-[8px] leading-[1.35]" style={{ color: '#6B5A3D' }}>
+                            包含：{getServiceDetails(item, contract.lang).join(' · ')}
+                          </div>
+                        )}
                         <div className="mt-0.5 text-[8px]" style={{ color: '#6B5A3D' }}>
                           {getContractPriceHint(item, contract.lang, contract.paymentMode)}
                         </div>
