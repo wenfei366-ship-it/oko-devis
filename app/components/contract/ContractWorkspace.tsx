@@ -897,6 +897,13 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
           <div className="space-y-7">
             <section className="flex items-start justify-between">
               <div className="space-y-4">
+                <div className="flex items-center gap-[14px] text-[12px] font-semibold">
+                  <Link href="/history" style={{ color: '#A8702E' }}>← 历史记录</Link>
+                  <span style={{ color: '#C8B987' }}>/</span>
+                  <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
+                  <span style={{ color: '#C8B987' }}>/</span>
+                  <span style={{ color: '#1C1611' }}>{contract.meta.number}</span>
+                </div>
                 <div className="text-[10px] font-bold tracking-[2px]" style={{ color: '#A8702E' }}>
                   合同 {contract.meta.number} · 来源报价单 {contract.meta.devisNumber || '—'}
                 </div>
@@ -914,6 +921,21 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               </div>
 
               <div className="flex flex-col items-end gap-3">
+                <div className="flex items-center gap-3">
+                  {contract.status !== 'completed' && (
+                    <button
+                      type="button"
+                      onClick={() => void handleStatusChange('completed')}
+                      className="rounded-[2px] border px-5 py-3 text-[10px] font-bold tracking-[1.4px]"
+                      style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}
+                    >
+                      标记完成 →
+                    </button>
+                  )}
+                  <Link href={`/contract/${contract.id}`} className="text-[11px] font-medium" style={{ color: '#A8702E' }}>
+                    编辑合同 ↗
+                  </Link>
+                </div>
                 <div className="inline-flex items-center gap-2 rounded-[2px] border px-5 py-3 text-[10px] font-bold tracking-[1.4px]" style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}>
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusTone }} />
                   {CONTRACT_STATUS_LABELS[contract.status]}
@@ -929,9 +951,6 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                   </div>
                   <div className="mt-1 text-[10px]" style={{ color: '#9B8550' }}>年度总额</div>
                 </div>
-                <Link href={`/contract/${contract.id}`} className="pt-2 text-[11px] font-medium" style={{ color: '#A8702E' }}>
-                  编辑合同 ↗
-                </Link>
               </div>
             </section>
 
