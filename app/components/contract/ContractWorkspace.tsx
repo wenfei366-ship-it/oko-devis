@@ -897,15 +897,14 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
           <div className="space-y-7">
             <section className="flex items-start justify-between">
               <div className="space-y-4">
-                <div className="flex items-center gap-[14px] text-[12px] font-semibold">
+                <div className="flex items-center gap-[14px] text-[11px] font-semibold tracking-[1.1px]">
                   <Link href="/history" style={{ color: '#A8702E' }}>← 历史记录</Link>
                   <span style={{ color: '#C8B987' }}>/</span>
                   <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
                   <span style={{ color: '#C8B987' }}>/</span>
                   <span style={{ color: '#1C1611' }}>{contract.meta.number}</span>
-                </div>
-                <div className="text-[10px] font-bold tracking-[2px]" style={{ color: '#A8702E' }}>
-                  合同 {contract.meta.number} · 来源报价单 {contract.meta.devisNumber || '—'}
+                  <span style={{ color: '#C8B987' }}>·</span>
+                  <span style={{ color: '#A8702E' }}>来源报价单 {contract.meta.devisNumber || '—'}</span>
                 </div>
                 <div className="text-[72px] font-bold leading-[0.92] tracking-[-1.8px]" style={{ color: '#2A2620', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
                   {contract.customer.name || '未填写客户'}
@@ -920,36 +919,36 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-3">
+              <div className="flex flex-col items-end gap-5">
                 <div className="flex items-center gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-[2px] border px-4 py-3 text-[10px] font-bold tracking-[1.4px]" style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}>
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusTone }} />
+                    {CONTRACT_STATUS_LABELS[contract.status]}
+                  </div>
                   {contract.status !== 'completed' && (
                     <button
                       type="button"
                       onClick={() => void handleStatusChange('completed')}
-                      className="rounded-[2px] border px-5 py-3 text-[10px] font-bold tracking-[1.4px]"
-                      style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}
+                      className="rounded-[2px] border px-4 py-3 text-[10px] font-bold tracking-[1.4px]"
+                      style={{ borderColor: '#1C1611', color: '#1C1611' }}
                     >
                       标记完成 →
                     </button>
                   )}
-                  <Link href={`/contract/${contract.id}`} className="text-[11px] font-medium" style={{ color: '#A8702E' }}>
+                  <Link href={`/contract/${contract.id}`} className="text-[11px] font-semibold" style={{ color: '#A8702E' }}>
                     编辑合同 ↗
                   </Link>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-[2px] border px-5 py-3 text-[10px] font-bold tracking-[1.4px]" style={{ borderColor: '#B8922F', backgroundColor: '#1C1611', color: '#F5D48A' }}>
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusTone }} />
-                  {CONTRACT_STATUS_LABELS[contract.status]}
-                </div>
-                <div className="text-right text-[10px] italic leading-[1.5]" style={{ color: '#9B8550' }}>
-                  {contract.sentAt ? `${new Date(contract.sentAt).toLocaleDateString('zh-CN')} 已发送` : '尚未发送'}
-                  <br />
-                  {contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '待记录'}
-                </div>
-                <div className="pt-2 text-right">
+                <div className="flex items-end gap-8">
+                  <div className="text-right text-[10px] italic leading-[1.5]" style={{ color: '#9B8550' }}>
+                    {contract.sentAt ? `${new Date(contract.sentAt).toLocaleDateString('zh-CN')} 已发送` : '尚未发送'}
+                    <br />
+                    {contract.sentChannel ? CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel] : '待记录'}
+                  </div>
                   <div className="text-[34px] font-bold italic leading-none" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
                     {formatEuroCompact(contract.finalTotal)}
+                    <div className="mt-1 text-[10px] not-italic font-medium" style={{ color: '#9B8550', fontFamily: 'var(--font-inter), Inter, sans-serif' }}>年度总额</div>
                   </div>
-                  <div className="mt-1 text-[10px]" style={{ color: '#9B8550' }}>年度总额</div>
                 </div>
               </div>
             </section>
