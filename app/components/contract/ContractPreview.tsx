@@ -129,7 +129,16 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
           </div>
 
           <div className="text-right">
-            <Image src="/oko-logo.png" alt="OKO" width={88} height={88} className="ml-auto h-auto w-[88px]" />
+            <Image
+              src="/oko-logo.png"
+              alt="OKO"
+              width={88}
+              height={88}
+              className="ml-auto h-auto w-[88px]"
+              priority
+              unoptimized
+              loading="eager"
+            />
             <div className="mt-2 text-[11px] font-semibold tracking-[1.6px]" style={{ color: '#8B7A3E' }}>
               joinoko.com
             </div>
@@ -342,7 +351,16 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
               <div className="mt-1.5 space-y-1 text-[9px] leading-[1.45]" style={{ color: '#2A2620' }}>
                 <div>SAS OKO · M. Shengmao KE, Président</div>
                 <div>{formatContractDate(contract.meta.date, contract.lang)} · Paris</div>
-                <Image src="/oko-signature.png" alt="OKO signature" width={62} height={22} className="h-auto w-[62px]" />
+                <Image
+                  src="/oko-signature.png"
+                  alt="OKO signature"
+                  width={62}
+                  height={22}
+                  className="h-auto w-[62px]"
+                  priority
+                  unoptimized
+                  loading="eager"
+                />
                 <div className="border-t pt-2" style={{ borderColor: '#D9CFB8' }}>
                   support@joinoko.com
                 </div>

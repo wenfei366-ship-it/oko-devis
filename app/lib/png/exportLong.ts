@@ -44,8 +44,13 @@ export async function waitForExportReady(element: HTMLElement): Promise<void> {
     Array.from(element.querySelectorAll('img')).map((image) => {
       if (image.complete) return Promise.resolve()
       return new Promise<void>((resolve) => {
-        image.addEventListener('load', () => resolve(), { once: true })
-        image.addEventListener('error', () => resolve(), { once: true })
+        const timeoutId = window.setTimeout(() => resolve(), 2500)
+        const finish = () => {
+          window.clearTimeout(timeoutId)
+          resolve()
+        }
+        image.addEventListener('load', finish, { once: true })
+        image.addEventListener('error', finish, { once: true })
       })
     })
   )
