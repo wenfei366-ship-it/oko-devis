@@ -85,7 +85,7 @@ export const CONTRACT_SENT_CHANNEL_LABELS: Record<ContractSentChannel, string> =
   feishu: '飞书',
   wechat: '微信',
   whatsapp: 'WhatsApp',
-  in_person: '当面确认',
+  in_person: '人工记录',
 }
 
 export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
