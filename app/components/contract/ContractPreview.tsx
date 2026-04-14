@@ -4,11 +4,11 @@ import Image from 'next/image'
 import type { Contract } from '@/app/lib/types'
 import { formatEuroCompact } from '@/app/lib/calculations'
 import {
-  getArticle7ReferenceRows,
   buildProviderLines,
   formatContractDate,
   getContractCopy,
   getContractPriceHint,
+  getContractServicePrice,
   getPaymentModeLabel,
   getSelectedServiceSummaries,
   getStandardServiceLines,
@@ -100,7 +100,6 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
   const copy = getContractCopy(contract.lang)
   const providerLines = buildProviderLines()
   const serviceLines = getStandardServiceLines(contract.lang)
-  const article7Rows = getArticle7ReferenceRows(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
 
   return (
@@ -254,23 +253,37 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                 <div className="text-right">Mensuel</div>
                 <div className="text-right">Annuel</div>
               </div>
-              {article7Rows.map((row) => (
-                <div
-                  key={row.numeral}
-                  className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-0.5"
-                  style={{
-                    backgroundColor: row.emphasized ? '#1C1611' : row.muted ? 'rgba(246,239,220,0.5)' : '#FEFBF2',
-                  }}
-                >
-                  <div className="text-[11px] font-bold italic" style={{ color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>{row.numeral}</div>
-                  <div>
-                    <div className="text-[9px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.title}</div>
-                    <div className="mt-0.5 text-[6px] italic leading-[1.25]" style={{ color: row.emphasized ? '#D9CFB8' : '#6B5A3D' }}>{row.description}</div>
-                  </div>
-                  <div className="text-right text-[8px]" style={{ color: row.emphasized ? '#D9CFB8' : '#1C1611' }}>{row.monthly}</div>
-                  <div className="text-right text-[9px] font-bold" style={{ color: row.emphasized ? '#F8F1E0' : '#1C1611' }}>{row.annual}</div>
+              {contract.selectedServices.length === 0 ? (
+                <div className="px-4 py-3 text-[9px]" style={{ color: '#6B5A3D' }}>
+                  {copy.noServices}
                 </div>
-              ))}
+              ) : (
+                contract.selectedServices.map((item, index) => (
+                  <div
+                    key={`${item.id}-${index}`}
+                    className="grid grid-cols-[56px_minmax(0,1fr)_120px_120px] gap-4 px-4 py-1.5"
+                    style={{
+                      backgroundColor: index % 2 === 0 ? '#FEFBF2' : 'rgba(246,239,220,0.5)',
+                    }}
+                  >
+                    <div className="text-[11px] font-bold italic" style={{ color: '#A8702E', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+                      {String(index + 1).padStart(2, '0')}
+                    </div>
+                    <div>
+                      <div className="text-[9px] font-bold" style={{ color: '#1C1611' }}>{selectedServices[index]}</div>
+                      <div className="mt-0.5 text-[6px] italic leading-[1.25]" style={{ color: '#6B5A3D' }}>
+                        {getContractPriceHint(item, contract.lang, contract.paymentMode)}
+                      </div>
+                    </div>
+                    <div className="text-right text-[8px]" style={{ color: '#1C1611' }}>
+                      {formatEuroCompact(getContractServicePrice(item, 'monthly'))}
+                    </div>
+                    <div className="text-right text-[9px] font-bold" style={{ color: '#1C1611' }}>
+                      {formatEuroCompact(getContractServicePrice(item, 'annual'))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             <p className="text-[8px] leading-[1.25]" style={{ color: '#5C5142' }}>{copy.article7Note}</p>
