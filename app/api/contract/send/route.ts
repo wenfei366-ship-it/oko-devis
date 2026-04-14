@@ -11,12 +11,13 @@ function getRequiredEnv(name: string) {
 
 export async function POST(request: Request) {
   try {
-    const { to, subject, html, pdfUrl, pdfFileName } = await request.json() as {
+    const { to, subject, html, pdfUrl, pdfFileName, pdfBase64 } = await request.json() as {
       to?: string
       subject?: string
       html?: string
       pdfUrl?: string
       pdfFileName?: string
+      pdfBase64?: string
     }
 
     if (!to?.trim()) {
@@ -42,7 +43,13 @@ export async function POST(request: Request) {
 
     const attachments: Array<{ filename: string; content: Buffer; contentType: string }> = []
 
-    if (pdfUrl?.trim()) {
+    if (pdfBase64?.trim()) {
+      attachments.push({
+        filename: pdfFileName?.trim() || 'contract.pdf',
+        content: Buffer.from(pdfBase64, 'base64'),
+        contentType: 'application/pdf',
+      })
+    } else if (pdfUrl?.trim()) {
       const response = await fetch(pdfUrl)
       if (!response.ok) {
         throw new Error('合同 PDF 下载失败，无法作为附件发送。')

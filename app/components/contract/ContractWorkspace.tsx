@@ -93,6 +93,76 @@ function createPackageFromServices(services: Service[]): PackageLine {
   }
 }
 
+async function generateContractPdfBlob(container: HTMLDivElement | null, contract: Contract): Promise<Blob> {
+  const pageElements = Array.from(container?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
+  if (pageElements.length !== 2) {
+    throw new Error('合同预览页还没准备好，请稍后再试。')
+  }
+
+  const exportImages = await Promise.all(
+    pageElements.map((pageElement) =>
+      createNodeExportImage(pageElement, {
+        pixelRatio: 3,
+        backgroundColor: '#FEFBF2',
+        width: 800,
+        height: 1132,
+      })
+    )
+  )
+
+  const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
+    import('@react-pdf/renderer'),
+  ])
+
+  const styles = StyleSheet.create({
+    page: {
+      padding: 0,
+      margin: 0,
+      backgroundColor: '#FEFBF2',
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+  })
+
+  function ContractImagePdf() {
+    return (
+      <Document>
+        {exportImages.map((image, index) => (
+          <Page key={`${contract.id}-${index}`} size="A4" style={styles.page}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image src={image.dataUrl} style={styles.image} />
+          </Page>
+        ))}
+      </Document>
+    )
+  }
+
+  return pdf(<ContractImagePdf />).toBlob()
+}
+
+async function blobToBase64(blob: Blob): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+      reject(new Error('PDF 编码失败。'))
+    }
+    reader.onerror = () => reject(reader.error ?? new Error('PDF 编码失败。'))
+    reader.readAsDataURL(blob)
+  })
+
+  const [, base64 = ''] = dataUrl.split(',', 2)
+  if (!base64) {
+    throw new Error('PDF 编码失败。')
+  }
+  return base64
+}
+
 function ScaledContract({ contract, previewRef }: { contract: Contract; previewRef: React.RefObject<HTMLDivElement | null> }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -285,52 +355,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       setSaveMessage(null)
 
       try {
-        const pageElements = Array.from(exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
-        if (pageElements.length !== 2) {
-          throw new Error('合同预览页还没准备好，请稍后再试。')
-        }
-
-        const exportImages = await Promise.all(
-          pageElements.map((pageElement) =>
-            createNodeExportImage(pageElement, {
-              pixelRatio: 3,
-              backgroundColor: '#FEFBF2',
-              width: 800,
-              height: 1132,
-            })
-          )
-        )
-
-        const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
-          import('@react-pdf/renderer'),
-        ])
-
-        const styles = StyleSheet.create({
-          page: {
-            padding: 0,
-            margin: 0,
-            backgroundColor: '#FEFBF2',
-          },
-          image: {
-            width: '100%',
-            height: '100%',
-          },
-        })
-
-        function ContractImagePdf() {
-          return (
-            <Document>
-              {exportImages.map((image, index) => (
-                <Page key={`${contractSnapshot.id}-${index}`} size="A4" style={styles.page}>
-                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                  <Image src={image.dataUrl} style={styles.image} />
-                </Page>
-              ))}
-            </Document>
-          )
-        }
-
-        const blob = await pdf(<ContractImagePdf />).toBlob()
+        const blob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -402,6 +427,8 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       setSaveMessage(null)
 
       try {
+        const pdfBlob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
+        const pdfBase64 = await blobToBase64(pdfBlob)
         const subject = `Contrat ${contractSnapshot.meta.number} · OKO`
         const html = `
           <div style="font-family: Arial, sans-serif; color: #1C1611; line-height: 1.7;">
@@ -419,6 +446,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             to: contractSnapshot.customer.email.trim(),
             subject,
             html,
+            pdfBase64,
             pdfUrl: contractSnapshot.pdfUrl,
             pdfFileName: `Contract-${contractSnapshot.meta.number}.pdf`,
           }),
