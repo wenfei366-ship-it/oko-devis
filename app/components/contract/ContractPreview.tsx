@@ -64,6 +64,10 @@ function ArticleBlock({
   )
 }
 
+function displayCustomerField(value?: string) {
+  return value?.trim() || ''
+}
+
 function Paper({
   page,
   children,
@@ -167,12 +171,12 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
             <div className="rounded-[2px] border p-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.clientLabel}</SectionLabel>
               <div className="mt-3 space-y-1 text-[11px] leading-[1.7]" style={{ color: '#2A2620' }}>
-                <div>{contract.customer.name || '—'}</div>
-                <div>{contract.customer.address || '—'}</div>
-                <div>{[contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' ') || '—'}</div>
-                <div>{contract.customer.contactName || '—'}</div>
-                <div>{contract.customer.email || '—'}</div>
-                <div>{contract.customer.phone || '—'}</div>
+                <div>{displayCustomerField(contract.customer.name)}</div>
+                <div>{displayCustomerField(contract.customer.address)}</div>
+                <div>{displayCustomerField([contract.customer.postalCode, contract.customer.city].filter(Boolean).join(' '))}</div>
+                <div>{displayCustomerField(contract.customer.contactName)}</div>
+                <div>{displayCustomerField(contract.customer.email)}</div>
+                <div>{displayCustomerField(contract.customer.phone)}</div>
               </div>
             </div>
           </div>
@@ -350,7 +354,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
             <div className="rounded-[2px] border p-2.5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
               <SectionLabel>{copy.clientSignatureLabel}</SectionLabel>
               <div className="mt-1.5 space-y-1 text-[9px] leading-[1.45]" style={{ color: '#2A2620' }}>
-                <div>{contract.customer.name || '—'}</div>
+                <div>{displayCustomerField(contract.customer.name)}</div>
                 <div>{copy.clientSignatureHint}</div>
                 <div className="h-[36px] rounded-[2px] border border-dashed" style={{ borderColor: '#C8B987' }} />
                 <div className="border-t pt-2" style={{ borderColor: '#D9CFB8' }}>
