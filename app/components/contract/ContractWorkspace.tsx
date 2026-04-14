@@ -150,6 +150,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [showCatalog, setShowCatalog] = useState(false)
   const [packDraft, setPackDraft] = useState<Set<string>>(new Set())
@@ -381,6 +382,65 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     })()
   }, [contract, exporting])
 
+  const handleSendEmail = useCallback(() => {
+    if (!contract || sendingEmail) return
+
+    void (async () => {
+      const contractSnapshot = contract
+
+      if (!contractSnapshot.customer.email.trim()) {
+        setSaveMessage('先填写客户邮箱，再发送合同。')
+        return
+      }
+
+      if (!contractSnapshot.pdfUrl?.trim()) {
+        setSaveMessage('先导出 PDF，再发送邮件。')
+        return
+      }
+
+      setSendingEmail(true)
+      setSaveMessage(null)
+
+      try {
+        const subject = `Contrat ${contractSnapshot.meta.number} · OKO`
+        const html = `
+          <div style="font-family: Arial, sans-serif; color: #1C1611; line-height: 1.7;">
+            <p>Bonjour,</p>
+            <p>Veuillez trouver ci-joint votre contrat ${contractSnapshot.meta.number}.</p>
+            <p>Si tout est bon pour vous, vous pouvez nous répondre directement par email.</p>
+            <p>Cordialement,<br/>OKO</p>
+          </div>
+        `
+
+        const response = await fetch('/api/contract/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: contractSnapshot.customer.email.trim(),
+            subject,
+            html,
+            pdfUrl: contractSnapshot.pdfUrl,
+            pdfFileName: `Contract-${contractSnapshot.meta.number}.pdf`,
+          }),
+        })
+
+        const payload = await response.json() as { error?: string }
+        if (!response.ok) {
+          throw new Error(payload.error || '邮件发送失败。')
+        }
+
+        const nextContract = updateContractStatus(contractSnapshot, 'sent', 'email')
+        await saveContract(nextContract)
+        setContract(nextContract)
+        setSaveMessage(`合同已发送到 ${contractSnapshot.customer.email}。`)
+      } catch (sendError) {
+        setSaveMessage(sendError instanceof Error ? sendError.message : '邮件发送失败。')
+      } finally {
+        setSendingEmail(false)
+      }
+    })()
+  }, [contract, sendingEmail])
+
   const statusTone = useMemo(() => {
     if (!contract) return '#9B8550'
     if (contract.status === 'confirmed') return '#6B8E4E'
@@ -505,6 +565,15 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 style={{ backgroundColor: '#1C1611', color: '#F5D48A', opacity: exporting ? 0.72 : 1 }}
               >
                 {exporting ? '导出中…' : '导出 PDF →'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSendEmail}
+                disabled={sendingEmail}
+                className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+                style={{ borderColor: '#B8922F', color: '#A8702E' }}
+              >
+                {sendingEmail ? '发送中…' : '发送合同邮件'}
               </button>
             </>
           )}
@@ -1031,6 +1100,9 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                       className={smallFieldClassName(readOnly)}
                       style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
                     />
+                  </div>
+                  <div className="text-[10px]" style={{ color: '#9B8550' }}>
+                    这里填写的邮箱，就是发送合同邮件时会用到的收件人邮箱。
                   </div>
                 </div>
               </div>
