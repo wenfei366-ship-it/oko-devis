@@ -429,7 +429,7 @@ export function getSelectedServiceSummaries(contract: Contract): string[] {
 
   return contract.selectedServices.map((item) => {
     const name = getDevisItemName(item, contract.lang)
-    const amount = formatEuroCompact(lineAmount(item))
+    const amount = formatEuroCompact(getContractServicePrice(item, contract.paymentMode))
     return `${name} · ${amount}`
   })
 }
