@@ -1,6 +1,6 @@
 import type { BillingCadence, Contract, ContractSentChannel, ContractStatus, DevisItem, Lang } from './types'
 import { OKO_SENDER } from './legal'
-import { formatEuroCompact } from './calculations'
+import { formatEuroCompact, lineAmount } from './calculations'
 
 type ContractCopy = {
   title: string
@@ -429,7 +429,7 @@ export function getSelectedServiceSummaries(contract: Contract): string[] {
 
   return contract.selectedServices.map((item) => {
     const name = getDevisItemName(item, contract.lang)
-    const amount = formatEuroCompact(getContractServicePrice(item, contract.paymentMode))
+    const amount = formatEuroCompact(lineAmount(item))
     return `${name} · ${amount}`
   })
 }
