@@ -329,12 +329,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const applyServiceSelection = useCallback((nextServices: Contract['selectedServices']) => {
     updateContract((current) => {
       const nextSubtotal = getContractReferenceTotal(nextServices, current.paymentMode)
-      const shouldSyncFinal = current.finalTotal === 0 || current.finalTotal === current.subtotalDisplay
       return {
         ...current,
         selectedServices: nextServices,
         subtotalDisplay: nextSubtotal,
-        finalTotal: shouldSyncFinal ? nextSubtotal : current.finalTotal,
+        finalTotal: nextSubtotal,
       }
     })
   }, [updateContract])
@@ -1440,13 +1439,12 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                         onChange={(event) => updateContract((current) => {
                           const paymentMode = event.target.value as Contract['paymentMode']
                           const nextSubtotal = getContractReferenceTotal(current.selectedServices, paymentMode)
-                          const shouldSyncFinal = current.finalTotal === 0 || current.finalTotal === current.subtotalDisplay
                           return {
                             ...current,
                             paymentMode,
                             totalUnit: paymentMode,
                             subtotalDisplay: nextSubtotal,
-                            finalTotal: shouldSyncFinal ? nextSubtotal : current.finalTotal,
+                            finalTotal: nextSubtotal,
                           }
                         })}
                         className={smallFieldClassName(readOnly)}
@@ -1463,7 +1461,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
-                        总金额（年）
+                        {contract.paymentMode === 'monthly' ? '总金额（月）' : '总金额（年）'}
                       </div>
                       <div className="text-[9px] tracking-[1.1px]" style={{ color: '#D9CFB8' }}>
                         自动带入
@@ -1483,7 +1481,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                       </span>
                     </div>
                     <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
-                      自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}
+                      自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}（已含一次性费用）
                     </div>
                   </div>
                 </div>
