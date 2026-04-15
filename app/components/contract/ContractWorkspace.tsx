@@ -12,6 +12,7 @@ import {
   CONTRACT_LANGUAGE_LABELS,
   CONTRACT_SENT_CHANNEL_LABELS,
   CONTRACT_STATUS_LABELS,
+  getContractChargeSummary,
   getContractReferenceTotal,
 } from '@/app/lib/contractContent'
 import {
@@ -273,6 +274,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [packDraft, setPackDraft] = useState<Set<string>>(new Set())
+  const chargeSummary = contract ? getContractChargeSummary(contract) : null
 
   const loadData = useCallback(async () => {
     if (!mounted) return
@@ -1470,19 +1472,26 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                     <div className="mt-3 flex items-end gap-2">
                       <input
                         type="number"
-                        value={String(contract.finalTotal)}
-                        disabled={readOnly}
-                        onChange={(event) => updateContract((current) => ({ ...current, finalTotal: Number(event.target.value || 0) }))}
+                        value={String(chargeSummary?.primaryAmount ?? 0)}
+                        disabled
+                        onChange={() => {}}
                         className="w-full border-0 bg-transparent p-0 text-[38px] font-bold italic leading-none outline-none"
                         style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
                       />
                       <span className="pb-1 text-[10px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
-                        {contract.totalUnit === 'monthly' ? '€/mois' : '€/an'}
+                        {chargeSummary?.primaryUnit === 'monthly' ? '€/mois' : '€/an'}
                       </span>
                     </div>
-                    <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
-                      自动带入参考价：{formatEuroCompact(contract.subtotalDisplay)}（已含一次性费用）
-                    </div>
+                    {chargeSummary && chargeSummary.annualCharges > 0 && (
+                      <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
+                        年度费用：{formatEuroCompact(chargeSummary.annualCharges)}
+                      </div>
+                    )}
+                    {chargeSummary && chargeSummary.oneOffCharges > 0 && (
+                      <div className="mt-1 text-[10px]" style={{ color: '#D9CFB8' }}>
+                        一次性费用：{formatEuroCompact(chargeSummary.oneOffCharges)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

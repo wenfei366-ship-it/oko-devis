@@ -5,6 +5,7 @@ import {
   getArticle7ReferenceRows,
   buildProviderLines,
   formatContractDate,
+  getContractChargeSummary,
   getContractCopy,
   getContractPriceHint,
   getPaymentModeLabel,
@@ -73,6 +74,7 @@ export function ContractPDF({ contract }: ContractPDFProps) {
   const serviceLines = getStandardServiceLines(contract.lang)
   const article7Rows = getArticle7ReferenceRows(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
+  const chargeSummary = getContractChargeSummary(contract)
   const dateLabel = formatContractDate(contract.meta.date, contract.lang)
   const customerTitle = contract.customer.name || 'Client'
   const isChinese = contract.lang === 'zh'
@@ -253,13 +255,20 @@ export function ContractPDF({ contract }: ContractPDFProps) {
 
             <View style={cs.finalBox}>
               <Text style={{ ...cs.sectionLabel, color: '#F5D48A', fontFamily: bodyFont }}>{copy.article7FinalPrice}</Text>
-              <Text style={{ ...cs.finalPrice, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{formatEuroCompact(contract.finalTotal)}</Text>
+              <Text style={{ ...cs.finalPrice, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{formatEuroCompact(chargeSummary.primaryAmount)}</Text>
               <Text style={{ ...cs.finalMeta, fontFamily: bodyFont }}>
-                {getPaymentModeLabel(contract)} · {getTotalUnitLabel(contract)}
+                {chargeSummary.primaryUnit === 'monthly' ? '月付' : getPaymentModeLabel(contract)} · {getTotalUnitLabel(contract)}
               </Text>
-              <Text style={{ ...cs.finalSub, fontFamily: bodyFont }}>
-                {copy.total}: {formatEuroCompact(contract.subtotalDisplay)}
-              </Text>
+              {chargeSummary.annualCharges > 0 ? (
+                <Text style={{ ...cs.finalSub, fontFamily: bodyFont }}>
+                  年度费用: {formatEuroCompact(chargeSummary.annualCharges)}
+                </Text>
+              ) : null}
+              {chargeSummary.oneOffCharges > 0 ? (
+                <Text style={{ ...cs.finalSub, fontFamily: bodyFont }}>
+                  一次性费用: {formatEuroCompact(chargeSummary.oneOffCharges)}
+                </Text>
+              ) : null}
             </View>
           </View>
         </View>

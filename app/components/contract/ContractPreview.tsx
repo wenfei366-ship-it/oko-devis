@@ -6,6 +6,7 @@ import { formatEuroCompact } from '@/app/lib/calculations'
 import {
   buildProviderLines,
   formatContractDate,
+  getContractChargeSummary,
   getContractCopy,
   getContractPriceHint,
   getContractServicePrice,
@@ -126,6 +127,7 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
   const providerLines = buildProviderLines()
   const serviceLines = getStandardServiceLines(contract.lang)
   const selectedServices = getSelectedServiceSummaries(contract)
+  const chargeSummary = getContractChargeSummary(contract)
 
   return (
     <div className="space-y-8" data-contract-preview>
@@ -393,14 +395,21 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                   className="mt-2 text-[23px] font-bold italic leading-none"
                   style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
                 >
-                  {formatEuroCompact(contract.finalTotal)}
+                  {formatEuroCompact(chargeSummary.primaryAmount)}
                 </div>
                 <div className="mt-1.5 text-[9px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
-                  {getPaymentModeLabel(contract)} · {getTotalUnitLabel(contract)}
+                  {chargeSummary.primaryUnit === 'monthly' ? '月费' : '年费'} · {getTotalUnitLabel(contract)}
                 </div>
-                <div className="mt-2.5 text-[8px]" style={{ color: '#D9CFB8' }}>
-                  {copy.total}: {formatEuroCompact(contract.subtotalDisplay)}
-                </div>
+                {chargeSummary.annualCharges > 0 && (
+                  <div className="mt-2.5 text-[8px]" style={{ color: '#D9CFB8' }}>
+                    年度费用：{formatEuroCompact(chargeSummary.annualCharges)}
+                  </div>
+                )}
+                {chargeSummary.oneOffCharges > 0 && (
+                  <div className="mt-1 text-[8px]" style={{ color: '#D9CFB8' }}>
+                    一次性费用：{formatEuroCompact(chargeSummary.oneOffCharges)}
+                  </div>
+                )}
               </div>
             </div>
           </ArticleBlock>

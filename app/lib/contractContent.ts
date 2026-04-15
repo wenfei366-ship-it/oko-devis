@@ -525,11 +525,55 @@ export function getContractPriceHint(item: DevisItem, lang: Lang, paymentMode: C
     return `${amount} · ${paymentMode === 'monthly' ? getBillingLabel('monthly', lang) : getBillingLabel('annual', lang)}`
   }
 
-  if (item.billingCadence === 'monthly' || item.billingCadence === 'annual') {
+  if (item.billingCadence === 'monthly') {
     return `${amount} · ${getBillingLabel(paymentMode, lang)}`
   }
 
+  if (item.billingCadence === 'annual') {
+    return `${amount} · ${getBillingLabel('annual', lang)}`
+  }
+
   return `${amount} · ${getBillingLabel(item.billingCadence, lang)}`
+}
+
+export function getContractChargeSummary(contract: Contract): {
+  primaryAmount: number
+  primaryUnit: 'monthly' | 'annual'
+  annualCharges: number
+  oneOffCharges: number
+} {
+  let monthlyRecurring = 0
+  let annualRecurring = 0
+  let annualCharges = 0
+  let oneOffCharges = 0
+
+  contract.selectedServices.forEach((item) => {
+    if (item.kind === 'package') {
+      monthlyRecurring += item.monthlyPrice
+      annualRecurring += item.annualPrice
+      return
+    }
+
+    if (item.billingCadence === 'monthly') {
+      monthlyRecurring += item.unitPrice
+      annualRecurring += item.unitPrice * 12
+      return
+    }
+
+    if (item.billingCadence === 'annual') {
+      annualCharges += item.unitPrice
+      return
+    }
+
+    oneOffCharges += getItemPrice(item)
+  })
+
+  return {
+    primaryAmount: contract.paymentMode === 'monthly' ? monthlyRecurring : annualRecurring,
+    primaryUnit: contract.paymentMode,
+    annualCharges,
+    oneOffCharges,
+  }
 }
 
 function getBillingLabel(cadence: BillingCadence, lang: Lang): string {
