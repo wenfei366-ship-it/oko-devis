@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { buildDocumentFileStem } from '@/app/lib/fileStorage'
 import type { Devis } from '@/app/lib/types'
 
 // Dynamic import to avoid SSR issues with @react-pdf/renderer
@@ -35,7 +36,7 @@ interface PdfDownloadButtonProps {
 export default function PdfDownloadButton({ devis, getExportElement }: PdfDownloadButtonProps) {
   return (
     <PdfDownloadInner
-      fileName={`Devis-${devis.meta.number}.pdf`}
+      fileName={`${buildDocumentFileStem('报价单', devis.customer.name, devis.meta.number)}.pdf`}
       getExportElement={getExportElement}
     />
   )

@@ -218,14 +218,17 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     try {
       const { exportLongPng } = await import('@/app/lib/png/exportLong')
       if (!preview) throw new Error('Export impossible: preview indisponible.')
-      await exportLongPng(preview, displayDevis.meta.number)
+      await exportLongPng(
+        preview,
+        buildDocumentFileStem('报价单', displayDevis.customer.name, displayDevis.meta.number),
+      )
     } catch (err) {
       const { showExportToast } = await import('@/app/lib/png/exportLong')
       showExportToast(err instanceof Error ? err.message : 'Export image impossible.')
     } finally {
       setPngExporting(false)
     }
-  }, [displayDevis.meta.number, pngExporting])
+  }, [displayDevis.customer.name, displayDevis.meta.number, pngExporting])
 
   const handleSendEmail = useCallback(() => {
     if (sendingEmail) return

@@ -17,10 +17,10 @@ export interface ExportImage {
 
 export async function exportLongPng(
   element: HTMLElement,
-  devisNumber: string
+  fileStem: string
 ): Promise<void> {
   const { dataUrl } = await createExportImage(element)
-  downloadDataUrl(dataUrl, `Devis-${devisNumber}.png`)
+  downloadDataUrl(dataUrl, `${fileStem}.png`)
 }
 
 export async function createExportImage(element: HTMLElement): Promise<ExportImage> {
