@@ -1,6 +1,6 @@
 import type { BillingCadence, Contract, ContractSentChannel, ContractStatus, DevisItem, Lang } from './types'
 import { OKO_SENDER } from './legal'
-import { formatEuroCompact, lineAmount } from './calculations'
+import { formatEuroCompact } from './calculations'
 
 type ContractCopy = {
   title: string
