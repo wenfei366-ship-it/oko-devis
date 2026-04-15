@@ -3,6 +3,7 @@ import {
   buildContractAttachmentPath,
   buildContractEvidencePath,
   buildContractPdfPath,
+  buildDocumentFileStem,
 } from './fileStorage'
 
 describe('fileStorage paths', () => {
@@ -21,6 +22,12 @@ describe('fileStorage paths', () => {
   it('builds contract evidence path', () => {
     expect(buildContractEvidencePath('CT-2026-001', 'Chat Shot 01.png')).toBe(
       'contracts/evidence/ct-2026-001/chat-shot-01-png',
+    )
+  })
+
+  it('builds customer-aware document file stem', () => {
+    expect(buildDocumentFileStem('合同', 'Roma Bistro', 'CT-2026-001')).toBe(
+      '合同-Roma-Bistro-CT-2026-001',
     )
   })
 })

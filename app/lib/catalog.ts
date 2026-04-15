@@ -105,7 +105,7 @@ export const CATALOG: Service[] = [
     defaultPrice: 20,
     unit: 'an',
     defaultQty: 1,
-    recurringEligible: false,
+    recurringEligible: true,
   }),
   build('sunmi-terminal', {
     category: 'hardware',

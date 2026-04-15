@@ -28,6 +28,21 @@ function sanitizeSegment(value: string): string {
     .replace(/^-|-$/g, '')
 }
 
+export function buildDocumentFileStem(prefix: string, customerName: string, number: string): string {
+  const sanitizeFileNameSegment = (value: string) =>
+    value
+      .trim()
+      .replace(/[^\p{L}\p{N}\s_-]+/gu, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+
+  const cleanCustomer = sanitizeFileNameSegment(customerName) || 'client'
+  const cleanNumber = sanitizeFileNameSegment(number) || 'document'
+  const cleanPrefix = sanitizeFileNameSegment(prefix) || 'document'
+  return `${cleanPrefix}-${cleanCustomer}-${cleanNumber}`
+}
+
 export function buildContractPdfPath(contractId: string, fileName: string): string {
   return `${FILE_STORAGE.roots.contractPdf}/${sanitizeSegment(contractId)}/${sanitizeSegment(fileName) || 'contract'}.pdf`
 }

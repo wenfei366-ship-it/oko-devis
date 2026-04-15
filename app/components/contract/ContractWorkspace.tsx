@@ -22,7 +22,7 @@ import {
   saveContract,
   updateContractStatus,
 } from '@/app/lib/contractStorage'
-import { buildContractPdfPath } from '@/app/lib/fileStorage'
+import { buildContractPdfPath, buildDocumentFileStem } from '@/app/lib/fileStorage'
 import { uuid } from '@/app/lib/numbering'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
@@ -405,10 +405,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
 
       try {
         const blob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
+        const contractPdfName = `${buildDocumentFileStem('合同', contractSnapshot.customer.name, contractSnapshot.meta.number)}.pdf`
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = `Contract-${contractSnapshot.meta.number}.pdf`
+        link.download = contractPdfName
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -426,7 +427,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
 
         try {
           const formData = new FormData()
-          formData.set('file', new File([blob], `Contract-${contract.meta.number}.pdf`, { type: 'application/pdf' }))
+          formData.set('file', new File([blob], contractPdfName, { type: 'application/pdf' }))
           formData.set('kind', 'contract-pdf')
           formData.set('entityId', nextContract.id)
           formData.set('fileName', nextContract.meta.number)
@@ -478,6 +479,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       try {
         const pdfBlob = await generateContractPdfBlob(exportRef.current, contractSnapshot)
         const pdfBase64 = await blobToBase64(pdfBlob)
+        const contractPdfName = `${buildDocumentFileStem('合同', contractSnapshot.customer.name, contractSnapshot.meta.number)}.pdf`
         const emailLang = getContractEmailLang(contractSnapshot.customer.country, contractSnapshot.lang)
         const emailCopy = CONTRACT_EMAIL_COPY[emailLang] || CONTRACT_EMAIL_COPY.fr
         const customerName = contractSnapshot.customer.name.trim() || 'Client'
@@ -510,7 +512,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             text,
             pdfBase64,
             pdfUrl: contractSnapshot.pdfUrl,
-            pdfFileName: `Contract-${contractSnapshot.meta.number}.pdf`,
+            pdfFileName: contractPdfName,
           }),
         })
 
