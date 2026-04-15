@@ -52,6 +52,23 @@ export async function saveToHistory(devis: Devis): Promise<void> {
   throw error
 }
 
+export async function syncToHistory(devis: Devis): Promise<void> {
+  const supabase = getSupabaseBrowserClient()
+  const stamped: Devis = {
+    ...devis,
+    savedAt: devis.savedAt || new Date().toISOString(),
+  }
+
+  const { error } = await supabase.from(TABLE_NAME).upsert({
+    workspace_id: WORKSPACE_ID,
+    devis_id: stamped.id,
+    devis: stamped,
+    saved_at: stamped.savedAt,
+  })
+
+  if (error) throw error
+}
+
 export async function deleteFromHistory(id: string): Promise<void> {
   const supabase = getSupabaseBrowserClient()
   const { error } = await supabase

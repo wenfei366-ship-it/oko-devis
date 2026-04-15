@@ -83,6 +83,14 @@ vi.mock('./supabase/client', () => ({
         rows.push(payload)
         return { error: null }
       },
+      upsert: async (payload: Row) => {
+        const existingIndex = rows.findIndex((row) => (
+          row.workspace_id === payload.workspace_id && row.devis_id === payload.devis_id
+        ))
+        if (existingIndex >= 0) rows.splice(existingIndex, 1, payload)
+        else rows.push(payload)
+        return { error: null }
+      },
       delete: () => buildDeleteQuery(),
     }),
   }),
@@ -95,6 +103,7 @@ const {
   loadFromHistory,
   clearHistory,
   cloneForEdit,
+  syncToHistory,
   HistoryConflictError,
 } = await import('./storage')
 
@@ -165,5 +174,17 @@ describe('storage (supabase)', () => {
     expect(cloned.id).not.toBe(d.id)
     expect(cloned.savedAt).toBeUndefined()
     expect(cloned.meta.number).not.toBe(d.meta.number)
+  })
+
+  it('syncToHistory updates an existing devis snapshot', async () => {
+    const d = mkDevis('same-id')
+    await saveToHistory(d)
+    await syncToHistory({
+      ...d,
+      customer: { ...d.customer, name: 'Akit Sushi' },
+    })
+    const loaded = await loadFromHistory(d.id)
+    expect(loaded?.customer.name).toBe('Akit Sushi')
+    expect(rows).toHaveLength(1)
   })
 })

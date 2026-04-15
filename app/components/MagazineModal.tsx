@@ -8,7 +8,7 @@ import { computeTotals } from '@/app/lib/calculations'
 import { buildDocumentFileStem } from '@/app/lib/fileStorage'
 import { buildViewModel } from '@/app/lib/viewModel'
 import { createExportImage, showExportToast } from '@/app/lib/png/exportLong'
-import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
+import { saveToHistory, syncToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
 import type { Country, Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
@@ -209,6 +209,23 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
       cancelled = true
     }
   }, [dispatch, readOnly, sourceDevis])
+
+  useEffect(() => {
+    if (readOnly || !didPersistRef.current || !sourceDevis.savedAt) return
+
+    const timeoutId = window.setTimeout(() => {
+      void syncToHistory({
+        ...sourceDevis,
+        updatedAt: new Date().toISOString(),
+      }).catch((err) => {
+        setSaveNotice(err instanceof Error ? err.message : '同步共享历史失败。')
+      })
+    }, 500)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [readOnly, sourceDevis])
 
   // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {
