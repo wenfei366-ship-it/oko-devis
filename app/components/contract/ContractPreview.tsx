@@ -10,7 +10,6 @@ import {
   getContractCopy,
   getContractPriceHint,
   getContractServicePrice,
-  getPaymentModeLabel,
   getSelectedServiceSummaries,
   getStandardServiceLines,
   getTotalUnitLabel,
