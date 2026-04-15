@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useDevis } from './DevisContext'
 import { DevisPreviewContent } from './DevisLivePreview'
 import { computeTotals } from '@/app/lib/calculations'
+import { buildDocumentFileStem } from '@/app/lib/fileStorage'
 import { buildViewModel } from '@/app/lib/viewModel'
+import { createExportImage, showExportToast } from '@/app/lib/png/exportLong'
 import { saveToHistory, HistoryConflictError, cloneForEdit } from '@/app/lib/storage'
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
-import type { Devis, Lang } from '@/app/lib/types'
+import type { Country, Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
 
 interface MagazineModalProps {
@@ -37,6 +39,76 @@ const LANG_DISPLAY: Record<string, string> = {
   zh: '中文',
 }
 
+const DEVIS_EMAIL_COPY = {
+  fr: {
+    subject: (number: string, customer: string) => `Devis OKO ${number} · ${customer}`,
+    greeting: 'Bonjour,',
+    body: (number: string) => `Veuillez trouver ci-joint le devis ${number} préparé pour votre établissement.`,
+    confirm: 'Si cette proposition vous convient, il vous suffit de répondre à cet email afin que nous préparions la suite.',
+    closing: 'Cordialement,',
+  },
+  it: {
+    subject: (number: string, customer: string) => `Preventivo OKO ${number} · ${customer}`,
+    greeting: 'Buongiorno,',
+    body: (number: string) => `In allegato trova il preventivo ${number} preparato per la sua attività.`,
+    confirm: 'Se la proposta le conviene, le basta rispondere a questa email così potremo preparare il seguito.',
+    closing: 'Cordiali saluti,',
+  },
+  es: {
+    subject: (number: string, customer: string) => `Presupuesto OKO ${number} · ${customer}`,
+    greeting: 'Hola,',
+    body: (number: string) => `Adjuntamos el presupuesto ${number} preparado para su establecimiento.`,
+    confirm: 'Si esta propuesta le conviene, solo tiene que responder a este correo para que preparemos la siguiente etapa.',
+    closing: 'Un saludo,',
+  },
+  de: {
+    subject: (number: string, customer: string) => `OKO Angebot ${number} · ${customer}`,
+    greeting: 'Guten Tag,',
+    body: (number: string) => `Im Anhang finden Sie das Angebot ${number}, das wir für Ihr Unternehmen vorbereitet haben.`,
+    confirm: 'Wenn dieses Angebot für Sie passt, antworten Sie einfach auf diese E-Mail, damit wir den nächsten Schritt vorbereiten können.',
+    closing: 'Freundliche Grüße,',
+  },
+  zh: {
+    subject: (number: string, customer: string) => `OKO 报价单 ${number} · ${customer}`,
+    greeting: '您好，',
+    body: (number: string) => `附件是为贵店准备的报价单 ${number}，请您查收。`,
+    confirm: '如果这份方案符合您的预期，直接回复这封邮件即可，我们会继续准备后续文件。',
+    closing: '此致，',
+  },
+} as const
+
+function getEmailLang(country: Country, fallback: Lang): Lang {
+  if (country === 'IT') return 'it'
+  if (country === 'ES') return 'es'
+  if (country === 'DE') return 'de'
+  if (country === 'FR' || country === 'BE' || country === 'CH' || country === 'LU') return 'fr'
+  return fallback
+}
+
+async function generateDevisPdfBlob(element: HTMLElement): Promise<Blob> {
+  const image = await createExportImage(element)
+  const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
+    import('@react-pdf/renderer'),
+  ])
+
+  const styles = StyleSheet.create({
+    page: {
+      padding: 0,
+      margin: 0,
+      backgroundColor: '#F8F1E0',
+    },
+  })
+
+  return pdf(
+    <Document>
+      <Page size={[image.width, image.height]} style={styles.page}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <Image src={image.dataUrl} style={{ width: image.width, height: image.height }} />
+      </Page>
+    </Document>
+  ).toBlob()
+}
+
 export default function MagazineModal({ readOnly, onClose, historyDevis }: MagazineModalProps) {
   const ctx = useDevis()
   const router = useRouter()
@@ -46,6 +118,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
   // For history read-only view, allow temporary language switch
   const [tempLang, setTempLang] = useState<Lang | null>(null)
   const [pngExporting, setPngExporting] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
   const displayDevis = useMemo(() => {
     if (tempLang && readOnly) {
       return { ...sourceDevis, lang: tempLang }
@@ -153,6 +226,94 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
       setPngExporting(false)
     }
   }, [displayDevis.meta.number, pngExporting])
+
+  const handleSendEmail = useCallback(() => {
+    if (sendingEmail) return
+
+    void (async () => {
+      if (!displayDevis.customer.email.trim()) {
+        setSaveNotice('先填写客户邮箱，再发送报价单。')
+        return
+      }
+
+      if (!previewRef.current) {
+        setSaveNotice('报价单预览还没准备好，请稍后再试。')
+        return
+      }
+
+      setSendingEmail(true)
+      setSaveNotice(null)
+
+      try {
+        const pdfBlob = await generateDevisPdfBlob(previewRef.current)
+        const pdfBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            const result = reader.result
+            if (typeof result !== 'string') {
+              reject(new Error('PDF 编码失败。'))
+              return
+            }
+            const [, base64 = ''] = result.split(',')
+            resolve(base64)
+          }
+          reader.onerror = () => reject(reader.error ?? new Error('PDF 编码失败。'))
+          reader.readAsDataURL(pdfBlob)
+        })
+
+        const emailLang = getEmailLang(displayDevis.customer.country, displayDevis.lang)
+        const emailCopy = DEVIS_EMAIL_COPY[emailLang] || DEVIS_EMAIL_COPY.fr
+        const customerName = displayDevis.customer.name.trim() || 'Client'
+        const devisPdfName = `${buildDocumentFileStem('报价单', displayDevis.customer.name, displayDevis.meta.number)}.pdf`
+
+        const response = await fetch('/api/devis/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: displayDevis.customer.email.trim(),
+            subject: emailCopy.subject(displayDevis.meta.number, customerName),
+            html: `
+              <div style="font-family: Arial, sans-serif; color: #1C1611; line-height: 1.7;">
+                <p>${emailCopy.greeting}</p>
+                <p>${emailCopy.body(displayDevis.meta.number)}</p>
+                <p>${emailCopy.confirm}</p>
+                <p>${emailCopy.closing}<br/>OKO</p>
+              </div>
+            `,
+            text: [
+              emailCopy.greeting,
+              '',
+              emailCopy.body(displayDevis.meta.number),
+              emailCopy.confirm,
+              '',
+              emailCopy.closing,
+              'OKO',
+            ].join('\n'),
+            pdfBase64,
+            pdfFileName: devisPdfName,
+          }),
+        })
+
+        const payload = await response.json() as { error?: string; accepted?: string[]; rejected?: string[] }
+        if (!response.ok) {
+          throw new Error(payload.error || '报价单邮件发送失败。')
+        }
+        if (payload.rejected?.length) {
+          throw new Error(`收件服务器拒收：${payload.rejected.join(', ')}`)
+        }
+
+        setSaveNotice(
+          payload.accepted?.length
+            ? `邮件服务器已接收：${payload.accepted.join(', ')}`
+            : `报价单已发送到 ${displayDevis.customer.email}。`,
+        )
+      } catch (err) {
+        setSaveNotice(err instanceof Error ? err.message : '报价单邮件发送失败。')
+      } finally {
+        setSendingEmail(false)
+      }
+    })()
+  }, [displayDevis, sendingEmail])
 
   // Duplicate for edit (history mode) — uses cloneForEdit from storage
   const handleDuplicate = useCallback(() => {
@@ -630,6 +791,29 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
             getExportElement={() => previewRef.current}
           />
         </div>
+
+        <button
+          type="button"
+          onClick={handleSendEmail}
+          disabled={sendingEmail}
+          className="transition duration-150 hover:opacity-90 active:translate-y-[1px] disabled:opacity-70"
+          style={{
+            width: 200,
+            height: 56,
+            borderRadius: 8,
+            backgroundColor: '#1C1611',
+            color: '#F8EFDC',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 13,
+            fontWeight: 700,
+            border: '1px solid rgba(248,239,220,0.16)',
+            cursor: sendingEmail ? 'wait' : 'pointer',
+            letterSpacing: 0.5,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.24)',
+          }}
+        >
+          {sendingEmail ? 'Envoi...' : '发送报价单邮件'}
+        </button>
 
         <button
           type="button"
