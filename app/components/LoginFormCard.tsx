@@ -30,23 +30,41 @@ export default function LoginFormCard() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-[24px] border border-white/15 bg-black/35 p-6 text-left shadow-2xl shadow-black/30 backdrop-blur-xl"
+      className="rounded-[20px] border p-7 text-left shadow-[0_24px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
+      style={{
+        borderColor: 'rgba(217, 207, 184, 0.5)',
+        backgroundColor: 'rgba(254, 251, 242, 0.9)',
+      }}
     >
       <div className="mb-5">
-        <div className="text-[11px] font-bold uppercase tracking-[2px] text-orange-200/70">内部登录</div>
-        <div className="mt-2 text-2xl font-semibold text-white">继续进入 OKO</div>
-        <p className="mt-2 text-sm leading-6 text-orange-100/75">
-          使用固定内部账号登录。当前不开放注册。
+        <div className="text-[10px] font-bold uppercase tracking-[2.2px]" style={{ color: '#A8702E' }}>
+          INTERNE · OKO
+        </div>
+        <div
+          className="mt-2 text-[34px] font-bold leading-[1]"
+          style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
+        >
+          继续登录
+        </div>
+        <p className="mt-3 text-[13px] leading-6" style={{ color: '#6B5A3D' }}>
+          使用内部固定账号进入系统。当前不开放注册。
         </p>
       </div>
 
       <div className="space-y-4">
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-[1.6px] text-orange-100/70">账号邮箱</span>
+          <span className="text-[10px] font-bold uppercase tracking-[1.8px]" style={{ color: '#8B7A3E' }}>
+            账号邮箱
+          </span>
           <select
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-2 w-full rounded-2xl border border-white/12 bg-white/6 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-300/60 focus:bg-white/10"
+            className="mt-2 w-full rounded-[12px] border px-4 py-3 text-[14px] outline-none transition"
+            style={{
+              borderColor: '#D9CFB8',
+              backgroundColor: '#FEFBF2',
+              color: '#1C1611',
+            }}
           >
             {options.map((option) => (
               <option key={option} value={option} className="text-black">
@@ -57,26 +75,38 @@ export default function LoginFormCard() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-[1.6px] text-orange-100/70">密码</span>
+          <span className="text-[10px] font-bold uppercase tracking-[1.8px]" style={{ color: '#8B7A3E' }}>
+            密码
+          </span>
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="输入分配给你的密码"
-            className="mt-2 w-full rounded-2xl border border-white/12 bg-white/6 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-orange-300/60 focus:bg-white/10"
+            className="mt-2 w-full rounded-[12px] border px-4 py-3 text-[14px] outline-none transition"
+            style={{
+              borderColor: '#D9CFB8',
+              backgroundColor: '#FEFBF2',
+              color: '#1C1611',
+            }}
           />
         </label>
       </div>
 
-      {error ? <div className="mt-4 text-sm text-red-300">{error}</div> : null}
+      {error ? <div className="mt-4 text-sm" style={{ color: '#9B2A2A' }}>{error}</div> : null}
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-6 w-full rounded-full bg-gradient-to-r from-orange-500 to-yellow-400 px-6 py-3 text-sm font-bold text-black transition hover:scale-[1.01] hover:from-orange-400 hover:to-yellow-300 disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-6 w-full rounded-[12px] px-6 py-3 text-[14px] font-bold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}
       >
-        {loading ? '登录中…' : '登录进入系统'}
+        {loading ? '登录中…' : '进入系统 →'}
       </button>
+
+      <div className="mt-4 text-[11px]" style={{ color: '#8B7A3E' }}>
+        如需新增账号，请联系管理员配置邮箱白名单。
+      </div>
     </form>
   )
 }
