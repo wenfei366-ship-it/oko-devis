@@ -13,7 +13,8 @@ import {
   saveContract,
   updateContractStatus,
 } from '@/app/lib/contractStorage'
-import { buildDocumentFileStem, buildContractPdfPath } from '@/app/lib/fileStorage'
+import { buildDocumentFileStem } from '@/app/lib/fileStorage'
+import { createNodeExportImage } from '@/app/lib/png/exportLong'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, ContractEvidenceFile, ContractStatus } from '@/app/lib/types'
 import { useAuth } from '@/app/components/AuthContext'
@@ -77,6 +78,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
   const [message, setMessage] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailTo, setEmailTo] = useState('')
+  const [exporting, setExporting] = useState(false)
   const [uploading, setUploading] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -141,6 +143,65 @@ export default function ContractSendClient({ contractId }: { contractId: string 
   }, [contract, sendingEmail, actorName])
 
   // Upload evidence
+  const handleDownloadPdf = useCallback(async () => {
+    if (!contract || exporting) return
+    setExporting(true)
+    setMessage(null)
+    try {
+      const pageElements = Array.from(exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
+      if (pageElements.length !== 2) throw new Error('合同预览页还没准备好。')
+      const exportImages = await Promise.all(
+        pageElements.map((el) => createNodeExportImage(el, { pixelRatio: 3, backgroundColor: '#FEFBF2', width: 800, height: 1132 }))
+      )
+      const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([import('@react-pdf/renderer')])
+      const styles = StyleSheet.create({ page: { padding: 0, margin: 0, backgroundColor: '#FEFBF2' }, image: { width: '100%', height: '100%' } })
+      const blob = await pdf(
+        <Document>
+          {exportImages.map((img, i) => (
+            <Page key={i} size="A4" style={styles.page}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image src={img.dataUrl} style={styles.image} />
+            </Page>
+          ))}
+        </Document>
+      ).toBlob()
+      const fileName = `${buildDocumentFileStem('合同', contract.customer.name, contract.meta.number)}.pdf`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setMessage('PDF 已下载。')
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'PDF 导出失败。')
+    } finally {
+      setExporting(false)
+    }
+  }, [contract, exporting])
+
+  const handleExportPng = useCallback(async () => {
+    if (!contract || exporting) return
+    setExporting(true)
+    setMessage(null)
+    try {
+      const pageElements = Array.from(exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
+      if (pageElements.length === 0) throw new Error('合同预览页还没准备好。')
+      const images = await Promise.all(
+        pageElements.map((el) => createNodeExportImage(el, { pixelRatio: 2, backgroundColor: '#FEFBF2', width: 800, height: 1132 }))
+      )
+      for (let i = 0; i < images.length; i++) {
+        const a = document.createElement('a')
+        a.href = images[i].dataUrl
+        a.download = `${buildDocumentFileStem('合同', contract.customer.name, contract.meta.number)}_p${i + 1}.png`
+        document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      }
+      setMessage('长图已导出。')
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : '导出失败。')
+    } finally {
+      setExporting(false)
+    }
+  }, [contract, exporting])
+
   const handleUploadEvidence = useCallback(async (file: File) => {
     if (!contract) return
     setUploading(true)
@@ -193,8 +254,11 @@ export default function ContractSendClient({ contractId }: { contractId: string 
         <Link href={`/contract/${contractId}`} className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
           ✎ 返回编辑
         </Link>
-        <button type="button" className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold" style={{ borderColor: '#1C1611', color: '#1C1611' }} onClick={() => { /* PDF download handled by existing export logic */ setMessage('请从编辑页导出 PDF。') }}>
-          ↓ 下载 PDF
+        <button type="button" disabled={exporting} className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold disabled:opacity-60" style={{ borderColor: '#1C1611', color: '#1C1611' }} onClick={() => void handleDownloadPdf()}>
+          {exporting ? '导出中…' : '↓ 下载 PDF'}
+        </button>
+        <button type="button" disabled={exporting} className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold disabled:opacity-60" style={{ borderColor: '#1C1611', color: '#1C1611' }} onClick={() => void handleExportPng()}>
+          导出长图
         </button>
       </div>
 
