@@ -6,7 +6,12 @@ import { AUTH_ALLOWED_EMAILS } from '@/app/lib/auth/shared'
 
 export default function LoginFormCard() {
   const { signInWithPassword } = useAuth()
-  const [email, setEmail] = useState<string>(AUTH_ALLOWED_EMAILS[0])
+  const [email, setEmail] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('oko-last-email') || AUTH_ALLOWED_EMAILS[0]
+    }
+    return AUTH_ALLOWED_EMAILS[0]
+  })
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +24,7 @@ export default function LoginFormCard() {
     setError(null)
 
     try {
+      localStorage.setItem('oko-last-email', email)
       await signInWithPassword(email, password)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : '登录失败。')
