@@ -12,8 +12,6 @@ export default function LoginPage() {
       hideDefaultContent
     >
       <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10">
-        <div className="absolute inset-0 bg-[#F8F1E0]/18" />
-        <div className="absolute inset-0 opacity-[0.15] mix-blend-screen" style={{ backgroundColor: '#EDE2C2' }} />
         <div
           className="absolute bottom-8 left-1/2 text-center text-[9px] font-medium tracking-[1.5px]"
           style={{ color: '#C8B987', transform: 'translateX(-50%)' }}
