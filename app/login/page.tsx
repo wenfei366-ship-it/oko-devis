@@ -11,22 +11,15 @@ export default function LoginPage() {
       className="min-h-screen"
       hideDefaultContent
     >
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10">
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10 gap-8">
+        <div className="relative z-10 w-[420px] max-w-full">
+          <LoginFormCard />
+        </div>
         <div
-          className="absolute bottom-8 left-1/2 text-center text-[9px] font-medium tracking-[1.5px]"
-          style={{ color: '#C8B987', transform: 'translateX(-50%)' }}
+          className="relative z-10 text-center text-[9px] font-medium tracking-[1.5px]"
+          style={{ color: '#C8B987' }}
         >
           OKO · 31 boulevard de Magenta, 75010 Paris · joinoko.com
-        </div>
-        <div className="relative z-10 h-[520px] w-[420px] max-w-full">
-          <div
-            aria-hidden
-            className="absolute left-1 top-1 h-[520px] w-[420px] rounded-[14px]"
-            style={{ backgroundColor: '#1C1611', opacity: 0.08 }}
-          />
-          <div className="relative">
-            <LoginFormCard />
-          </div>
         </div>
       </div>
     </Hero>

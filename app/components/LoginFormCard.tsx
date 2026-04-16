@@ -32,10 +32,10 @@ export default function LoginFormCard() {
       onSubmit={handleSubmit}
       className="flex h-[520px] w-[420px] max-w-full flex-col rounded-[14px] border p-[48px_44px] text-left"
       style={{
-        borderColor: 'rgba(217,207,184,0.5)',
-        backgroundColor: 'rgba(254,251,242,0.75)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        borderColor: 'rgba(217,207,184,0.3)',
+        backgroundColor: 'rgba(254,251,242,0.15)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       }}
     >
       <div className="flex flex-1 flex-col">
