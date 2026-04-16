@@ -6,7 +6,7 @@ import { AUTH_ALLOWED_EMAILS } from '@/app/lib/auth/shared'
 
 export default function LoginFormCard() {
   const { signInWithPassword } = useAuth()
-  const [email, setEmail] = useState(AUTH_ALLOWED_EMAILS[0])
+  const [email, setEmail] = useState<string>(AUTH_ALLOWED_EMAILS[0])
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -234,8 +234,16 @@ void main(){gl_Position=position;}`
 
       gl.uniform2f((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).resolution, this.canvas.width, this.canvas.height)
       gl.uniform1f((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).time, now * 1e-3)
-      gl.uniform2f((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).move, ...this.mouseMove)
-      gl.uniform2f((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).touch, ...this.mouseCoords)
+      gl.uniform2f(
+        (program as WebGLProgram & Record<string, WebGLUniformLocation | null>).move,
+        this.mouseMove[0],
+        this.mouseMove[1],
+      )
+      gl.uniform2f(
+        (program as WebGLProgram & Record<string, WebGLUniformLocation | null>).touch,
+        this.mouseCoords[0],
+        this.mouseCoords[1],
+      )
       gl.uniform1i((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).pointerCount, this.nbrOfPointers)
       gl.uniform2fv((program as WebGLProgram & Record<string, WebGLUniformLocation | null>).pointers, this.pointerCoords)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
