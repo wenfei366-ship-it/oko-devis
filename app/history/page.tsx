@@ -327,14 +327,8 @@ function HistoryContent() {
 
                 <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
                   <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
-                    <Link href={`/contract/${contract.id}/detail`} style={{ color: '#A8702E' }}>
-                      查看
-                    </Link>
-                    <Link href={`/contract/${contract.id}`} style={{ color: '#A8702E' }}>
-                      编辑
-                    </Link>
-                    <Link href={`/contract/${contract.id}`} style={{ color: '#A8702E' }}>
-                      继续处理 →
+                    <Link href={`/contract/${contract.id}/send`} className="font-bold" style={{ color: '#A8702E' }}>
+                      查看跟进 →
                     </Link>
                   </div>
                   <button type="button" onClick={() => void handleDeleteContract(contract.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
