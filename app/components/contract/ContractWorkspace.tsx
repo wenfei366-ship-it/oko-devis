@@ -783,24 +783,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (!contract) return
-                void (async () => {
-                  setSaving(true)
-                  try {
-                    const next = { ...contract, createdBy: contract.createdBy || user?.displayName, updatedAt: new Date().toISOString() }
-                    await saveContract(next)
-                    setContract(next)
-                    router.push(`/contract/${next.id}/send`)
-                  } catch { setSaveMessage('保存失败。') }
-                  finally { setSaving(false) }
-                })()
-              }}
-              disabled={saving}
-              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+              onClick={() => { if (contract) router.push(`/contract/${contract.id}/send`) }}
+              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px]"
               style={{ borderColor: '#B8922F', color: '#A8702E' }}
             >
-              {saving ? '跳转中…' : '发送合同邮件 →'}
+              发送合同邮件 →
             </button>
           </div>
         </div>
