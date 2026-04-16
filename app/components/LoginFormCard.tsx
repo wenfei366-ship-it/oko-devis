@@ -8,9 +8,9 @@ export default function LoginFormCard() {
   const { signInWithPassword } = useAuth()
   const [email, setEmail] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('oko-last-email') || AUTH_ALLOWED_EMAILS[0]
+      return localStorage.getItem('oko-last-email') || ''
     }
-    return AUTH_ALLOWED_EMAILS[0]
+    return ''
   })
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
