@@ -138,84 +138,78 @@ function HistoryContent() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F6EFDC' }}>
-      <header className="border-b px-8 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#F8EFDC' }}>
-        <div className="flex items-center justify-between gap-6">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#F8F1E0' }}>
+      {/* V2 深色身份栏 */}
+      <header className="flex items-center justify-between h-[52px] px-10 shrink-0" style={{ backgroundColor: '#1C1611' }}>
+        <div className="flex items-center gap-3">
+          <span className="text-[16px] font-bold tracking-[1px]" style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair)' }}>OKO</span>
+          <div className="w-px h-[14px] opacity-50" style={{ backgroundColor: '#B8922F' }} />
+          <span className="text-[11px] font-medium tracking-[0.8px]" style={{ color: '#D9CFB8' }}>项目档案</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold" style={{ backgroundColor: user.avatarColor, color: '#1C1611' }}>
+                {user.initial}
+              </span>
+              <span className="text-[12px] font-semibold" style={{ color: '#F8EFDC' }}>{user.displayName}</span>
+              <button type="button" onClick={() => void signOut()} className="text-[11px] font-medium" style={{ color: '#9B8550' }}>退出登录</button>
+            </>
+          ) : null}
+        </div>
+      </header>
+
+      {/* 标题区 */}
+      <div className="px-10 pt-8 pb-6" style={{ backgroundColor: '#F8F1E0' }}>
+        <div className="text-[11px] font-bold uppercase tracking-[2px] mb-4" style={{ color: '#A8702E' }}>
+          OKO · 项目档案 · {new Date().getFullYear()}
+        </div>
+        <div className="flex items-end justify-between gap-6">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-[2px]" style={{ color: '#A8702E' }}>
-              OKO · 项目档案 · 2026
-            </div>
-            <div
-              className="mt-2 text-[52px] font-bold leading-[0.96] tracking-[-1.2px]"
-              style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
-            >
+            <div className="text-[52px] font-bold leading-[0.92] tracking-[-2px]" style={{ color: '#2A2620', fontFamily: 'var(--font-playfair)' }}>
               项目档案
             </div>
-            <p
-              className="mt-2 text-[16px] italic"
-              style={{ color: '#6B5A3D', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
-            >
-              所有报价单和合同，一个地方一起看。
+            <p className="mt-3 text-[16px] italic" style={{ color: '#6B5A3D', fontFamily: 'var(--font-playfair)' }}>
+              团队共享的报价单与合同记录。
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {user ? (
-              <div
-                className="flex items-center gap-2 rounded-[10px] border px-3 py-2 text-[12px] font-semibold"
-                style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4', color: '#1C1611' }}
-              >
-                <span
-                  className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold"
-                  style={{ backgroundColor: user.avatarColor, color: '#FEFBF2' }}
-                >
-                  {user.initial}
-                </span>
-                <span>{user.displayName}</span>
-                <button type="button" onClick={() => void signOut()} style={{ color: '#8B7A3E' }}>
-                  退出
-                </button>
-              </div>
-            ) : null}
-
-            <Link href="/devis/new" className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
+          <div className="flex items-center gap-3 pb-2">
+            <Link href="/devis/new" className="h-[40px] flex items-center px-5 rounded-[10px] border text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
               + 新建报价单
             </Link>
-            <Link href="/contract/new" className="rounded-[10px] px-5 py-2 text-[13px] font-bold" style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}>
+            <Link href="/contract/new" className="h-[40px] flex items-center px-5 rounded-[10px] text-[13px] font-bold" style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}>
               + 新建合同
             </Link>
           </div>
         </div>
 
+        {/* 统计盒（弱化） */}
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+          <div className="rounded-[12px] border px-5 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
             <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>报价单</div>
-            <div className="mt-2 text-[34px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            <div className="mt-2 text-[28px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair)' }}>
               {devisList.length}
             </div>
           </div>
-          <div className="rounded-[14px] border px-5 py-4" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
+          <div className="rounded-[12px] border px-5 py-4" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
             <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>合同</div>
-            <div className="mt-2 text-[34px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            <div className="mt-2 text-[28px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair)' }}>
               {contractList.length}
             </div>
           </div>
           <button
             type="button"
             onClick={() => setFilter('pending')}
-            className="rounded-[14px] border px-5 py-4 text-left transition-colors"
-            style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}
+            className="rounded-[12px] border px-5 py-4 text-left transition-colors"
+            style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}
           >
             <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#8B7A3E' }}>待跟进合同</div>
-            <div className="mt-2 text-[34px] font-bold" style={{ color: '#9B2A2A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
+            <div className="mt-2 text-[28px] font-bold" style={{ color: '#9B2A2A', fontFamily: 'var(--font-playfair)' }}>
               {waitingCount}
-            </div>
-            <div className="mt-2 text-[11px]" style={{ color: '#6B5A3D' }}>
-              草稿、已生成、已发送
             </div>
           </button>
         </div>
-      </header>
+      </div>
 
       <div className="border-b px-8 py-5" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
