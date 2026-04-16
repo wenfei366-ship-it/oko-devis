@@ -19,6 +19,35 @@ function DevisDetailLoader({ devis }: { devis: Devis }) {
 }
 
 function DevisDetailInner({ devis }: { devis: Devis }) {
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [sentAt, setSentAt] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
+  const handleSendEmail = async () => {
+    if (sendingEmail) return
+    if (!devis.customer.email.trim()) { setMessage('请先填写客户邮箱。'); return }
+    setSendingEmail(true)
+    setMessage(null)
+    try {
+      const customerName = devis.customer.name.trim() || 'Client'
+      const subject = `Devis OKO ${devis.meta.number} · ${customerName}`
+      const html = `<div style="font-family:Arial,sans-serif;color:#1C1611;line-height:1.7"><p>Bonjour,</p><p>Veuillez trouver ci-joint le devis ${devis.meta.number} préparé pour votre établissement.</p><p>Cordialement,<br/>OKO</p></div>`
+      const res = await fetch('/api/devis/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: devis.customer.email.trim(), subject, html, text: subject }),
+      })
+      if (!res.ok) throw new Error('邮件发送失败。')
+      const now = new Date().toISOString()
+      setSentAt(now)
+      setMessage(`报价单已发送到 ${devis.customer.email}。`)
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : '邮件发送失败。')
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#F8F1E0' }}>
       <IdentityBar
@@ -28,13 +57,14 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-3 px-10 py-3" style={{ borderBottom: '1px solid rgba(212,197,142,0.3)' }}>
-        <Link
-          href={`/devis/new`}
+        <button
+          type="button"
+          onClick={() => { sessionStorage.setItem('oko-devis-pending', JSON.stringify(devis)); window.location.href = '/devis/new' }}
           className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
           style={{ borderColor: '#1C1611', color: '#1C1611' }}
         >
           ✎ 编辑报价单
-        </Link>
+        </button>
         <Link
           href={`/contract/new?fromDevis=${devis.id}`}
           className="flex items-center h-[32px] px-[18px] rounded-[10px] text-[11px] font-bold"
@@ -59,48 +89,63 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
           </div>
         </div>
 
-        {/* Right: info */}
-        <div className="w-[400px] shrink-0 flex flex-col gap-5">
+        {/* Right: cards */}
+        <div className="w-[440px] shrink-0 flex flex-col gap-5">
+
+          {/* Send email card */}
+          <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', border: '1px solid #D9CFB8' }}>
+            <div className="text-[18px] font-bold italic mb-1" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair)' }}>发送报价单</div>
+            <div className="text-[9px] font-semibold tracking-[1.4px] mb-4" style={{ color: '#8B7A3E' }}>
+              ENVOYER PAR EMAIL  ·  收件人已从报价单自动带入
+            </div>
+            <div className="h-px mb-4" style={{ backgroundColor: '#D4C58E', opacity: 0.5 }} />
+            <div className="text-[9px] font-medium mb-1.5" style={{ color: '#9B8550', letterSpacing: '0.6px' }}>收件人邮箱</div>
+            <div className="flex items-center justify-between rounded-[10px] px-3.5 py-3 mb-4" style={{ backgroundColor: '#F6EFDC' }}>
+              <span className="text-[13px] font-semibold" style={{ color: '#1C1611' }}>
+                {devis.customer.email || '未填写'}
+              </span>
+              <Link href="/devis/new" className="text-[14px]" style={{ color: '#9B8550' }}>✎</Link>
+            </div>
+            {sentAt ? (
+              <div className="text-[11px] italic py-2" style={{ color: '#4A6B3A' }}>
+                ✓ 已于 {new Date(sentAt).toLocaleString('zh-CN')} 发送
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={sendingEmail}
+                onClick={() => void handleSendEmail()}
+                className="w-full py-3 rounded-[10px] text-[13px] font-bold"
+                style={{ backgroundColor: '#1C1611', color: '#F5D48A', border: '1px solid #B8922F' }}
+              >
+                {sendingEmail ? '发送中…' : '发送邮件  →'}
+              </button>
+            )}
+            <div className="text-[10px] italic mt-3" style={{ color: '#9B8550' }}>
+              发送后将自动记录发送时间。
+            </div>
+          </div>
+
           {/* Info card */}
           <div className="rounded-[14px] p-5" style={{ backgroundColor: '#FEFBF2', border: '1px solid #D9CFB8' }}>
             <div className="text-[18px] font-bold italic mb-3" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair)' }}>报价单信息</div>
             <div className="h-px mb-3" style={{ backgroundColor: '#D4C58E', opacity: 0.5 }} />
-
             <div className="flex flex-col gap-3">
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>编号</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.meta.number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>客户</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.customer.name || '—'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>地址</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>
-                  {devis.customer.postalCode} {devis.customer.city}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>联系人</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.customer.contactName || '—'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>邮箱</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.customer.email || '—'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>日期</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.meta.date}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>服务项</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{devis.items.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>创建人</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{(devis as Devis & { createdBy?: string }).createdBy || '—'}</span>
-              </div>
+              {[
+                ['编号', devis.meta.number],
+                ['客户', devis.customer.name || '—'],
+                ['地址', `${devis.customer.postalCode} ${devis.customer.city}`],
+                ['联系人', devis.customer.contactName || '—'],
+                ['邮箱', devis.customer.email || '—'],
+                ['日期', devis.meta.date],
+                ['服务项', String(devis.items.length)],
+                ['创建人', (devis as Devis & { createdBy?: string }).createdBy || '—'],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between">
+                  <span className="text-[10px] font-medium" style={{ color: '#8B7A3E' }}>{label}</span>
+                  <span className="text-[12px] font-semibold" style={{ color: '#1C1611' }}>{value}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -116,17 +161,26 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
               >
                 制作合同 →
               </Link>
-              <Link
-                href="/devis/new"
+              <button
+                type="button"
+                onClick={() => { sessionStorage.setItem('oko-devis-pending', JSON.stringify(devis)); window.location.href = '/devis/new' }}
                 className="w-full py-3 rounded-[10px] text-center text-[13px] font-bold border"
                 style={{ borderColor: '#1C1611', color: '#1C1611' }}
               >
                 复制并编辑
-              </Link>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {message && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-[10px] text-[12px] font-semibold shadow-lg" style={{ backgroundColor: '#1C1611', color: '#F5D48A' }}>
+          {message}
+          <button type="button" onClick={() => setMessage(null)} className="ml-4 opacity-60">×</button>
+        </div>
+      )}
     </div>
   )
 }
