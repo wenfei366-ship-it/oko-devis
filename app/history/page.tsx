@@ -270,7 +270,7 @@ function HistoryContent() {
             这里还没有匹配的记录。
           </div>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 items-start">
             {filteredContracts.map((contract) => (
               <div key={contract.id} className="overflow-hidden rounded-[16px] border" style={{ borderColor: '#C8B987', backgroundColor: '#FEFBF2' }}>
                 <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4' }}>

@@ -76,6 +76,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailTo, setEmailTo] = useState('')
   const [uploading, setUploading] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -88,6 +89,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
         const c = await loadContract(contractId)
         if (!c) { setError('合同不存在。'); return }
         setContract(c)
+        setEmailTo(c.customer.email || '')
       } catch (e) {
         setError(e instanceof Error ? e.message : '加载失败。')
       } finally {
@@ -110,7 +112,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
   // Send email
   const handleSendEmail = useCallback(async () => {
     if (!contract || sendingEmail) return
-    if (!contract.customer.email.trim()) { setMessage('请先填写客户邮箱。'); return }
+    if (!emailTo.trim()) { setMessage('请填写收件人邮箱。'); return }
     setSendingEmail(true)
     setMessage(null)
     try {
@@ -123,14 +125,14 @@ export default function ContractSendClient({ contractId }: { contractId: string 
       const res = await fetch('/api/contract/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: contract.customer.email.trim(), subject, html, text: subject, pdfUrl: contract.pdfUrl }),
+        body: JSON.stringify({ to: emailTo.trim(), subject, html, text: subject, pdfUrl: contract.pdfUrl }),
       })
       if (!res.ok) throw new Error('邮件发送失败。')
 
       const next = updateContractStatus(contract, 'sent', actorName, 'email')
       await saveContract(next)
       setContract(next)
-      setMessage(`邮件已发送到 ${contract.customer.email}。`)
+      setMessage(`邮件已发送到 ${emailTo}。`)
     } catch (e) {
       setMessage(e instanceof Error ? e.message : '邮件发送失败。')
     } finally {
@@ -270,12 +272,16 @@ export default function ContractSendClient({ contractId }: { contractId: string 
             </div>
             <div className="h-px mb-4" style={{ backgroundColor: '#D4C58E', opacity: 0.5 }} />
             <div className="text-[9px] font-medium mb-1.5" style={{ color: '#9B8550', letterSpacing: '0.6px' }}>收件人邮箱</div>
-            <div className="flex items-center justify-between rounded-[10px] px-3.5 py-3 mb-4" style={{ backgroundColor: '#F6EFDC' }}>
-              <span className="text-[13px] font-semibold" style={{ color: '#1C1611' }}>
-                {contract.customer.email || '未填写'}
-              </span>
-              <Link href={`/contract/${contractId}`} className="text-[14px]" style={{ color: '#9B8550' }}>✎</Link>
-            </div>
+            <input
+              type="email"
+              value={emailTo}
+              onChange={(e) => setEmailTo(e.target.value)}
+              placeholder="输入收件人邮箱"
+              className="w-full rounded-[10px] px-3.5 py-3 mb-4 text-[13px] font-semibold outline-none"
+              style={{ backgroundColor: '#F6EFDC', color: '#1C1611', border: '1px solid transparent' }}
+              onFocus={(e) => { e.currentTarget.style.border = '1px solid #B8922F' }}
+              onBlur={(e) => { e.currentTarget.style.border = '1px solid transparent' }}
+            />
             {contract.sentAt ? (
               <div className="text-[11px] italic py-2" style={{ color: '#9B8550' }}>
                 ✓ 已于 {new Date(contract.sentAt).toLocaleString('zh-CN')} 发送
