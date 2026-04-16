@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import DevisLivePreview from '@/app/components/DevisLivePreview'
 import { DevisProvider, useDevis } from '@/app/components/DevisContext'
 import IdentityBar, { NavButton } from '@/app/components/IdentityBar'
 import { loadFromHistory } from '@/app/lib/storage'
-import { formatEuro } from '@/app/lib/calculations'
+import { createExportImage, exportLongPng } from '@/app/lib/png/exportLong'
+import { buildDocumentFileStem } from '@/app/lib/fileStorage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Devis } from '@/app/lib/types'
 
@@ -22,6 +23,57 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
   const [sendingEmail, setSendingEmail] = useState(false)
   const [sentAt, setSentAt] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [exportingPdf, setExportingPdf] = useState(false)
+  const [exportingPng, setExportingPng] = useState(false)
+  const previewRef = useRef<HTMLDivElement>(null)
+
+  const handleDownloadPdf = async () => {
+    if (exportingPdf) return
+    const element = previewRef.current
+    if (!element) { setMessage('预览还没准备好。'); return }
+    setExportingPdf(true)
+    setMessage(null)
+    try {
+      const image = await createExportImage(element)
+      const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([import('@react-pdf/renderer')])
+      const styles = StyleSheet.create({ page: { padding: 0, margin: 0, backgroundColor: '#F8F1E0' } })
+      const blob = await pdf(
+        <Document>
+          <Page size={[image.width, image.height]} style={styles.page}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image src={image.dataUrl} style={{ width: image.width, height: image.height }} />
+          </Page>
+        </Document>
+      ).toBlob()
+      const fileName = `${buildDocumentFileStem('报价单', devis.customer.name, devis.meta.number)}.pdf`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setMessage('PDF 已下载。')
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'PDF 导出失败。')
+    } finally {
+      setExportingPdf(false)
+    }
+  }
+
+  const handleDownloadPng = async () => {
+    if (exportingPng) return
+    const element = previewRef.current
+    if (!element) { setMessage('预览还没准备好。'); return }
+    setExportingPng(true)
+    setMessage(null)
+    try {
+      const fileStem = buildDocumentFileStem('报价单', devis.customer.name, devis.meta.number)
+      await exportLongPng(element, fileStem)
+      setMessage('长图已下载。')
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : '长图导出失败。')
+    } finally {
+      setExportingPng(false)
+    }
+  }
 
   const handleSendEmail = async () => {
     if (sendingEmail) return
@@ -67,19 +119,21 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
         </button>
         <button
           type="button"
-          onClick={() => setMessage('请从编辑页导出 PDF。')}
-          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
+          onClick={() => void handleDownloadPdf()}
+          disabled={exportingPdf}
+          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold disabled:opacity-60"
           style={{ borderColor: '#1C1611', color: '#1C1611' }}
         >
-          ↓ 下载 PDF
+          {exportingPdf ? '导出中…' : '↓ 下载 PDF'}
         </button>
         <button
           type="button"
-          onClick={() => setMessage('请从编辑页导出长图。')}
-          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
+          onClick={() => void handleDownloadPng()}
+          disabled={exportingPng}
+          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold disabled:opacity-60"
           style={{ borderColor: '#1C1611', color: '#1C1611' }}
         >
-          导出长图
+          {exportingPng ? '导出中…' : '导出长图'}
         </button>
         <Link
           href={`/contract/new?fromDevis=${devis.id}`}
@@ -100,7 +154,7 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
               {FLAG_MAP[devis.lang] || '🇫🇷'} {devis.lang.toUpperCase()}  ·  A4
             </span>
           </div>
-          <div className="rounded-[4px] border overflow-hidden" style={{ borderColor: '#D9CFB8', backgroundColor: '#F8F1E0' }}>
+          <div ref={previewRef} className="rounded-[4px] border overflow-hidden" style={{ borderColor: '#D9CFB8', backgroundColor: '#F8F1E0' }}>
             <DevisLivePreview />
           </div>
         </div>

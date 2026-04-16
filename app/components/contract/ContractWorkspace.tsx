@@ -29,6 +29,7 @@ import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, ContractEvidenceFile, ContractSentChannel, ContractStatus, Country, Lang, PackageLine, Service } from '@/app/lib/types'
 import { useAuth } from '@/app/components/AuthContext'
+import IdentityBar, { NavButton } from '@/app/components/IdentityBar'
 
 interface ContractWorkspaceProps {
   contractId?: string
@@ -726,48 +727,21 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: readOnly ? '#F8F1E0' : '#F4EBD1' }}>
-      <header className="flex items-center justify-between border-b px-12 py-[22px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#F4ECD6' }}>
-        <div className="flex items-center gap-[18px]">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: '#1C1611' }}>
-            <span className="text-[18px] font-bold" style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>O</span>
-          </div>
-          <div className="text-[20px] font-bold tracking-[1px]" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>OKO</div>
-          <div className="h-5 w-px" style={{ backgroundColor: '#C8B987' }} />
-          <div className="text-[11px] font-medium tracking-[1.2px]" style={{ color: '#6B5A3D' }}>
-            {readOnly ? '合同详情  ·  归档与跟进' : '合同编辑  ·  草稿'}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-[14px]">
-          {readOnly ? (
-            <Link href="/" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
-              全部合同 →
-            </Link>
-          ) : (
-            <Link href="/" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
-              全部合同 →
-            </Link>
-          )}
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: readOnly ? '#F8F1E0' : '#F4EBD1' }}>
+      <IdentityBar
+        label={`${contract.meta.number}  ·  ${contract.customer.name || '未填写客户'}  ·  ${readOnly ? '合同详情' : '合同编辑 · 草稿'}`}
+        actions={<NavButton href="/" label="← 返回项目档案" />}
+      />
 
       {!readOnly && (
-        <div className="flex items-center justify-between border-b px-12 py-5 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
-          <div className="flex items-center gap-[14px]">
-            <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 项目档案</span>
-            <span style={{ color: '#C8B987' }}>/</span>
-            <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
-            <span style={{ color: '#C8B987' }}>/</span>
-            <span className="font-bold" style={{ color: '#1C1611' }}>{contract.meta.number}</span>
-          </div>
+        <div className="flex items-center justify-end border-b px-10 py-3 text-[12px]" style={{ borderColor: 'rgba(212,197,142,0.3)', backgroundColor: '#F8F1E0' }}>
           <div className="flex items-center gap-[10px]">
             {saveMessage && <span className="text-[11px]" style={{ color: saveMessage.includes('失败') ? '#9B2A2A' : '#6B8E4E' }}>{saveMessage}</span>}
             <button
               type="button"
               onClick={() => void handleSave()}
               disabled={saving}
-              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
+              className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold transition-opacity disabled:opacity-60"
               style={{ borderColor: '#1C1611', color: '#1C1611' }}
             >
               {saving ? '保存中…' : '保存草稿'}
@@ -776,15 +750,15 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               type="button"
               onClick={handleExport}
               disabled={exporting}
-              className="rounded-[2px] px-5 py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity"
+              className="flex items-center h-[32px] px-[14px] rounded-[10px] text-[11px] font-bold transition-opacity"
               style={{ backgroundColor: '#1C1611', color: '#F5D48A', opacity: exporting ? 0.72 : 1 }}
             >
-              {exporting ? '导出中…' : '导出 PDF →'}
+              {exporting ? '导出中…' : '↓ 导出 PDF'}
             </button>
             <button
               type="button"
               onClick={() => { if (contract) router.push(`/contract/${contract.id}/send`) }}
-              className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px]"
+              className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
               style={{ borderColor: '#B8922F', color: '#A8702E' }}
             >
               发送合同邮件 →
@@ -794,9 +768,9 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       )}
 
       <div
-        className="grid min-h-[calc(100vh-134px)]"
+        className="grid flex-1"
         style={{
-          padding: readOnly ? '48px 64px 56px 64px' : '40px 48px',
+          padding: readOnly ? '48px 64px 56px 64px' : '32px 48px 48px 48px',
           gap: readOnly ? 28 : 28,
           gridTemplateColumns: readOnly ? 'minmax(0, 1fr)' : '300px minmax(0, 780px) 368px',
         }}

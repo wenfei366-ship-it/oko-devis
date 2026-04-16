@@ -63,3 +63,12 @@
 - [fix] 细节文案批量调整：免费包含、服务目录描述、建站费描述、条款删改与历史页金额说明已按最新业务口径更新，并统一做了标点与措辞收口
 - [fix] 域名费中文描述更新为“管理配置域名，代收代缴域名费”
 - [feat] 自定义新服务支持月付单位：月付与一次性都可填写单位；月付填写后显示为“xx € / 单位 / 月”
+
+## 2026-04-16 (V2 收尾)
+- [feat] V2 合同编辑器顶部统一换成 IdentityBar（深色身份栏 + 登录人 + 返回项目档案）
+- [feat] 项目档案首页卡片加创建人行（头像+名字+相对时间），信息来自 devis.createdBy / contract.createdBy
+- [feat] 首页底部新增「团队动态」区块，聚合全部合同 activityLog + 报价单创建事件，按时间倒序取最近 8 条
+- [feat] 报价单详情页 `/devis/[id]/detail` 接入真实 PDF / PNG 长图导出（createExportImage + @react-pdf/renderer）
+- [chore] 新增 `app/lib/auth/teamDirectory.ts` client-safe 团队目录，用于从 displayName 反查首字母与头像色
+- [chore] 新增 `app/components/AuthorRow.tsx` 封装创建人行
+- [verify] typecheck + lint + 93/93 test + build 通过；Playwright 冒烟（登录、/、/contract/new、/devis/new）0 报错

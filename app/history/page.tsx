@@ -14,6 +14,8 @@ import { deleteFromHistory, listHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, Devis, Lang } from '@/app/lib/types'
 import { useAuth } from '@/app/components/AuthContext'
+import AuthorRow from '@/app/components/AuthorRow'
+import { resolveTeamMember } from '@/app/lib/auth/teamDirectory'
 
 const FLAG_MAP: Record<Lang, string> = {
   fr: '🇫🇷',
@@ -118,6 +120,37 @@ function HistoryContent() {
     await deleteContract(id)
     await refresh()
   }, [refresh])
+
+  const teamActivity = useMemo(() => {
+    type ActivityRow = { at: string; actor: string; event: string; meta?: string; refNumber: string; refKind: 'devis' | 'contract'; href: string }
+    const rows: ActivityRow[] = []
+    for (const contract of contractList) {
+      for (const entry of contract.activityLog) {
+        rows.push({
+          at: entry.at,
+          actor: entry.actor,
+          event: entry.event,
+          meta: entry.meta,
+          refNumber: contract.meta.number,
+          refKind: 'contract',
+          href: `/contract/${contract.id}/send`,
+        })
+      }
+    }
+    for (const devis of devisList) {
+      rows.push({
+        at: devis.createdAt,
+        actor: devis.createdBy || 'OKO',
+        event: '创建了报价单',
+        refNumber: devis.meta.number,
+        refKind: 'devis',
+        href: `/devis/${devis.id}/detail`,
+      })
+    }
+    return rows
+      .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+      .slice(0, 8)
+  }, [contractList, devisList])
 
   const waitingCount = contractList.filter((item) => (
     item.status === 'draft' || item.status === 'generated' || item.status === 'sent'
@@ -314,14 +347,15 @@ function HistoryContent() {
                 </div>
 
                 <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
-                  <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
+                  <AuthorRow createdBy={contract.createdBy} createdAt={contract.createdAt} />
+                  <div className="flex flex-wrap items-center gap-3 text-[12px] font-semibold">
                     <Link href={`/contract/${contract.id}/send`} className="font-bold" style={{ color: '#A8702E' }}>
                       查看跟进 →
                     </Link>
+                    <button type="button" onClick={() => void handleDeleteContract(contract.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
+                      删除
+                    </button>
                   </div>
-                  <button type="button" onClick={() => void handleDeleteContract(contract.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
-                    删除
-                  </button>
                 </div>
               </div>
             ))}
@@ -366,23 +400,63 @@ function HistoryContent() {
                 </div>
 
                 <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
-                  <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
+                  <AuthorRow createdBy={devis.createdBy} createdAt={devis.createdAt} />
+                  <div className="flex flex-wrap items-center gap-3 text-[12px] font-semibold">
                     <Link href={`/devis/${devis.id}/detail`} style={{ color: '#6B5A3D' }}>
                       查看
                     </Link>
                     <Link href={`/contract/new?fromDevis=${devis.id}`} className="font-bold" style={{ color: '#A8702E' }}>
                       制作合同 →
                     </Link>
+                    <button type="button" onClick={() => void handleDeleteDevis(devis.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
+                      删除
+                    </button>
                   </div>
-                  <button type="button" onClick={() => void handleDeleteDevis(devis.id)} className="text-[12px]" style={{ color: '#6B5A3D' }}>
-                    删除
-                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {teamActivity.length > 0 && (
+        <div className="border-t px-8 py-7" style={{ borderColor: '#D9CFB8', backgroundColor: '#FEFBF2' }}>
+          <div className="flex items-baseline justify-between mb-5">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#A8702E' }}>
+                TEAM · 团队动态
+              </div>
+              <div className="mt-1 text-[22px] font-bold" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair)' }}>
+                最近的动作
+              </div>
+            </div>
+            <div className="text-[11px]" style={{ color: '#8B7A3E' }}>
+              按时间倒序 · 最近 {teamActivity.length} 条
+            </div>
+          </div>
+          <ul className="divide-y" style={{ borderColor: '#E4D9BE' }}>
+            {teamActivity.map((row, idx) => {
+              const member = resolveTeamMember(row.actor)
+              const d = new Date(row.at)
+              const when = Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+              return (
+                <li key={idx} className="flex items-center gap-3 py-3" style={{ borderColor: '#E4D9BE' }}>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold" style={{ backgroundColor: member.avatarColor, color: '#1C1611' }}>
+                    {member.initial}
+                  </span>
+                  <span className="text-[12px] font-semibold shrink-0" style={{ color: '#1C1611' }}>{member.displayName}</span>
+                  <span className="text-[12px]" style={{ color: '#5C5142' }}>{row.event}</span>
+                  {row.meta && <span className="text-[11px]" style={{ color: '#6B5A3D' }}>· {row.meta}</span>}
+                  <span className="text-[11px] font-mono ml-auto shrink-0" style={{ color: '#9B8550' }}>{when}</span>
+                  <Link href={row.href} className="text-[11px] font-bold shrink-0" style={{ color: '#A8702E' }}>
+                    {row.refNumber} →
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="border-t px-8 py-5" style={{ borderColor: '#D9CFB8', backgroundColor: '#FBF5E4' }}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
