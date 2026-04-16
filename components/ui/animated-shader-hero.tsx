@@ -24,6 +24,7 @@ interface HeroProps {
   }
   className?: string
   children?: React.ReactNode
+  hideDefaultContent?: boolean
 }
 
 const defaultShaderSource = `#version 300 es
@@ -374,6 +375,7 @@ export default function Hero({
   buttons,
   className = '',
   children,
+  hideDefaultContent = false,
 }: HeroProps) {
   const canvasRef = useShaderBackground()
 
@@ -435,69 +437,75 @@ export default function Hero({
       />
 
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 py-10 text-white">
-        {trustBadge ? (
-          <div className="mb-8 animate-fade-in-down">
-            <div className="flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-500/10 px-6 py-3 text-sm backdrop-blur-md">
-              {trustBadge.icons ? (
-                <div className="flex">
-                  {trustBadge.icons.map((icon, index) => (
-                    <span
-                      key={`${icon}-${index}`}
-                      className={badgeIconClasses[index] || badgeIconClasses[badgeIconClasses.length - 1]}
+        {hideDefaultContent ? (
+          children
+        ) : (
+          <>
+            {trustBadge ? (
+              <div className="mb-8 animate-fade-in-down">
+                <div className="flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-500/10 px-6 py-3 text-sm backdrop-blur-md">
+                  {trustBadge.icons ? (
+                    <div className="flex">
+                      {trustBadge.icons.map((icon, index) => (
+                        <span
+                          key={`${icon}-${index}`}
+                          className={badgeIconClasses[index] || badgeIconClasses[badgeIconClasses.length - 1]}
+                        >
+                          {icon}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  <span className="text-orange-100">{trustBadge.text}</span>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mx-auto max-w-5xl space-y-6 text-center">
+              <div className="space-y-2">
+                <h1 className="animate-fade-in-up animation-delay-200 bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-300 bg-clip-text text-5xl font-bold text-transparent md:text-7xl lg:text-8xl">
+                  {headline.line1}
+                </h1>
+                <h1 className="animate-fade-in-up animation-delay-400 bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text text-5xl font-bold text-transparent md:text-7xl lg:text-8xl">
+                  {headline.line2}
+                </h1>
+              </div>
+
+              <div className="mx-auto max-w-3xl animate-fade-in-up animation-delay-600">
+                <p className="text-lg font-light leading-relaxed text-orange-100/90 md:text-xl lg:text-2xl">
+                  {subtitle}
+                </p>
+              </div>
+
+              {buttons ? (
+                <div className="mt-10 flex animate-fade-in-up animation-delay-800 flex-col justify-center gap-4 sm:flex-row">
+                  {buttons.primary ? (
+                    <button
+                      onClick={buttons.primary.onClick}
+                      className="rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 px-8 py-4 text-lg font-semibold text-black transition-all duration-300 hover:scale-105 hover:from-orange-600 hover:to-yellow-600 hover:shadow-xl hover:shadow-orange-500/25"
                     >
-                      {icon}
-                    </span>
-                  ))}
+                      {buttons.primary.text}
+                    </button>
+                  ) : null}
+                  {buttons.secondary ? (
+                    <button
+                      onClick={buttons.secondary.onClick}
+                      className="rounded-full border border-orange-300/30 bg-orange-500/10 px-8 py-4 text-lg font-semibold text-orange-100 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-orange-300/50 hover:bg-orange-500/20"
+                    >
+                      {buttons.secondary.text}
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
-              <span className="text-orange-100">{trustBadge.text}</span>
-            </div>
-          </div>
-        ) : null}
 
-        <div className="mx-auto max-w-5xl space-y-6 text-center">
-          <div className="space-y-2">
-            <h1 className="animate-fade-in-up animation-delay-200 bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-300 bg-clip-text text-5xl font-bold text-transparent md:text-7xl lg:text-8xl">
-              {headline.line1}
-            </h1>
-            <h1 className="animate-fade-in-up animation-delay-400 bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text text-5xl font-bold text-transparent md:text-7xl lg:text-8xl">
-              {headline.line2}
-            </h1>
-          </div>
-
-          <div className="mx-auto max-w-3xl animate-fade-in-up animation-delay-600">
-            <p className="text-lg font-light leading-relaxed text-orange-100/90 md:text-xl lg:text-2xl">
-              {subtitle}
-            </p>
-          </div>
-
-          {buttons ? (
-            <div className="mt-10 flex animate-fade-in-up animation-delay-800 flex-col justify-center gap-4 sm:flex-row">
-              {buttons.primary ? (
-                <button
-                  onClick={buttons.primary.onClick}
-                  className="rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 px-8 py-4 text-lg font-semibold text-black transition-all duration-300 hover:scale-105 hover:from-orange-600 hover:to-yellow-600 hover:shadow-xl hover:shadow-orange-500/25"
-                >
-                  {buttons.primary.text}
-                </button>
-              ) : null}
-              {buttons.secondary ? (
-                <button
-                  onClick={buttons.secondary.onClick}
-                  className="rounded-full border border-orange-300/30 bg-orange-500/10 px-8 py-4 text-lg font-semibold text-orange-100 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-orange-300/50 hover:bg-orange-500/20"
-                >
-                  {buttons.secondary.text}
-                </button>
+              {children ? (
+                <div className="mx-auto mt-10 w-full max-w-md animate-fade-in-up animation-delay-800">
+                  {children}
+                </div>
               ) : null}
             </div>
-          ) : null}
-
-          {children ? (
-            <div className="mx-auto mt-10 w-full max-w-md animate-fade-in-up animation-delay-800">
-              {children}
-            </div>
-          ) : null}
-        </div>
+          </>
+        )}
       </div>
     </div>
   )

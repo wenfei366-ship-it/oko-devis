@@ -54,7 +54,7 @@ function HistoryContent() {
         setContractWarning(contractError instanceof Error ? contractError.message : '合同暂时没加载出来。')
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : '历史记录加载失败。')
+      setError(loadError instanceof Error ? loadError.message : '项目档案加载失败。')
     } finally {
       setLoading(false)
     }
@@ -143,13 +143,13 @@ function HistoryContent() {
         <div className="flex items-center justify-between gap-6">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[2px]" style={{ color: '#A8702E' }}>
-              OKO · 历史档案 · 2026
+              OKO · 项目档案 · 2026
             </div>
             <div
               className="mt-2 text-[52px] font-bold leading-[0.96] tracking-[-1.2px]"
               style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
             >
-              历史记录
+              项目档案
             </div>
             <p
               className="mt-2 text-[16px] italic"

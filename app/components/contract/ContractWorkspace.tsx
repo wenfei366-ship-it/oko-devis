@@ -299,7 +299,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       if (fromDevisId) {
         const devis = await loadFromHistory(fromDevisId)
         if (!devis) {
-          setError('没找到对应的报价单，先回历史记录重新点一次。')
+          setError('没找到对应的报价单，先回项目档案重新点一次。')
           setContract(createEmptyContract(user?.displayName))
         } else {
           setContract(createContractFromDevis(devis, user?.displayName))
@@ -718,7 +718,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         <div className="text-center">
           <p className="text-sm text-[var(--danger)]">{error || '合同不存在。'}</p>
           <Link href="/history" className="mt-4 inline-block text-sm font-semibold" style={{ color: '#A8702E' }}>
-            返回历史记录
+            返回项目档案
           </Link>
         </div>
       </main>
@@ -755,7 +755,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       {!readOnly && (
         <div className="flex items-center justify-between border-b px-12 py-5 text-[12px]" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
           <div className="flex items-center gap-[14px]">
-            <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 历史记录</span>
+            <span className="text-[10px] font-bold tracking-[1.5px]" style={{ color: '#A8702E' }}>← 项目档案</span>
             <span style={{ color: '#C8B987' }}>/</span>
             <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
             <span style={{ color: '#C8B987' }}>/</span>
@@ -830,7 +830,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
               </div>
               {contract.devisId && (
                 <Link href="/history" className="mt-3 inline-block text-[12px] font-semibold" style={{ color: '#A8702E' }}>
-                  返回历史记录查看原始报价单 →
+                  返回项目档案查看原始报价单 →
                 </Link>
               )}
             </div>
@@ -959,7 +959,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             <section className="space-y-6 border-b pb-8" style={{ borderColor: 'rgba(184,146,47,0.5)' }}>
               <div className="flex items-center justify-between gap-6">
                 <div className="flex items-center gap-[14px] text-[11px] font-semibold tracking-[1.1px]">
-                  <Link href="/history" style={{ color: '#A8702E' }}>← 历史记录</Link>
+                  <Link href="/history" style={{ color: '#A8702E' }}>← 项目档案</Link>
                   <span style={{ color: '#C8B987' }}>/</span>
                   <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
                   <span style={{ color: '#C8B987' }}>/</span>
