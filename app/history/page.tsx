@@ -379,10 +379,10 @@ function HistoryContent() {
 
                 <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: '#E4D9BE', backgroundColor: '#F8F1E0' }}>
                   <div className="flex flex-wrap gap-3 text-[12px] font-semibold">
-                    <button type="button" onClick={() => setSelectedDevis(devis)} style={{ color: '#A8702E' }}>
+                    <Link href={`/devis/${devis.id}/detail`} style={{ color: '#6B5A3D' }}>
                       查看
-                    </button>
-                    <Link href={`/contract/new?fromDevis=${devis.id}`} style={{ color: '#A8702E' }}>
+                    </Link>
+                    <Link href={`/contract/new?fromDevis=${devis.id}`} className="font-bold" style={{ color: '#A8702E' }}>
                       制作合同 →
                     </Link>
                   </div>
