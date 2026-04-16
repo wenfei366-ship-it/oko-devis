@@ -797,19 +797,10 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 })()
               }}
               disabled={saving}
-              className="rounded-[2px] px-5 py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity"
-              style={{ backgroundColor: '#4A6B3A', color: '#FFFFFF', opacity: saving ? 0.72 : 1 }}
-            >
-              创建合同 →
-            </button>
-            <button
-              type="button"
-              onClick={handleSendEmail}
-              disabled={sendingEmail}
               className="rounded-[2px] border px-[18px] py-[10px] text-[10px] font-bold tracking-[1.4px] transition-opacity disabled:opacity-60"
               style={{ borderColor: '#B8922F', color: '#A8702E' }}
             >
-              {sendingEmail ? '发送中…' : '发送合同邮件'}
+              {saving ? '跳转中…' : '发送合同邮件 →'}
             </button>
           </div>
         </div>
