@@ -358,7 +358,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       setContract(nextContract)
       setSaveMessage('已保存到共享历史。')
       if (!contractId) {
-        router.replace(`/contract/${nextContract.id}`)
+        router.replace(`/contract/${nextContract.id}/send`)
       }
     } catch (saveError) {
       setSaveMessage(saveError instanceof Error ? saveError.message : '保存失败。')

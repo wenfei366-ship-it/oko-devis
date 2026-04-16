@@ -65,6 +65,22 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
         >
           ✎ 编辑报价单
         </button>
+        <button
+          type="button"
+          onClick={() => setMessage('请从编辑页导出 PDF。')}
+          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
+          style={{ borderColor: '#1C1611', color: '#1C1611' }}
+        >
+          ↓ 下载 PDF
+        </button>
+        <button
+          type="button"
+          onClick={() => setMessage('请从编辑页导出长图。')}
+          className="flex items-center h-[32px] px-[14px] rounded-[10px] border text-[11px] font-bold"
+          style={{ borderColor: '#1C1611', color: '#1C1611' }}
+        >
+          导出长图
+        </button>
         <Link
           href={`/contract/new?fromDevis=${devis.id}`}
           className="flex items-center h-[32px] px-[18px] rounded-[10px] text-[11px] font-bold"

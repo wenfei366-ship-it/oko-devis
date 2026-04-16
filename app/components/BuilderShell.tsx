@@ -9,7 +9,11 @@ import CustomerForm from './CustomerForm'
 import DatePickerCard from './DatePickerCard'
 import LanguagePicker from './LanguagePicker'
 import MagazineModal from './MagazineModal'
-import type { Lang } from '../lib/types'
+import type { Devis, Lang } from '../lib/types'
+import { saveToHistory, syncToHistory, HistoryConflictError } from '../lib/storage'
+import { uuid, generateDraftNumber } from '../lib/numbering'
+import { useAuth } from './AuthContext'
+import { useRouter } from 'next/navigation'
 
 const LANGUAGE_PILL: Record<Lang, { flag: string; label: string }> = {
   fr: { flag: '🇫🇷', label: 'Français' },
@@ -94,8 +98,54 @@ function CreateDevisButton({ onClick }: { onClick: () => void }) {
 
 function BuilderContent() {
   const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
   const { devis, dispatch } = useDevis()
+  const { user } = useAuth()
+  const router = useRouter()
   const languagePill = LANGUAGE_PILL[devis.lang]
+
+  const handleCreateAndRedirect = async () => {
+    if (saving) return
+    setSaving(true)
+    try {
+      const toSave: Devis = {
+        ...devis,
+        createdBy: devis.createdBy || user?.displayName,
+        savedAt: new Date().toISOString(),
+      }
+      if (devis.savedAt) {
+        // Already saved before — fork a new copy
+        const forked: Devis = {
+          ...toSave,
+          id: uuid(),
+          meta: { ...toSave.meta, number: generateDraftNumber() },
+          savedAt: new Date().toISOString(),
+        }
+        await saveToHistory(forked)
+        dispatch({ type: 'LOAD_DEVIS', devis: forked })
+        router.push(`/devis/${forked.id}/detail`)
+      } else {
+        await saveToHistory(toSave)
+        dispatch({ type: 'LOAD_DEVIS', devis: toSave })
+        router.push(`/devis/${toSave.id}/detail`)
+      }
+    } catch (err) {
+      if (err instanceof HistoryConflictError) {
+        const forked: Devis = {
+          ...devis,
+          id: uuid(),
+          createdBy: devis.createdBy || user?.displayName,
+          meta: { ...devis.meta, number: generateDraftNumber() },
+          savedAt: new Date().toISOString(),
+        }
+        await saveToHistory(forked)
+        dispatch({ type: 'LOAD_DEVIS', devis: forked })
+        router.push(`/devis/${forked.id}/detail`)
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (typeof sessionStorage === 'undefined') return
@@ -119,7 +169,7 @@ function BuilderContent() {
           <>
             <NavButton href="/" label="← 返回项目档案" />
             <NavButton href="/contract/new" label="+ 新建合同" />
-            <NavButton onClick={() => setShowModal(true)} label="创建 devis →" />
+            <NavButton onClick={() => void handleCreateAndRedirect()} label={saving ? '保存中…' : '创建 devis →'} />
           </>
         }
       />
