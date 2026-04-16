@@ -9,67 +9,77 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
-import { getSupabaseBrowserClient } from '@/app/lib/supabase/client'
+import type { AuthUser } from '@/app/lib/auth/shared'
 
 interface AuthContextValue {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
   loading: boolean
-  signInWithEmail: (email: string) => Promise<void>
+  signInWithPassword: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient()
-
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? null)
-      setLoading(false)
+    void fetch('/api/auth/session', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
     })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+      .then(async (response) => {
+        if (!response.ok) {
+          setUser(null)
+          return
+        }
+        const payload = await response.json() as { user: AuthUser | null }
+        setUser(payload.user)
+      })
+      .catch(() => {
+        setUser(null)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
-  const signInWithEmail = useCallback(async (email: string) => {
-    const supabase = getSupabaseBrowserClient()
-    const redirectTo =
-      typeof window === 'undefined' ? undefined : `${window.location.origin}${window.location.pathname}`
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
     })
 
-    if (error) throw error
+    const payload = await response.json().catch(() => null) as { error?: string; user?: AuthUser | null } | null
+    if (!response.ok || !payload?.user) {
+      throw new Error(payload?.error || '登录失败。')
+    }
+
+    setUser(payload.user)
   }, [])
 
   const signOut = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient()
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (!response.ok) {
+      setLoading(false)
+      throw new Error('退出登录失败。')
+    }
+    setUser(null)
   }, [])
 
   const value = useMemo<AuthContextValue>(() => ({
-    user: session?.user ?? null,
-    session,
+    user,
     loading,
-    signInWithEmail,
+    signInWithPassword,
     signOut,
-  }), [loading, session, signInWithEmail, signOut])
+  }), [loading, signInWithPassword, signOut, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

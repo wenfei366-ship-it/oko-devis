@@ -12,6 +12,7 @@ import { saveToHistory, syncToHistory, HistoryConflictError, cloneForEdit } from
 import { generateDraftNumber, uuid } from '@/app/lib/numbering'
 import type { Country, Devis, Lang } from '@/app/lib/types'
 import PdfDownloadButton from './PdfDownloadButton'
+import { useAuth } from './AuthContext'
 
 interface MagazineModalProps {
   readOnly: boolean
@@ -112,6 +113,7 @@ async function generateDevisPdfBlob(element: HTMLElement): Promise<Blob> {
 export default function MagazineModal({ readOnly, onClose, historyDevis }: MagazineModalProps) {
   const ctx = useDevis()
   const router = useRouter()
+  const { user } = useAuth()
   const sourceDevis = historyDevis ?? ctx.devis
   const dispatch = ctx.dispatch
 
@@ -143,7 +145,10 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     let cancelled = false
 
     const persist = async () => {
-      const devisToSave = { ...sourceDevis }
+      const devisToSave = {
+        ...sourceDevis,
+        createdBy: sourceDevis.createdBy || user?.displayName,
+      }
       try {
         if (!devisToSave.savedAt) {
           devisToSave.savedAt = new Date().toISOString()
@@ -159,6 +164,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
         const forked: Devis = {
           ...devisToSave,
           id: uuid(),
+          createdBy: devisToSave.createdBy || user?.displayName,
           meta: {
             ...devisToSave.meta,
             number: generateDraftNumber(),
@@ -176,6 +182,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
           const forked: Devis = {
             ...devisToSave,
             id: uuid(),
+            createdBy: devisToSave.createdBy || user?.displayName,
             meta: {
               ...devisToSave.meta,
               number: generateDraftNumber(),
@@ -208,7 +215,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     return () => {
       cancelled = true
     }
-  }, [dispatch, readOnly, sourceDevis])
+  }, [dispatch, readOnly, sourceDevis, user?.displayName])
 
   useEffect(() => {
     if (readOnly || !didPersistRef.current || !sourceDevis.savedAt) return
@@ -216,6 +223,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     const timeoutId = window.setTimeout(() => {
       void syncToHistory({
         ...sourceDevis,
+        createdBy: sourceDevis.createdBy || user?.displayName,
         updatedAt: new Date().toISOString(),
       }).catch((err) => {
         setSaveNotice(err instanceof Error ? err.message : '同步共享历史失败。')
@@ -225,7 +233,7 @@ export default function MagazineModal({ readOnly, onClose, historyDevis }: Magaz
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [readOnly, sourceDevis])
+  }, [readOnly, sourceDevis, user?.displayName])
 
   // PNG export — capture only the clean Devis preview, without modal decorations.
   const handlePngExport = useCallback(async () => {

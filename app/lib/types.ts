@@ -166,6 +166,7 @@ export interface Devis {
   notes: string
   /** Output language (FR by default) */
   lang: Lang
+  createdBy?: string
   createdAt: string
   updatedAt: string
   /** Stamped automatically when magazine modal opens via "创建 devis →". Once
@@ -203,6 +204,7 @@ export interface Contract {
   kind: 'contract'
   id: string
   devisId?: string
+  createdBy?: string
   meta: ContractMeta
   customer: Customer
   lang: Lang

@@ -28,16 +28,16 @@ export class ContractConflictError extends Error {
   }
 }
 
-function makeActivity(event: string, meta?: string): ContractActivity {
+function makeActivity(actor: string, event: string, meta?: string): ContractActivity {
   return {
     at: new Date().toISOString(),
-    actor: 'OKO',
+    actor,
     event,
     meta,
   }
 }
 
-export function createEmptyContract(): Contract {
+export function createEmptyContract(actor = 'OKO'): Contract {
   const now = new Date().toISOString()
   return {
     kind: 'contract',
@@ -68,7 +68,7 @@ export function createEmptyContract(): Contract {
     status: 'draft',
     evidenceFiles: [],
     attachments: [],
-    activityLog: [makeActivity('Contract draft created')],
+    activityLog: [makeActivity(actor, 'Contract draft created')],
     createdAt: now,
     updatedAt: now,
   }
@@ -90,13 +90,14 @@ export function createContractLineItemFromService(service: Service): LineItem {
   }
 }
 
-export function createContractFromDevis(devis: Devis): Contract {
+export function createContractFromDevis(devis: Devis, actor = 'OKO'): Contract {
   const now = new Date().toISOString()
   const totals = computeTotals(devis)
   return {
     kind: 'contract',
     id: uuid(),
     devisId: devis.id,
+    createdBy: devis.createdBy || actor,
     meta: {
       number: generateContractNumber(),
       devisNumber: devis.meta.number,
@@ -116,7 +117,7 @@ export function createContractFromDevis(devis: Devis): Contract {
     evidenceFiles: [],
     attachments: [],
     activityLog: [
-      makeActivity('Contract created from devis', devis.meta.number),
+      makeActivity(actor, 'Contract created from devis', devis.meta.number),
     ],
     createdAt: now,
     updatedAt: now,
@@ -209,7 +210,7 @@ export async function cloneContractForEdit(id: string): Promise<Contract> {
     updatedAt: new Date().toISOString(),
     activityLog: [
       ...source.activityLog,
-      makeActivity('Contract duplicated for edit', source.meta.number),
+      makeActivity(source.createdBy || 'OKO', 'Contract duplicated for edit', source.meta.number),
     ],
   }
 }
@@ -217,9 +218,15 @@ export async function cloneContractForEdit(id: string): Promise<Contract> {
 export function updateContractStatus(
   contract: Contract,
   status: ContractStatus,
-  sentChannel?: ContractSentChannel,
+  actorOrSentChannel: string | ContractSentChannel = 'OKO',
+  maybeSentChannel?: ContractSentChannel,
 ): Contract {
   const now = new Date().toISOString()
+  const knownChannels: ContractSentChannel[] = ['email', 'feishu', 'wechat', 'whatsapp', 'in_person']
+  const treatThirdArgAsChannel = knownChannels.includes(actorOrSentChannel as ContractSentChannel) && !maybeSentChannel
+  const actor = treatThirdArgAsChannel ? 'OKO' : actorOrSentChannel
+  const sentChannel = treatThirdArgAsChannel ? actorOrSentChannel as ContractSentChannel : maybeSentChannel
+
   return {
     ...contract,
     status,
@@ -227,6 +234,6 @@ export function updateContractStatus(
     sentChannel: status === 'sent' ? (sentChannel ?? contract.sentChannel) : contract.sentChannel,
     confirmedAt: status === 'confirmed' ? now : contract.confirmedAt,
     updatedAt: now,
-    activityLog: [...contract.activityLog, makeActivity(`Status changed to ${status}`)],
+    activityLog: [...contract.activityLog, makeActivity(actor, `Status changed to ${status}`)],
   }
 }

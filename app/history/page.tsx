@@ -13,6 +13,7 @@ import {
 import { deleteFromHistory, listHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, Devis, Lang } from '@/app/lib/types'
+import { useAuth } from '@/app/components/AuthContext'
 
 const FLAG_MAP: Record<Lang, string> = {
   fr: '🇫🇷',
@@ -25,6 +26,7 @@ const FLAG_MAP: Record<Lang, string> = {
 type HistoryFilter = 'all' | 'devis' | 'contract' | 'pending'
 
 function HistoryContent() {
+  const { user, signOut } = useAuth()
   const mounted = useMounted()
   const [devisList, setDevisList] = useState<Devis[]>([])
   const [contractList, setContractList] = useState<Contract[]>([])
@@ -158,6 +160,24 @@ function HistoryContent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {user ? (
+              <div
+                className="flex items-center gap-2 rounded-[10px] border px-3 py-2 text-[12px] font-semibold"
+                style={{ borderColor: '#E4D9BE', backgroundColor: '#FBF5E4', color: '#1C1611' }}
+              >
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold"
+                  style={{ backgroundColor: user.avatarColor, color: '#FEFBF2' }}
+                >
+                  {user.initial}
+                </span>
+                <span>{user.displayName}</span>
+                <button type="button" onClick={() => void signOut()} style={{ color: '#8B7A3E' }}>
+                  退出
+                </button>
+              </div>
+            ) : null}
+
             <Link href="/" className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
               + 新建报价单
             </Link>

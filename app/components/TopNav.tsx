@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useDevis } from './DevisContext'
+import { useAuth } from './AuthContext'
 
 interface TopNavProps {
   onCreateDevis: () => void
@@ -9,6 +10,7 @@ interface TopNavProps {
 
 export default function TopNav({ onCreateDevis }: TopNavProps) {
   const { dispatch } = useDevis()
+  const { user, signOut } = useAuth()
 
   const handleNewDevis = () => {
     if (typeof sessionStorage !== 'undefined') {
@@ -32,6 +34,24 @@ export default function TopNav({ onCreateDevis }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-[10px]">
+        {user ? (
+          <div
+            className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[11px] font-semibold"
+            style={{ backgroundColor: '#F6EFDC', color: '#1C1611' }}
+          >
+            <span
+              className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold"
+              style={{ backgroundColor: user.avatarColor, color: '#FEFBF2' }}
+            >
+              {user.initial}
+            </span>
+            <span>{user.displayName}</span>
+            <button type="button" onClick={() => void signOut()} style={{ color: '#8B7A3E' }}>
+              退出
+            </button>
+          </div>
+        ) : null}
+
         <div
           className="hidden xl:flex items-center h-[40px] px-4 rounded-[10px] text-[11px] font-medium"
           style={{ backgroundColor: '#F6EFDC', color: '#6B5D31' }}

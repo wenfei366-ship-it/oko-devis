@@ -28,6 +28,7 @@ import { uuid } from '@/app/lib/numbering'
 import { loadFromHistory } from '@/app/lib/storage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Contract, ContractEvidenceFile, ContractSentChannel, ContractStatus, Country, Lang, PackageLine, Service } from '@/app/lib/types'
+import { useAuth } from '@/app/components/AuthContext'
 
 interface ContractWorkspaceProps {
   contractId?: string
@@ -259,6 +260,7 @@ function ScaledContract({ contract, previewRef }: { contract: Contract; previewR
 export default function ContractWorkspace({ contractId, readOnly = false, fromDevisId }: ContractWorkspaceProps) {
   const mounted = useMounted()
   const router = useRouter()
+  const { user } = useAuth()
   const previewRef = useRef<HTMLDivElement>(null)
   const exportRef = useRef<HTMLDivElement>(null)
   const evidenceInputRef = useRef<HTMLInputElement>(null)
@@ -298,20 +300,20 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         const devis = await loadFromHistory(fromDevisId)
         if (!devis) {
           setError('没找到对应的报价单，先回历史记录重新点一次。')
-          setContract(createEmptyContract())
+          setContract(createEmptyContract(user?.displayName))
         } else {
-          setContract(createContractFromDevis(devis))
+          setContract(createContractFromDevis(devis, user?.displayName))
         }
         return
       }
 
-      setContract(createEmptyContract())
+      setContract(createEmptyContract(user?.displayName))
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : '合同加载失败。')
     } finally {
       setLoading(false)
     }
-  }, [contractId, fromDevisId, mounted])
+  }, [contractId, fromDevisId, mounted, user?.displayName])
 
   useEffect(() => {
     void loadData()
@@ -349,6 +351,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     try {
       const nextContract = {
         ...contract,
+        createdBy: contract.createdBy || user?.displayName,
         updatedAt: new Date().toISOString(),
       }
       await saveContract(nextContract)
@@ -362,11 +365,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     } finally {
       setSaving(false)
     }
-  }, [contract, contractId, router])
+  }, [contract, contractId, router, user?.displayName])
 
   const handleStatusChange = useCallback(async (status: ContractStatus, sentChannel?: ContractSentChannel) => {
     if (!contract) return
-    const nextContract = updateContractStatus(contract, status, sentChannel)
+    const nextContract = updateContractStatus(contract, status, user?.displayName || contract.createdBy || 'OKO', sentChannel)
     setContract(nextContract)
     setSaving(true)
     setSaveMessage(null)
@@ -378,7 +381,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
     } finally {
       setSaving(false)
     }
-  }, [contract])
+  }, [contract, user?.displayName])
 
   const handleExport = useCallback(() => {
     if (!contract || exporting) return
@@ -417,9 +420,10 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         URL.revokeObjectURL(url)
 
         const nextContract = contractSnapshot.status === 'draft'
-          ? updateContractStatus(contractSnapshot, 'generated')
+          ? updateContractStatus(contractSnapshot, 'generated', user?.displayName || contractSnapshot.createdBy || 'OKO')
           : {
               ...contractSnapshot,
+              createdBy: contractSnapshot.createdBy || user?.displayName,
               updatedAt: new Date().toISOString(),
             }
 
@@ -456,7 +460,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         setExporting(false)
       }
     })()
-  }, [contract, exporting])
+  }, [contract, exporting, user?.displayName])
 
   const handleSendEmail = useCallback(() => {
     if (!contract || sendingEmail) return
@@ -530,7 +534,12 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
           throw new Error(`收件服务器拒收：${payload.rejected.join(', ')}`)
         }
 
-        const nextContract = updateContractStatus(contractSnapshot, 'sent', 'email')
+        const nextContract = updateContractStatus(
+          contractSnapshot,
+          'sent',
+          user?.displayName || contractSnapshot.createdBy || 'OKO',
+          'email',
+        )
         await saveContract(nextContract)
         setContract(nextContract)
         setSaveMessage(
@@ -544,7 +553,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         setSendingEmail(false)
       }
     })()
-  }, [contract, sendingEmail])
+  }, [contract, sendingEmail, user?.displayName])
 
   const uploadContractFile = useCallback(async (
     file: File,
@@ -595,13 +604,13 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             ...contract.activityLog,
             {
               at: now,
-              actor: 'OKO',
+              actor: user?.displayName || contract.createdBy || 'OKO',
               event: 'Uploaded confirmation evidence',
               meta: uploaded.name,
             },
             {
               at: now,
-              actor: 'OKO',
+              actor: user?.displayName || contract.createdBy || 'OKO',
               event: 'Status changed to completed',
             },
           ],
@@ -617,7 +626,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         setUploadingEvidence(false)
       }
     })()
-  }, [contract, uploadContractFile, uploadingEvidence])
+  }, [contract, uploadContractFile, uploadingEvidence, user?.displayName])
 
   const handleAttachmentUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -638,7 +647,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             ...contract.activityLog,
             {
               at: now,
-              actor: 'OKO',
+              actor: user?.displayName || contract.createdBy || 'OKO',
               event: 'Uploaded attachment',
               meta: uploaded.name,
             },
@@ -655,7 +664,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
         setUploadingAttachment(false)
       }
     })()
-  }, [contract, uploadContractFile, uploadingAttachment])
+  }, [contract, uploadContractFile, uploadingAttachment, user?.displayName])
 
   const statusTone = useMemo(() => {
     if (!contract) return '#9B8550'
