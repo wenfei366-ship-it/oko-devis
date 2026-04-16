@@ -178,7 +178,7 @@ function HistoryContent() {
               </div>
             ) : null}
 
-            <Link href="/" className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
+            <Link href="/devis/new" className="rounded-[10px] border px-4 py-2 text-[12px] font-semibold" style={{ borderColor: '#1C1611', color: '#1C1611' }}>
               + 新建报价单
             </Link>
             <Link href="/contract/new" className="rounded-[10px] px-5 py-2 text-[13px] font-bold" style={{ backgroundColor: '#1C1611', color: '#F8EFDC' }}>

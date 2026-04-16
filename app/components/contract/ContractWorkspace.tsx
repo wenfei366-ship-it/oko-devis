@@ -717,7 +717,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
       <main className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
         <div className="text-center">
           <p className="text-sm text-[var(--danger)]">{error || '合同不存在。'}</p>
-          <Link href="/history" className="mt-4 inline-block text-sm font-semibold" style={{ color: '#A8702E' }}>
+          <Link href="/" className="mt-4 inline-block text-sm font-semibold" style={{ color: '#A8702E' }}>
             返回项目档案
           </Link>
         </div>
@@ -741,11 +741,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
 
         <div className="flex items-center gap-[14px]">
           {readOnly ? (
-            <Link href="/history" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
+            <Link href="/" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
               全部合同 →
             </Link>
           ) : (
-            <Link href="/history" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
+            <Link href="/" className="px-[14px] py-[10px] text-[11px] font-medium" style={{ color: '#A8702E' }}>
               全部合同 →
             </Link>
           )}
@@ -829,7 +829,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 </div>
               </div>
               {contract.devisId && (
-                <Link href="/history" className="mt-3 inline-block text-[12px] font-semibold" style={{ color: '#A8702E' }}>
+                <Link href="/" className="mt-3 inline-block text-[12px] font-semibold" style={{ color: '#A8702E' }}>
                   返回项目档案查看原始报价单 →
                 </Link>
               )}
@@ -959,7 +959,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
             <section className="space-y-6 border-b pb-8" style={{ borderColor: 'rgba(184,146,47,0.5)' }}>
               <div className="flex items-center justify-between gap-6">
                 <div className="flex items-center gap-[14px] text-[11px] font-semibold tracking-[1.1px]">
-                  <Link href="/history" style={{ color: '#A8702E' }}>← 项目档案</Link>
+                  <Link href="/" style={{ color: '#A8702E' }}>← 项目档案</Link>
                   <span style={{ color: '#C8B987' }}>/</span>
                   <span style={{ color: '#6B5A3D' }}>{contract.customer.name || '未填写客户'}</span>
                   <span style={{ color: '#C8B987' }}>/</span>

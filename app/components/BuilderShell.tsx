@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { DevisProvider, useDevis } from './DevisContext'
-import TopNav from './TopNav'
+import IdentityBar, { NavButton } from './IdentityBar'
 import ServiceCatalog from './ServiceCatalog'
 import DevisLivePreview from './DevisLivePreview'
 import CustomerForm from './CustomerForm'
@@ -113,7 +113,16 @@ function BuilderContent() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: '#F6EFDC' }}>
-      <TopNav onCreateDevis={() => setShowModal(true)} />
+      <IdentityBar
+        label={`新建报价单 · ${devis.meta.number} · 编辑中`}
+        actions={
+          <>
+            <NavButton href="/" label="← 返回项目档案" />
+            <NavButton href="/contract/new" label="+ 新建合同" />
+            <NavButton onClick={() => setShowModal(true)} label="创建 devis →" />
+          </>
+        }
+      />
 
       <div
         className="grid flex-1 overflow-hidden"
