@@ -296,32 +296,20 @@ function HistoryContent() {
 
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     <div>
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>金额</div>
+                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{formatEuro(contract.finalTotal)}</div>
+                    </div>
+                    <div>
                       <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>关联报价单</div>
                       <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>{contract.meta.devisNumber || '—'}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>金额</div>
-                      <div className="mt-1 text-[22px] font-bold italic leading-none" style={{ color: '#1C1611', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}>
-                        {formatEuro(contract.finalTotal)}
+                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>状态</div>
+                      <div className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: '#1C1611' }}>
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: contract.status === 'completed' ? '#4A6B3A' : contract.status === 'confirmed' ? '#6B8E4E' : contract.status === 'sent' ? '#C9A35B' : contract.status === 'cancelled' ? '#9B2A2A' : '#9B8550' }} />
+                        {CONTRACT_STATUS_LABELS[contract.status]}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>最后更新</div>
-                      <div className="mt-1 text-[12px] font-semibold" style={{ color: '#1C1611' }}>
-                        {new Date(contract.updatedAt).toLocaleDateString('zh-CN')}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-2 text-[12px] font-semibold" style={{ color: '#3A3228' }}>
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: contract.status === 'completed' ? '#4A6B3A' : contract.status === 'confirmed' ? '#6B8E4E' : contract.status === 'sent' ? '#C9A35B' : contract.status === 'cancelled' ? '#9B2A2A' : '#9B8550' }} />
-                    <span>{CONTRACT_STATUS_LABELS[contract.status]}</span>
-                    {contract.sentChannel && (
-                      <>
-                        <span style={{ color: '#C8B987' }}>·</span>
-                        <span>{CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel]}</span>
-                      </>
-                    )}
                   </div>
                 </div>
 
