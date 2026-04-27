@@ -1423,13 +1423,16 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                         onChange={(event) => updateContract((current) => {
                           const paymentMode = event.target.value as Contract['paymentMode']
                           const nextSubtotal = getContractReferenceTotal(current.selectedServices, paymentMode)
-                          return {
+                          const next: Contract = {
                             ...current,
                             paymentMode,
                             totalUnit: paymentMode,
                             subtotalDisplay: nextSubtotal,
                             finalTotal: nextSubtotal,
                           }
+                          // Switching billing cadence invalidates a manual override
+                          delete next.primaryAmountOverride
+                          return next
                         })}
                         className={smallFieldClassName(readOnly)}
                         style={{ borderColor: '#E4D9BE', color: '#1C1611' }}
@@ -1447,16 +1450,46 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                       <div className="text-[10px] font-bold uppercase tracking-[2px]" style={{ color: '#F5D48A' }}>
                         {contract.paymentMode === 'monthly' ? '总金额（月）' : '总金额（年）'}
                       </div>
-                      <div className="text-[9px] tracking-[1.1px]" style={{ color: '#D9CFB8' }}>
-                        自动带入
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] tracking-[1.1px]" style={{ color: chargeSummary?.primaryAmountIsOverridden ? '#F5D48A' : '#D9CFB8' }}>
+                          {chargeSummary?.primaryAmountIsOverridden ? '已手动覆盖' : '自动带入 · 可手动修改'}
+                        </span>
+                        {chargeSummary?.primaryAmountIsOverridden && !readOnly && (
+                          <button
+                            type="button"
+                            onClick={() => updateContract((current) => {
+                              const next = { ...current }
+                              delete next.primaryAmountOverride
+                              return next
+                            })}
+                            className="text-[9px] tracking-[1.1px] underline underline-offset-2"
+                            style={{ color: '#F5D48A' }}
+                          >
+                            重置
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="mt-3 flex items-end gap-2">
                       <input
                         type="number"
-                        value={String(chargeSummary?.primaryAmount ?? 0)}
-                        disabled
-                        onChange={() => {}}
+                        min={0}
+                        step="0.01"
+                        value={chargeSummary ? String(chargeSummary.primaryAmount) : '0'}
+                        disabled={readOnly}
+                        onChange={(event) => {
+                          const raw = event.target.value
+                          updateContract((current) => {
+                            if (raw === '') {
+                              const next = { ...current }
+                              delete next.primaryAmountOverride
+                              return next
+                            }
+                            const parsed = Number(raw)
+                            if (!Number.isFinite(parsed)) return current
+                            return { ...current, primaryAmountOverride: parsed }
+                          })
+                        }}
                         className="w-full border-0 bg-transparent p-0 text-[38px] font-bold italic leading-none outline-none"
                         style={{ color: '#F5D48A', fontFamily: 'var(--font-playfair), Playfair Display, Georgia, serif' }}
                       />
@@ -1464,6 +1497,11 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                         {chargeSummary?.primaryUnit === 'monthly' ? '€/mois' : '€/an'}
                       </span>
                     </div>
+                    {chargeSummary?.primaryAmountIsOverridden && (
+                      <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
+                        自动计算：{formatEuroCompact(chargeSummary.primaryAmountAuto)}
+                      </div>
+                    )}
                     {chargeSummary && chargeSummary.annualCharges > 0 && (
                       <div className="mt-2 text-[10px]" style={{ color: '#D9CFB8' }}>
                         年度费用：{formatEuroCompact(chargeSummary.annualCharges)}

@@ -538,6 +538,8 @@ export function getContractPriceHint(item: DevisItem, lang: Lang, paymentMode: C
 
 export function getContractChargeSummary(contract: Contract): {
   primaryAmount: number
+  primaryAmountAuto: number
+  primaryAmountIsOverridden: boolean
   primaryUnit: 'monthly' | 'annual'
   annualCharges: number
   oneOffCharges: number
@@ -568,8 +570,17 @@ export function getContractChargeSummary(contract: Contract): {
     oneOffCharges += getItemPrice(item)
   })
 
+  const primaryAmountAuto = contract.paymentMode === 'monthly' ? monthlyRecurring : annualRecurring
+  const primaryAmountIsOverridden =
+    typeof contract.primaryAmountOverride === 'number' &&
+    Number.isFinite(contract.primaryAmountOverride)
+
   return {
-    primaryAmount: contract.paymentMode === 'monthly' ? monthlyRecurring : annualRecurring,
+    primaryAmount: primaryAmountIsOverridden
+      ? (contract.primaryAmountOverride as number)
+      : primaryAmountAuto,
+    primaryAmountAuto,
+    primaryAmountIsOverridden,
     primaryUnit: contract.paymentMode,
     annualCharges,
     oneOffCharges,

@@ -212,6 +212,10 @@ export interface Contract {
   paymentMode: 'monthly' | 'annual'
   subtotalDisplay: number
   finalTotal: number
+  /** Manual override for the primary total (月费 or 年费 depending on paymentMode).
+   *  When set, it replaces the auto-computed sum from selectedServices in
+   *  the contract preview / PDF / "总金额" card. Cleared by setting to undefined. */
+  primaryAmountOverride?: number
   totalUnit: 'monthly' | 'annual'
   specialConditions: string
   status: ContractStatus
