@@ -397,16 +397,16 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
                   {formatEuroCompact(chargeSummary.primaryAmount)}
                 </div>
                 <div className="mt-1.5 text-[9px] tracking-[1.4px]" style={{ color: '#F8F1E0' }}>
-                  {chargeSummary.primaryUnit === 'monthly' ? '月费' : '年费'} · {getTotalUnitLabel(contract)}
+                  {chargeSummary.primaryUnit === 'monthly' ? copy.monthlyShort : copy.annualShort} · {getTotalUnitLabel(contract)}
                 </div>
                 {chargeSummary.annualCharges > 0 && (
                   <div className="mt-2.5 text-[8px]" style={{ color: '#D9CFB8' }}>
-                    年度费用：{formatEuroCompact(chargeSummary.annualCharges)}
+                    {copy.annualChargesLabel} : {formatEuroCompact(chargeSummary.annualCharges)}
                   </div>
                 )}
                 {chargeSummary.oneOffCharges > 0 && (
                   <div className="mt-1 text-[8px]" style={{ color: '#D9CFB8' }}>
-                    一次性费用：{formatEuroCompact(chargeSummary.oneOffCharges)}
+                    {copy.oneOffChargesLabel} : {formatEuroCompact(chargeSummary.oneOffCharges)}
                   </div>
                 )}
               </div>

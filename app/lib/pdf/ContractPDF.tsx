@@ -8,7 +8,6 @@ import {
   getContractChargeSummary,
   getContractCopy,
   getContractPriceHint,
-  getPaymentModeLabel,
   getSelectedServiceSummaries,
   getStandardServiceLines,
   getTotalUnitLabel,
@@ -257,16 +256,16 @@ export function ContractPDF({ contract }: ContractPDFProps) {
               <Text style={{ ...cs.sectionLabel, color: '#F5D48A', fontFamily: bodyFont }}>{copy.article7FinalPrice}</Text>
               <Text style={{ ...cs.finalPrice, fontFamily: displayFont, fontStyle: isChinese ? 'normal' : 'italic' }}>{formatEuroCompact(chargeSummary.primaryAmount)}</Text>
               <Text style={{ ...cs.finalMeta, fontFamily: bodyFont }}>
-                {chargeSummary.primaryUnit === 'monthly' ? '月付' : getPaymentModeLabel(contract)} · {getTotalUnitLabel(contract)}
+                {chargeSummary.primaryUnit === 'monthly' ? copy.monthlyShort : copy.annualShort} · {getTotalUnitLabel(contract)}
               </Text>
               {chargeSummary.annualCharges > 0 ? (
                 <Text style={{ ...cs.finalSub, fontFamily: bodyFont }}>
-                  年度费用: {formatEuroCompact(chargeSummary.annualCharges)}
+                  {copy.annualChargesLabel} : {formatEuroCompact(chargeSummary.annualCharges)}
                 </Text>
               ) : null}
               {chargeSummary.oneOffCharges > 0 ? (
                 <Text style={{ ...cs.finalSub, fontFamily: bodyFont }}>
-                  一次性费用: {formatEuroCompact(chargeSummary.oneOffCharges)}
+                  {copy.oneOffChargesLabel} : {formatEuroCompact(chargeSummary.oneOffCharges)}
                 </Text>
               ) : null}
             </View>

@@ -51,6 +51,10 @@ type ContractCopy = {
   total: string
   totalMonthly: string
   totalAnnual: string
+  monthlyShort: string
+  annualShort: string
+  annualChargesLabel: string
+  oneOffChargesLabel: string
 }
 
 export type Article7ReferenceRow = {
@@ -138,6 +142,10 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     total: 'Total',
     totalMonthly: '€ HT / mois',
     totalAnnual: '€ HT / an',
+    monthlyShort: 'Mensuel',
+    annualShort: 'Annuel',
+    annualChargesLabel: 'Frais annuels',
+    oneOffChargesLabel: 'Frais ponctuels',
   },
   zh: {
     title: '服务合同',
@@ -188,6 +196,10 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     total: '总计',
     totalMonthly: '欧元 / 月',
     totalAnnual: '欧元 / 年',
+    monthlyShort: '月费',
+    annualShort: '年费',
+    annualChargesLabel: '年度费用',
+    oneOffChargesLabel: '一次性费用',
   },
   it: {
     title: 'Contratto di prestazione di servizi',
@@ -238,6 +250,10 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     total: 'Totale',
     totalMonthly: '€ / mese',
     totalAnnual: '€ / anno',
+    monthlyShort: 'Mensile',
+    annualShort: 'Annuale',
+    annualChargesLabel: 'Costi annuali',
+    oneOffChargesLabel: 'Costi una tantum',
   },
   de: {
     title: 'Dienstleistungsvertrag',
@@ -288,6 +304,10 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     total: 'Gesamt',
     totalMonthly: '€ / Monat',
     totalAnnual: '€ / Jahr',
+    monthlyShort: 'Monatlich',
+    annualShort: 'Jährlich',
+    annualChargesLabel: 'Jährliche Kosten',
+    oneOffChargesLabel: 'Einmalige Kosten',
   },
   es: {
     title: 'Contrato de prestación de servicios',
@@ -338,6 +358,10 @@ export const CONTRACT_COPY: Record<Lang, ContractCopy> = {
     total: 'Total',
     totalMonthly: '€ / mes',
     totalAnnual: '€ / año',
+    monthlyShort: 'Mensual',
+    annualShort: 'Anual',
+    annualChargesLabel: 'Cargos anuales',
+    oneOffChargesLabel: 'Cargos puntuales',
   },
 }
 
