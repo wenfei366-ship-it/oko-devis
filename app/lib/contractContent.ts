@@ -490,7 +490,7 @@ export function getContractReferenceTotal(items: DevisItem[], paymentMode: Contr
   return items.reduce((sum, item) => sum + getContractServicePrice(item, paymentMode), 0)
 }
 
-function getDevisItemName(item: DevisItem, lang: Lang): string {
+export function getDevisItemName(item: DevisItem, lang: Lang): string {
   if (item.kind === 'package') return item.nameSnapshot[lang] || item.nameSnapshot.fr
   return item.nameSnapshot[lang] || item.nameSnapshot.fr
 }

@@ -13,7 +13,9 @@ import {
   CONTRACT_SENT_CHANNEL_LABELS,
   CONTRACT_STATUS_LABELS,
   getContractChargeSummary,
+  getContractPriceHint,
   getContractReferenceTotal,
+  getDevisItemName,
 } from '@/app/lib/contractContent'
 import {
   createContractLineItemFromService,
@@ -807,8 +809,154 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                 </Link>
               )}
             </div>
-            {!contract.devisId && (
+            {!readOnly && (
               <div className="mt-3 space-y-4">
+                {/* Already-selected services — editable + removable, shown for all contracts */}
+                {contract.selectedServices.length > 0 && (
+                  <div className="rounded-[2px] border px-3 py-3" style={{ borderColor: '#B8922F', backgroundColor: '#F8EFDC' }}>
+                    <div className="text-[10px] font-bold uppercase tracking-[1.6px]" style={{ color: '#8B7A3E' }}>
+                      已选服务（{contract.selectedServices.length}）
+                    </div>
+                    <div className="mt-2 text-[10px] leading-[1.5]" style={{ color: '#6B5A3D' }}>
+                      改单价直接覆盖原价；删除直接 ×。改完会自动同步到合同正文与年/月费总额。
+                    </div>
+                    <ul className="mt-3 space-y-2">
+                      {contract.selectedServices.map((item) => {
+                        const name = getDevisItemName(item, contract.lang)
+                        const isPackage = item.kind === 'package'
+                        return (
+                          <li
+                            key={item.id}
+                            className="rounded-[2px] border px-3 py-2"
+                            style={{ borderColor: '#E4D9BE', backgroundColor: '#FEFBF2' }}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate text-[12px] font-semibold" style={{ color: '#1C1611' }}>{name}</div>
+                                <div className="mt-0.5 text-[10px]" style={{ color: '#6B5A3D' }}>
+                                  {getContractPriceHint(item, contract.lang, contract.paymentMode)}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  applyServiceSelection(
+                                    contract.selectedServices.filter((s) => s.id !== item.id),
+                                  )
+                                }
+                                aria-label={`移除 ${name}`}
+                                className="shrink-0 text-[18px] font-bold leading-none"
+                                style={{ color: '#9B2A2A' }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                            {!isPackage ? (
+                              <div className="mt-2 grid grid-cols-2 gap-2">
+                                <label className="text-[10px]" style={{ color: '#6B5A3D' }}>
+                                  <span>单价（€）</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={String(item.unitPrice)}
+                                    onChange={(event) => {
+                                      const raw = event.target.value
+                                      const parsed = raw === '' ? 0 : Number(raw)
+                                      if (!Number.isFinite(parsed)) return
+                                      applyServiceSelection(
+                                        contract.selectedServices.map((s) =>
+                                          s.id === item.id && s.kind === 'line'
+                                            ? { ...s, unitPrice: parsed }
+                                            : s,
+                                        ),
+                                      )
+                                    }}
+                                    className="mt-1 w-full rounded-[2px] border px-2 py-1 text-[12px]"
+                                    style={{ borderColor: '#E4D9BE', color: '#1C1611', backgroundColor: '#FBF5E4' }}
+                                  />
+                                </label>
+                                <label className="text-[10px]" style={{ color: '#6B5A3D' }}>
+                                  <span>数量</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    step="1"
+                                    value={String(item.qty)}
+                                    onChange={(event) => {
+                                      const raw = event.target.value
+                                      const parsed = raw === '' ? 1 : Math.max(1, Math.floor(Number(raw)))
+                                      if (!Number.isFinite(parsed)) return
+                                      applyServiceSelection(
+                                        contract.selectedServices.map((s) =>
+                                          s.id === item.id && s.kind === 'line'
+                                            ? { ...s, qty: parsed }
+                                            : s,
+                                        ),
+                                      )
+                                    }}
+                                    className="mt-1 w-full rounded-[2px] border px-2 py-1 text-[12px]"
+                                    style={{ borderColor: '#E4D9BE', color: '#1C1611', backgroundColor: '#FBF5E4' }}
+                                  />
+                                </label>
+                              </div>
+                            ) : (
+                              <div className="mt-2 grid grid-cols-2 gap-2">
+                                <label className="text-[10px]" style={{ color: '#6B5A3D' }}>
+                                  <span>套餐月价（€）</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={String(item.monthlyPrice)}
+                                    onChange={(event) => {
+                                      const raw = event.target.value
+                                      const parsed = raw === '' ? 0 : Number(raw)
+                                      if (!Number.isFinite(parsed)) return
+                                      applyServiceSelection(
+                                        contract.selectedServices.map((s) =>
+                                          s.id === item.id && s.kind === 'package'
+                                            ? { ...s, monthlyPrice: parsed }
+                                            : s,
+                                        ),
+                                      )
+                                    }}
+                                    className="mt-1 w-full rounded-[2px] border px-2 py-1 text-[12px]"
+                                    style={{ borderColor: '#E4D9BE', color: '#1C1611', backgroundColor: '#FBF5E4' }}
+                                  />
+                                </label>
+                                <label className="text-[10px]" style={{ color: '#6B5A3D' }}>
+                                  <span>套餐年价（€）</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={String(item.annualPrice)}
+                                    onChange={(event) => {
+                                      const raw = event.target.value
+                                      const parsed = raw === '' ? 0 : Number(raw)
+                                      if (!Number.isFinite(parsed)) return
+                                      applyServiceSelection(
+                                        contract.selectedServices.map((s) =>
+                                          s.id === item.id && s.kind === 'package'
+                                            ? { ...s, annualPrice: parsed }
+                                            : s,
+                                        ),
+                                      )
+                                    }}
+                                    className="mt-1 w-full rounded-[2px] border px-2 py-1 text-[12px]"
+                                    style={{ borderColor: '#E4D9BE', color: '#1C1611', backgroundColor: '#FBF5E4' }}
+                                  />
+                                </label>
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   {CATALOG.map((service) => {
                     const isAdded = contract.selectedServices.some(
@@ -844,7 +992,7 @@ export default function ContractWorkspace({ contractId, readOnly = false, fromDe
                           <div className="text-[12px] font-semibold">{service.name.fr}</div>
                           <div className="mt-1 text-[10px]" style={{ color: '#6B5A3D' }}>{service.name.zh}</div>
                         </div>
-                        <div className="text-[11px] font-bold" style={{ color: isAdded ? '#A8702E' : '#9B8550' }}>{isAdded ? '已选' : '添加'}</div>
+                        <div className="text-[11px] font-bold" style={{ color: isAdded ? '#9B2A2A' : '#9B8550' }}>{isAdded ? '已添加 · 移除 ×' : '+ 添加'}</div>
                       </button>
                     )
                   })}
