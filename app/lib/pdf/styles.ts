@@ -274,6 +274,14 @@ export const s = StyleSheet.create({
     marginTop: 2,
     marginBottom: 8,
   },
+  annualOnlyNote: {
+    fontSize: 8,
+    fontStyle: 'italic',
+    color: COLORS.inkSoft,
+    marginTop: 4,
+    marginBottom: 4,
+    lineHeight: 1.4,
+  },
   oneOffSummaryLabel: {
     fontSize: 8,
     fontWeight: 700,

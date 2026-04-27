@@ -30,9 +30,22 @@ export interface ViewModelItemGroup {
   items: ViewModelItem[]
 }
 
+export interface DualCardAnnualOnlyItem {
+  name: string
+  amount: number
+  amountLabel: string
+}
+
+export interface DualCardAnnualOnly {
+  total: number
+  items: DualCardAnnualOnlyItem[]
+  note: string
+}
+
 export interface DualCard {
   monthly: { baseline: number; final: number; economy: number; economyPct: number }
   annual: { baseline: number; final: number; economy: number; economyPct: number }
+  annualOnlyAddon: DualCardAnnualOnly | null
 }
 
 export interface DevisViewModel {
@@ -245,7 +258,9 @@ function economyPct(baseline: number, economy: number): number {
   return baseline > 0 ? Math.round((economy / baseline) * 100) : 0
 }
 
-function buildDualCards(items: DevisItem[]): DualCard | null {
+function buildDualCards(items: DevisItem[], lang: Lang): DualCard | null {
+  const annualOnlyItems: DualCardAnnualOnlyItem[] = []
+
   const values = items.reduce(
     (acc, item) => {
       if (item.kind === 'package') {
@@ -261,10 +276,23 @@ function buildDualCards(items: DevisItem[]): DualCard | null {
       if (!line.recurringEligible) return acc
 
       const annualAmount = lineAmount(line)
-      const monthlyAmount = line.billingCadence === 'monthly'
-        ? line.unitPrice
-        : annualAmount / 12
 
+      if (line.billingCadence === 'annual') {
+        // Annual-only items (e.g. domain fees) are billed yearly regardless of
+        // the chosen plan. They must NOT be averaged into the monthly column;
+        // surface them separately so the customer sees the extra annual charge.
+        acc.annualBaseline += annualAmount
+        acc.annualFinal += annualAmount
+        annualOnlyItems.push({
+          name: tr(line.nameSnapshot, lang),
+          amount: annualAmount,
+          amountLabel: `${formatEuroCompact(annualAmount)} ${tr(LABELS.perYear, lang)}`,
+        })
+        return acc
+      }
+
+      // monthly cadence: unitPrice IS the monthly price
+      const monthlyAmount = line.unitPrice
       acc.monthlyBaseline += monthlyAmount
       acc.monthlyFinal += monthlyAmount
       acc.annualBaseline += annualAmount
@@ -279,6 +307,18 @@ function buildDualCards(items: DevisItem[]): DualCard | null {
   const monthlyEconomy = Math.max(0, values.monthlyBaseline - values.monthlyFinal)
   const annualEconomy = Math.max(0, values.annualBaseline - values.annualFinal)
 
+  const annualOnlyTotal = annualOnlyItems.reduce((s, i) => s + i.amount, 0)
+  const annualOnlyAddon: DualCardAnnualOnly | null =
+    annualOnlyItems.length === 0
+      ? null
+      : {
+          total: annualOnlyTotal,
+          items: annualOnlyItems,
+          note: `+ ${annualOnlyItems
+            .map((it) => `${it.name} ${it.amountLabel}`)
+            .join(' · ')}  ·  ${tr(LABELS.annualBilledSeparately, lang)}`,
+        }
+
   return {
     monthly: {
       baseline: values.monthlyBaseline,
@@ -292,6 +332,7 @@ function buildDualCards(items: DevisItem[]): DualCard | null {
       economy: annualEconomy,
       economyPct: economyPct(values.annualBaseline, annualEconomy),
     },
+    annualOnlyAddon,
   }
 }
 
@@ -353,7 +394,7 @@ export function buildViewModel(devis: Devis, totalsOverride?: DevisTotals): Devi
 
   // Dual cards — show whenever recurring services can be quoted as a choice.
   // Discounts only control whether the "normal price" and savings copy are meaningful.
-  const dualCards = buildDualCards(devis.items)
+  const dualCards = buildDualCards(devis.items, lang)
 
   // Check if any service key matches known free services (website-setup when bundled)
   // For now, inclusGratuit from packages only

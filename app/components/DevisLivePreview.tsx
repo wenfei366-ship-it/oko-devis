@@ -473,6 +473,19 @@ export function DevisPreviewContent({
               )}
             </div>
           </div>
+          {vm.dualCards.annualOnlyAddon && (
+            <p
+              style={{
+                fontSize: 11,
+                fontStyle: 'italic',
+                color: '#6B5A3D',
+                marginTop: 8,
+                lineHeight: 1.5,
+              }}
+            >
+              {vm.dualCards.annualOnlyAddon.note}
+            </p>
+          )}
           {vm.totals.oneOffTotal > 0 && (
             <div
               style={{

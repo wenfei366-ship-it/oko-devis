@@ -43,6 +43,13 @@ export const LABELS = {
   recommande: { fr: 'recommandé', it: 'consigliato', es: 'recomendado', de: 'empfohlen', zh: '推荐' } as I18nString,
   perMonth: { fr: '/ mois', it: '/ mese', es: '/ mes', de: '/ Monat', zh: '/月' } as I18nString,
   perYear: { fr: '/ an', it: '/ anno', es: '/ año', de: '/ Jahr', zh: '/年' } as I18nString,
+  annualBilledSeparately: {
+    fr: 'facturé séparément à l\'année',
+    it: 'fatturato separatamente su base annua',
+    es: 'facturado por separado de forma anual',
+    de: 'jährlich separat in Rechnung gestellt',
+    zh: '按年单独支付',
+  } as I18nString,
 
   // Parties
   emetteur: { fr: 'ÉMETTEUR', it: 'EMITTENTE', es: 'EMISOR', de: 'ABSENDER', zh: '开具方' } as I18nString,

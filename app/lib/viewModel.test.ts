@@ -104,6 +104,45 @@ describe('buildViewModel dual cards', () => {
     expect(vm.dualCards).toBeNull()
   })
 
+  it('keeps annual-only line items (e.g. domain) out of the monthly column but in the annual column', () => {
+    const pkg = mkPackage({ baselineMonthly: 80, monthlyPrice: 80, baselineAnnual: 960, annualPrice: 600 })
+    const domain: LineItem = {
+      kind: 'line',
+      id: 'domain-1',
+      serviceId: 'domain-fee',
+      nameSnapshot: i18n('Frais de nom de domaine'),
+      descSnapshot: i18n('Domaine annuel'),
+      qty: 1,
+      unit: 'an',
+      unitPrice: 20,
+      billingCadence: 'annual',
+      pdfSection: 'fees',
+      recurringEligible: true,
+    }
+    const devis = mkDevis([pkg, domain])
+    const vm = buildViewModel(devis, computeTotals(devis))
+
+    expect(vm.dualCards).not.toBeNull()
+    // Monthly column = package only, NOT averaged with the 20€/an domain fee
+    expect(vm.dualCards?.monthly.final).toBe(80)
+    expect(vm.dualCards?.monthly.baseline).toBe(80)
+    // Annual column still includes the domain so the customer sees the full yearly cost
+    expect(vm.dualCards?.annual.final).toBe(620)
+    expect(vm.dualCards?.annual.baseline).toBe(980)
+    // Add-on metadata is exposed for the UI
+    expect(vm.dualCards?.annualOnlyAddon?.total).toBe(20)
+    expect(vm.dualCards?.annualOnlyAddon?.items).toHaveLength(1)
+    expect(vm.dualCards?.annualOnlyAddon?.items[0].name).toBe('Frais de nom de domaine')
+    expect(vm.dualCards?.annualOnlyAddon?.note).toContain('20')
+    expect(vm.dualCards?.annualOnlyAddon?.note).toContain('séparément')
+  })
+
+  it('annualOnlyAddon stays null when no annual-cadence recurring items are present', () => {
+    const devis = mkDevis([mkLine()])
+    const vm = buildViewModel(devis, computeTotals(devis))
+    expect(vm.dualCards?.annualOnlyAddon).toBeNull()
+  })
+
   it('uses package monthly and annual prices separately even when preferred mode is monthly', () => {
     const devis = mkDevis([mkPackage()])
     const vm = buildViewModel(devis, computeTotals(devis))

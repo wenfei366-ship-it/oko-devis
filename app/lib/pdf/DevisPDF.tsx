@@ -164,6 +164,9 @@ export function DevisPDF({ vm }: DevisPDFProps) {
                 ) : null}
               </View>
             </View>
+            {vm.dualCards.annualOnlyAddon ? (
+              <Text style={s.annualOnlyNote}>{vm.dualCards.annualOnlyAddon.note}</Text>
+            ) : null}
             {vm.totals.oneOffTotal > 0 ? (
               <View style={s.oneOffSummary}>
                 <Text style={s.oneOffSummaryLabel}>{vm.labels.oneOffTotal}</Text>
