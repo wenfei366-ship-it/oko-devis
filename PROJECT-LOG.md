@@ -1,5 +1,12 @@
 # OKO Devis Generator — PROJECT LOG
 
+## 2026-04-27
+- [fix] cfce46c — 域名等年付项不再平摊进月付列（之前 `viewModel.ts:264 annualAmount/12` 把 20€/an 错塞成 ~1.67€/月）。新增 `dualCards.annualOnlyAddon`，预览 + PDF 在双卡下方展示「+ 域名费 20 €/an · 按年单独支付」（5 语言）
+- [feat] 4b9d49a — 合同总金额（年/月）输入框可手动覆盖，新增 `Contract.primaryAmountOverride` + 「已手动覆盖 / 重置 / 自动计算: X」提示。切换 paymentMode 自动清掉 override
+- [feat] 2c7ec66 — 合同服务列表全打开：去掉 `!contract.devisId` 限制，从报价单生成的合同也能编辑；新增「已选服务」面板支持改单价 / 数量 / 套餐月年价 / × 删除；catalog 按钮文案改为「+ 添加 / 已添加 · 移除 ×」
+- [fix] 43efdc5 — 合同 Article 7「PRIX FINAL CONVENU」黑框 5 语言本地化：新增 `monthlyShort / annualShort / annualChargesLabel / oneOffChargesLabel`，预览 + PDF 不再硬编码中文「月费/年费/年度费用/一次性费用」
+- [verify] typecheck + lint + 95/95 test + build 全绿 · push 到 origin/main · Vercel `oko-devis.vercel.app` aliased
+
 ## 2026-04-11
 - [feat] M0: 技术 spike — 装 @react-pdf/renderer + html-to-image + vitest + playwright, 字体本地打包, Next 16 构建验证通过
 - [feat] M0.1: Harness — CLAUDE.md 项目规则 + pre-commit hook (typecheck + lint + test)
