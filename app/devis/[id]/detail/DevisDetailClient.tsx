@@ -89,7 +89,19 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: devis.customer.email.trim(), subject, html, text: subject }),
       })
-      if (!res.ok) throw new Error('邮件发送失败。')
+      if (!res.ok) {
+        // Surface API's actual error (SMTP / env / network) instead of generic toast.
+        // Response body is a one-shot stream — read as text first, then try JSON parse.
+        const raw = await res.text().catch(() => '')
+        let detail = raw
+        try {
+          const payload = JSON.parse(raw) as { error?: string }
+          detail = payload.error ?? raw
+        } catch {
+          // fall through with raw text
+        }
+        throw new Error(detail || `邮件发送失败（HTTP ${res.status}）`)
+      }
       const now = new Date().toISOString()
       setSentAt(now)
       setMessage(`报价单已发送到 ${devis.customer.email}。`)

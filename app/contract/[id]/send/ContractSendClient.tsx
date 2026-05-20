@@ -129,7 +129,21 @@ export default function ContractSendClient({ contractId }: { contractId: string 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: emailTo.trim(), subject, html, text: subject, pdfUrl: contract.pdfUrl }),
       })
-      if (!res.ok) throw new Error('邮件发送失败。')
+      if (!res.ok) {
+        // Surface the API's actual error (env missing / SMTP auth / PDF fetch / …)
+        // instead of the generic "邮件发送失败" — without this the colleague has no
+        // hint what's broken.
+        // Response body is a one-shot stream — read as text first, then try JSON parse.
+        const raw = await res.text().catch(() => '')
+        let detail = raw
+        try {
+          const payload = JSON.parse(raw) as { error?: string }
+          detail = payload.error ?? raw
+        } catch {
+          // fall through with raw text
+        }
+        throw new Error(detail || `邮件发送失败（HTTP ${res.status}）`)
+      }
 
       const next = updateContractStatus(contract, 'sent', actorName, 'email')
       await saveContract(next)

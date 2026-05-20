@@ -96,9 +96,16 @@ export async function POST(request: Request) {
       messageId: info.messageId,
     })
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '邮件发送失败。' },
-      { status: 500 },
-    )
+    // Surface the failure in Vercel runtime logs so we can diagnose without
+    // having to roundtrip through the UI toast.
+    const message = error instanceof Error ? error.message : '邮件发送失败。'
+    const errCode =
+      error && typeof error === 'object' && 'code' in error ? (error as { code?: string }).code : undefined
+    console.error('contract send failed', {
+      message,
+      code: errCode,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return NextResponse.json({ error: message, code: errCode }, { status: 500 })
   }
 }
