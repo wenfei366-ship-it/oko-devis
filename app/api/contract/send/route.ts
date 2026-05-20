@@ -58,9 +58,17 @@ export async function POST(request: Request) {
         contentType: 'application/pdf',
       })
     } else if (pdfUrl?.trim()) {
-      const response = await fetch(pdfUrl)
+      // pdfUrl 在 localStorage 里历史脏数据可能含字面 `\n` / 外层引号 — 清掉。
+      const cleanUrl = pdfUrl
+        .trim()
+        .replace(/^"|"$/g, '')
+        .replace(/\\n/g, '')
+        .replace(/[\r\n]+/g, '')
+      const response = await fetch(cleanUrl)
       if (!response.ok) {
-        throw new Error('合同 PDF 下载失败，无法作为附件发送。')
+        throw new Error(
+          `合同 PDF 下载失败（HTTP ${response.status}），URL=${cleanUrl}。无法作为附件发送。`,
+        )
       }
       const pdfBuffer = Buffer.from(await response.arrayBuffer())
       attachments.push({

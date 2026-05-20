@@ -58,7 +58,16 @@ export function buildContractEvidencePath(contractId: string, fileName: string):
 }
 
 export function getPublicFileUrl(path: string): string | undefined {
-  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL?.trim()
+  // Vercel env 偶发被污染（双引号 / 字面 `\n` / trailing newline）—— sanitize 防御。
+  // 不 sanitize 的话 pdfUrl 会拼成非法 URL，邮件附件 fetch 失败。
+  const raw = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL?.trim()
+  if (!raw) return undefined
+  const base = raw
+    .replace(/^"|"$/g, '') // 去外层双引号
+    .replace(/\\n/g, '') // 去字面 \n（两字符）
+    .replace(/[\r\n]+/g, '') // 去真换行
+    .replace(/\/$/, '') // 去末尾斜杠
+    .trim()
   if (!base) return undefined
-  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
+  return `${base}/${path.replace(/^\//, '')}`
 }
