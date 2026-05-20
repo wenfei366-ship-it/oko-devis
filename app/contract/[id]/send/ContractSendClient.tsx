@@ -203,7 +203,10 @@ export default function ContractSendClient({ contractId }: { contractId: string 
     } finally {
       setSendingEmail(false)
     }
-  }, [contract, sendingEmail, actorName])
+    // CRITICAL: emailTo must be in deps — otherwise stale closure sends to the
+    // contract's original customer email regardless of what the user typed.
+    // This silently leaked test emails to real customers before the fix.
+  }, [contract, sendingEmail, actorName, emailTo])
 
   // Upload evidence
   const handleDownloadPdf = useCallback(async () => {
