@@ -124,10 +124,59 @@ export default function ContractSendClient({ contractId }: { contractId: string 
       const subject = copy.subject(contract.meta.number, customerName)
       const html = `<div style="font-family:Arial,sans-serif;color:#1C1611;line-height:1.7"><p>${copy.greeting}</p><p>${copy.body(contract.meta.number)}</p><p>${copy.confirm}</p><p>${copy.closing}<br/>OKO</p></div>`
 
+      // Render PDF locally and send as base64 — independent of R2 (avoids stale
+      // contract.pdfUrl pointing at deleted / never-uploaded objects).
+      const pageElements = Array.from(
+        exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [],
+      )
+      if (pageElements.length !== 2) throw new Error('合同预览页还没准备好，请稍后再试。')
+      const exportImages = await Promise.all(
+        pageElements.map((el) =>
+          createNodeExportImage(el, { pixelRatio: 3, backgroundColor: '#FEFBF2', width: 800, height: 1132 }),
+        ),
+      )
+      const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
+        import('@react-pdf/renderer'),
+      ])
+      const styles = StyleSheet.create({
+        page: { padding: 0, margin: 0, backgroundColor: '#FEFBF2' },
+        image: { width: '100%', height: '100%' },
+      })
+      const pdfBlob = await pdf(
+        <Document>
+          {exportImages.map((img, i) => (
+            <Page key={i} size="A4" style={styles.page}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image src={img.dataUrl} style={styles.image} />
+            </Page>
+          ))}
+        </Document>,
+      ).toBlob()
+      const pdfBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result
+          if (typeof result !== 'string') {
+            reject(new Error('PDF 编码失败：FileReader 返回非字符串。'))
+            return
+          }
+          const [, base64 = ''] = result.split(',', 2)
+          if (!base64) {
+            // 防"邮件发出但无附件" — 后端对空 pdfBase64 会跳过附件继续发，更糟
+            reject(new Error('PDF 编码失败：base64 为空。'))
+            return
+          }
+          resolve(base64)
+        }
+        reader.onerror = () => reject(reader.error ?? new Error('PDF 转 base64 失败'))
+        reader.readAsDataURL(pdfBlob)
+      })
+      const pdfFileName = `${buildDocumentFileStem('合同', contract.customer.name, contract.meta.number)}.pdf`
+
       const res = await fetch('/api/contract/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: emailTo.trim(), subject, html, text: subject, pdfUrl: contract.pdfUrl }),
+        body: JSON.stringify({ to: emailTo.trim(), subject, html, text: subject, pdfBase64, pdfFileName }),
       })
       if (!res.ok) {
         // Surface the API's actual error (env missing / SMTP auth / PDF fetch / …)
