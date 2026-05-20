@@ -153,10 +153,14 @@ async function generateContractPdfBlob(container: HTMLDivElement | null, contrac
   const exportImages = await Promise.all(
     pageElements.map((pageElement) =>
       createNodeExportImage(pageElement, {
-        pixelRatio: 3,
+        // Codex review 2026-05-20: PNG@3x → JPEG@1.75x quality 0.8 to fix
+        // Apple Quartz white-screen-on-zoom (2400+ raster decode OOM)
+        pixelRatio: 1.75,
         backgroundColor: '#FEFBF2',
         width: 800,
         height: 1132,
+        format: 'jpeg',
+        quality: 0.8,
       })
     )
   )

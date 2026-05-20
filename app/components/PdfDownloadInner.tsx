@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Document, Image, Page, StyleSheet, pdf } from '@react-pdf/renderer'
-import { createExportImage, showExportToast } from '@/app/lib/png/exportLong'
+import { createPdfPageImage, showExportToast } from '@/app/lib/png/exportLong'
 interface PdfDownloadInnerProps {
   fileName: string
   getExportElement: () => HTMLElement | null
@@ -28,7 +28,8 @@ export default function PdfDownloadInner({ fileName, getExportElement }: PdfDown
     try {
       const element = getExportElement()
       if (!element) throw new Error('Export impossible: preview indisponible.')
-      const image = await createExportImage(element)
+      // JPEG@1.75x to avoid Apple Quartz white-screen-on-zoom bug
+      const image = await createPdfPageImage(element)
       const blob = await pdf(<DevisPreviewPdf image={image} />).toBlob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

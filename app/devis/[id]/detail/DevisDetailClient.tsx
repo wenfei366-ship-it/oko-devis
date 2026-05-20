@@ -6,7 +6,7 @@ import DevisLivePreview from '@/app/components/DevisLivePreview'
 import { DevisProvider, useDevis } from '@/app/components/DevisContext'
 import IdentityBar, { NavButton } from '@/app/components/IdentityBar'
 import { loadFromHistory } from '@/app/lib/storage'
-import { createExportImage, exportLongPng } from '@/app/lib/png/exportLong'
+import { createPdfPageImage, exportLongPng } from '@/app/lib/png/exportLong'
 import { buildDocumentFileStem } from '@/app/lib/fileStorage'
 import { useMounted } from '@/app/lib/useMounted'
 import type { Devis } from '@/app/lib/types'
@@ -34,7 +34,8 @@ function DevisDetailInner({ devis }: { devis: Devis }) {
     setExportingPdf(true)
     setMessage(null)
     try {
-      const image = await createExportImage(element)
+      // JPEG@1.75x to avoid Apple Quartz white-screen-on-zoom bug
+      const image = await createPdfPageImage(element)
       const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([import('@react-pdf/renderer')])
       const styles = StyleSheet.create({ page: { padding: 0, margin: 0, backgroundColor: '#F8F1E0' } })
       const blob = await pdf(

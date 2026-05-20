@@ -2,7 +2,7 @@
 // Uses html-to-image with 2x pixel ratio for crisp fonts.
 // Captures the visible Devis DOM directly to avoid blank off-screen exports.
 
-import { toPng } from 'html-to-image'
+import { toJpeg, toPng } from 'html-to-image'
 
 const MAX_SINGLE_HEIGHT = 30000
 const EXPORT_BACKGROUND = '#F8F1E0'
@@ -25,6 +25,28 @@ export async function exportLongPng(
 
 export async function createExportImage(element: HTMLElement): Promise<ExportImage> {
   return createNodeExportImage(element)
+}
+
+/**
+ * PDF-embedding optimized: JPEG @ 1.75x, quality 0.8.
+ * Apple Quartz (iOS / macOS Preview / Mail) cannot decode 2400+ PNG when zoomed
+ * past ~150% → white screen. JPEG fixes this for all printable A4 docs.
+ * Use this for any image that ends up inside @react-pdf <Image>.
+ */
+export async function createPdfPageImage(
+  element: HTMLElement,
+  options?: {
+    backgroundColor?: string
+    width?: number
+    height?: number
+  },
+): Promise<ExportImage> {
+  return createNodeExportImage(element, {
+    ...options,
+    pixelRatio: 1.75,
+    format: 'jpeg',
+    quality: 0.8,
+  })
 }
 
 /** Wait for render frame, fonts, and all images inside element */
@@ -64,11 +86,22 @@ export async function createNodeExportImage(
     width?: number
     height?: number
     maxSingleHeight?: number
+    /**
+     * 'png' (default) for screen exports — lossless, larger.
+     * 'jpeg' for PDF embedding — Apple Quartz can't decode 2400+ PNG when
+     * zoomed in (white-screen bug). JPEG quality 0.8 cuts size 60-70% and
+     * stays readable for printed A4 contracts. Codex review 2026-05-20.
+     */
+    format?: 'png' | 'jpeg'
+    /** Only for jpeg. 0-1, default 0.85. */
+    quality?: number
   }
 ): Promise<ExportImage> {
   const pixelRatio = options?.pixelRatio ?? DEFAULT_PIXEL_RATIO
   const backgroundColor = options?.backgroundColor ?? EXPORT_BACKGROUND
   const maxSingleHeight = options?.maxSingleHeight ?? MAX_SINGLE_HEIGHT
+  const format = options?.format ?? 'png'
+  const quality = options?.quality ?? 0.85
 
   await waitForExportReady(element)
 
@@ -86,12 +119,14 @@ export async function createNodeExportImage(
     throw new Error('Export impossible: le devis est trop long pour une image unique.')
   }
 
-  const dataUrl = await toPng(element, {
+  const renderer = format === 'jpeg' ? toJpeg : toPng
+  const dataUrl = await renderer(element, {
     width,
     height,
     pixelRatio,
     cacheBust: true,
     backgroundColor,
+    ...(format === 'jpeg' ? { quality } : {}),
   })
 
   return { dataUrl, width, height }

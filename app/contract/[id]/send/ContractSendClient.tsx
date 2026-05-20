@@ -132,7 +132,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
       if (pageElements.length !== 2) throw new Error('合同预览页还没准备好，请稍后再试。')
       const exportImages = await Promise.all(
         pageElements.map((el) =>
-          createNodeExportImage(el, { pixelRatio: 3, backgroundColor: '#FEFBF2', width: 800, height: 1132 }),
+          createNodeExportImage(el, { pixelRatio: 1.75, backgroundColor: '#FEFBF2', width: 800, height: 1132, format: 'jpeg', quality: 0.8 }),
         ),
       )
       const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([
@@ -217,7 +217,7 @@ export default function ContractSendClient({ contractId }: { contractId: string 
       const pageElements = Array.from(exportRef.current?.querySelectorAll<HTMLElement>('[data-contract-page]') || [])
       if (pageElements.length !== 2) throw new Error('合同预览页还没准备好。')
       const exportImages = await Promise.all(
-        pageElements.map((el) => createNodeExportImage(el, { pixelRatio: 3, backgroundColor: '#FEFBF2', width: 800, height: 1132 }))
+        pageElements.map((el) => createNodeExportImage(el, { pixelRatio: 1.75, backgroundColor: '#FEFBF2', width: 800, height: 1132, format: 'jpeg', quality: 0.8 }))
       )
       const [{ Document, Image, Page, StyleSheet, pdf }] = await Promise.all([import('@react-pdf/renderer')])
       const styles = StyleSheet.create({ page: { padding: 0, margin: 0, backgroundColor: '#FEFBF2' }, image: { width: '100%', height: '100%' } })
