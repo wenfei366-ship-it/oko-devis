@@ -412,22 +412,21 @@ export default function ContractSendClient({ contractId }: { contractId: string 
               onFocus={(e) => { e.currentTarget.style.border = '1px solid #B8922F' }}
               onBlur={(e) => { e.currentTarget.style.border = '1px solid transparent' }}
             />
-            {contract.sentAt ? (
-              <div className="text-[11px] italic py-2" style={{ color: '#9B8550' }}>
-                ✓ 已于 {new Date(contract.sentAt).toLocaleString('zh-CN')} 发送
+            {contract.sentAt && (
+              <div className="text-[11px] italic py-2 mb-1" style={{ color: '#9B8550' }}>
+                ✓ 上次发送：{new Date(contract.sentAt).toLocaleString('zh-CN')}
                 {contract.sentChannel ? ` · ${CONTRACT_SENT_CHANNEL_LABELS[contract.sentChannel]}` : ''}
               </div>
-            ) : (
-              <button
-                type="button"
-                disabled={sendingEmail}
-                onClick={() => void handleSendEmail()}
-                className="w-full py-3 rounded-[10px] text-[13px] font-bold"
-                style={{ backgroundColor: '#1C1611', color: '#F5D48A', border: '1px solid #B8922F' }}
-              >
-                {sendingEmail ? '发送中…' : '发送邮件  →'}
-              </button>
             )}
+            <button
+              type="button"
+              disabled={sendingEmail}
+              onClick={() => void handleSendEmail()}
+              className="w-full py-3 rounded-[10px] text-[13px] font-bold"
+              style={{ backgroundColor: '#1C1611', color: '#F5D48A', border: '1px solid #B8922F' }}
+            >
+              {sendingEmail ? '发送中…' : contract.sentAt ? '重新发送邮件  →' : '发送邮件  →'}
+            </button>
             <div className="text-[10px] italic mt-3" style={{ color: '#9B8550' }}>
               发送后将自动记录时间，合同状态变为「已发送」。
             </div>
